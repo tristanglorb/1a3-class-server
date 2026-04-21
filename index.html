@@ -258,6 +258,35 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .name-btn.mine { border-color:#5a9e6f; color:#5a9e6f; background:rgba(90,158,111,.06); }
 .name-btn span { position:relative; z-index:1; }
 
+
+/* ── Games ── */
+.games-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1px; background:rgba(201,169,110,.08); margin-bottom:48px; animation:fadeUp .8s .1s ease both; }
+.game-card { background:var(--dark-2); padding:28px 20px; cursor:pointer; transition:background .3s; position:relative; overflow:hidden; }
+.game-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(to right,var(--gold),transparent); opacity:0; transition:opacity .3s; }
+.game-card:hover { background:var(--dark-3); }
+.game-card:hover::before { opacity:1; }
+.game-card.active-game { background:var(--dark-3); }
+.game-card.active-game::before { opacity:1; }
+.game-icon { font-size:28px; margin-bottom:14px; display:block; }
+.game-title { font-size:11px; letter-spacing:.25em; text-transform:uppercase; color:var(--cream); margin-bottom:6px; }
+.game-desc  { font-size:10px; letter-spacing:.1em; color:var(--text-muted); line-height:1.7; }
+.game-arena { background:var(--dark-2); border:1px solid rgba(201,169,110,.1); margin-bottom:48px; min-height:600px; position:relative; display:flex; align-items:center; justify-content:center; animation:fadeUp .8s .2s ease both; }
+.game-arena iframe { width:100%; height:640px; border:none; display:block; }
+.game-arena canvas { display:block; }
+.game-placeholder { text-align:center; padding:80px 24px; }
+.game-placeholder-icon { font-size:48px; margin-bottom:20px; opacity:.3; }
+.game-placeholder-text { font-size:11px; letter-spacing:.25em; text-transform:uppercase; color:var(--text-muted); }
+/* game UI overlays */
+.g-overlay { position:absolute; inset:0; background:rgba(14,12,9,.92); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+.g-score { font-family:'Cormorant Garamond',serif; font-size:48px; font-weight:300; color:var(--gold); margin-bottom:8px; }
+.g-label { font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--text-muted); margin-bottom:32px; }
+.g-btn { background:transparent; border:1px solid var(--gold); color:var(--gold-light); font-family:'Josefin Sans',sans-serif; font-size:10px; letter-spacing:.3em; text-transform:uppercase; padding:12px 32px; cursor:pointer; transition:background .3s,color .3s; }
+.g-btn:hover { background:var(--gold); color:var(--dark); }
+.g-hud { position:absolute; top:16px; left:0; right:0; display:flex; justify-content:center; gap:40px; z-index:5; pointer-events:none; }
+.g-hud-item { text-align:center; }
+.g-hud-val { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; color:var(--gold); line-height:1; }
+.g-hud-key { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-muted); }
+
 /* ── Animations ── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 @keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
@@ -398,6 +427,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
       <span class="nav-link" onclick="goto('notes')">Notes</span>
       <span class="nav-link" onclick="goto('homework')">Homework</span>
       <span class="nav-link" onclick="goto('events')">Events</span>
+      <span class="nav-link" onclick="goto('games')">Games</span>
     </div>
     <div class="topbar-right">
       <div class="badge">1A3</div>
@@ -444,6 +474,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="link-card" onclick="goto('notes')"><div class="link-icon"><span></span></div><div class="link-title">Class Notes</div><div class="link-desc">Shared files from all subjects</div></div>
         <div class="link-card" onclick="goto('homework')"><div class="link-icon"><span></span></div><div class="link-title">Homework</div><div class="link-desc">Daily homework log</div></div>
         <div class="link-card" onclick="goto('events')"><div class="link-icon"><span></span></div><div class="link-title">Important Events</div><div class="link-desc">Key dates &amp; pinboard</div></div>
+        <div class="link-card" onclick="goto('games')"><div class="link-icon"><span></span></div><div class="link-title">Games</div><div class="link-desc">Chess, Tetris, Snake &amp; more</div></div>
         <div class="link-card"><div class="link-icon"><span></span></div><div class="link-title">Members</div><div class="link-desc">Full class contact list</div></div>
         <div class="link-card"><div class="link-icon"><span></span></div><div class="link-title">Forum</div><div class="link-desc">Class discussion board</div></div>
       </div>
@@ -632,6 +663,71 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════
+     PAGE: GAMES
+═══════════════════════════════════════ -->
+<div id="page-games" class="page-view">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="goto('dashboard')">
+      <div class="brand-icon"><span></span></div>
+      <div class="brand-name">1A3 Class Server</div>
+    </div>
+    <div class="topbar-right">
+      <div class="badge">Games</div>
+      <span class="back-link" onclick="goto('dashboard')">← Dashboard</span>
+    </div>
+  </nav>
+  <div class="page-body" style="max-width:1200px;">
+    <div class="page-header">
+      <div class="divider-line"><div class="divider-gem"></div></div>
+      <h1 class="page-title">Class <em>Games</em></h1>
+      <p class="page-subtitle">Pick a game and play — right here, no redirects</p>
+    </div>
+
+    <div class="games-grid">
+      <div class="game-card" id="gc-chess" onclick="loadGame('chess')">
+        <span class="game-icon">♟</span>
+        <div class="game-title">Chess</div>
+        <div class="game-desc">Play vs AI or challenge a friend online via Lichess</div>
+      </div>
+      <div class="game-card" id="gc-snake" onclick="loadGame('snake')">
+        <span class="game-icon">🐍</span>
+        <div class="game-title">Snake</div>
+        <div class="game-desc">Classic snake — eat, grow, survive</div>
+      </div>
+      <div class="game-card" id="gc-tetris" onclick="loadGame('tetris')">
+        <span class="game-icon">🟦</span>
+        <div class="game-title">Tetris</div>
+        <div class="game-desc">Stack the blocks, clear the lines</div>
+      </div>
+      <div class="game-card" id="gc-2048" onclick="loadGame('g2048')">
+        <span class="game-icon">🔢</span>
+        <div class="game-title">2048</div>
+        <div class="game-desc">Slide and merge tiles to reach 2048</div>
+      </div>
+      <div class="game-card" id="gc-minesweeper" onclick="loadGame('minesweeper')">
+        <span class="game-icon">💣</span>
+        <div class="game-title">Minesweeper</div>
+        <div class="game-desc">Clear the board without hitting a mine</div>
+      </div>
+      <div class="game-card" id="gc-wordle" onclick="loadGame('wordle')">
+        <span class="game-icon">🔤</span>
+        <div class="game-title">Wordle</div>
+        <div class="game-desc">Guess the 5-letter word in 6 tries</div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2 class="section-title" id="gameArenaTitle">Select a game above</h2><div class="section-line"></div></div>
+    <div class="game-arena" id="gameArena">
+      <div class="game-placeholder">
+        <div class="game-placeholder-icon">♟🐍🟦</div>
+        <p class="game-placeholder-text">Choose a game above to start playing</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════
      JAVASCRIPT
 ═══════════════════════════════════════ -->
@@ -651,7 +747,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
 
 /* ── Router ── */
-const PAGES = ['login','namepicker','dashboard','notes','homework','events'];
+const PAGES = ['login','namepicker','dashboard','notes','homework','events','games'];
 function goto(id) {
   PAGES.forEach(p => document.getElementById('page-'+p).classList.toggle('active', p===id));
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
@@ -1009,12 +1105,499 @@ async function delEvent(id){
 }
 
 
+
+/* ════════════════════════════════════════
+   GAMES
+════════════════════════════════════════ */
+let activeGame = null;
+
+function loadGame(id) {
+  // highlight selected card
+  document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('active-game'));
+  const card = document.getElementById('gc-'+id) || document.getElementById('gc-'+id.replace('g',''));
+  if(card) card.classList.add('active-game');
+  activeGame = id;
+  const arena = document.getElementById('gameArena');
+  const title = document.getElementById('gameArenaTitle');
+  const names = {chess:'Chess',snake:'Snake',tetris:'Tetris',g2048:'2048',minesweeper:'Minesweeper',wordle:'Wordle'};
+  title.textContent = names[id] || id;
+  arena.innerHTML = '';
+
+  if (id==='chess')       loadChess(arena);
+  else if(id==='snake')   loadSnake(arena);
+  else if(id==='tetris')  loadTetris(arena);
+  else if(id==='g2048')   load2048(arena);
+  else if(id==='minesweeper') loadMinesweeper(arena);
+  else if(id==='wordle')  loadWordle(arena);
+}
+
+/* ── CHESS via Lichess embed ── */
+function loadChess(arena) {
+  arena.style.minHeight = '640px';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;';
+  wrap.innerHTML = `
+    <p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);text-align:center;">Choose your mode then click Launch — chess opens in the panel below</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <button class="g-btn" onclick="launchChess('ai')">vs Computer</button>
+      <button class="g-btn" onclick="launchChess('friend')">vs Friend (same screen)</button>
+      <button class="g-btn" onclick="launchChess('online')">Play Online</button>
+    </div>
+    <div id="chessFrame" style="width:100%;"></div>`;
+  arena.appendChild(wrap);
+}
+
+function launchChess(mode) {
+  const el = document.getElementById('chessFrame');
+  let src = '';
+  if (mode==='ai')     src = 'https://lichess.org/embed/game/ai?color=white&bg=dark';
+  if (mode==='friend') src = 'https://lichess.org/editor?bg=dark';
+  if (mode==='online') src = 'https://lichess.org/?bg=dark';
+  el.innerHTML = `<iframe src="${src}" style="width:100%;height:580px;border:none;border-top:1px solid rgba(201,169,110,.1);margin-top:8px;" allowfullscreen></iframe>`;
+}
+
+/* ── SNAKE ── */
+function loadSnake(arena) {
+  const CELL=20, COLS=25, ROWS=20;
+  arena.style.minHeight = (ROWS*CELL+120)+'px';
+  arena.innerHTML = `
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="snakeScore">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="snakeBest">0</div><div class="g-hud-key">Best</div></div>
+      </div>
+      <canvas id="snakeCanvas" width="${COLS*CELL}" height="${ROWS*CELL}" style="border:1px solid rgba(201,169,110,.15);display:block;"></canvas>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys or WASD to move</p>
+    </div>`;
+
+  const canvas=document.getElementById('snakeCanvas');
+  const ctx=canvas.getContext('2d');
+  let snake,dir,food,score,best=0,loop,alive;
+
+  function start(){
+    snake=[{x:12,y:10},{x:11,y:10},{x:10,y:10}];
+    dir={x:1,y:0};
+    score=0;
+    alive=true;
+    spawnFood();
+    clearInterval(loop);
+    loop=setInterval(tick,120);
+    const ov=document.getElementById('snakeOver');
+    if(ov)ov.remove();
+  }
+
+  function spawnFood(){
+    do{ food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)}; }
+    while(snake.some(s=>s.x===food.x&&s.y===food.y));
+  }
+
+  function tick(){
+    if(!alive)return;
+    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
+      alive=false; clearInterval(loop); gameOver(); return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x&&head.y===food.y){ score++; spawnFood(); }
+    else snake.pop();
+    document.getElementById('snakeScore').textContent=score;
+    if(score>best){best=score;document.getElementById('snakeBest').textContent=best;}
+    draw();
+  }
+
+  function draw(){
+    ctx.fillStyle='#0e0c09'; ctx.fillRect(0,0,COLS*CELL,ROWS*CELL);
+    // food
+    ctx.fillStyle='#c9a96e';
+    ctx.fillRect(food.x*CELL+2,food.y*CELL+2,CELL-4,CELL-4);
+    // snake
+    snake.forEach((s,i)=>{
+      ctx.fillStyle=i===0?'#e8d5a3':'#8a6d3b';
+      ctx.fillRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2);
+    });
+  }
+
+  function gameOver(){
+    const ov=document.createElement('div');
+    ov.id='snakeOver';
+    ov.className='g-overlay';
+    ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over</div><button class="g-btn" onclick="loadSnake(document.getElementById('gameArena'))">Play Again</button>`;
+    canvas.parentElement.parentElement.appendChild(ov);
+  }
+
+  document.addEventListener('keydown',function snakeKey(e){
+    if(!document.getElementById('snakeCanvas')){document.removeEventListener('keydown',snakeKey);return;}
+    if(['ArrowUp','w'].includes(e.key)&&dir.y!==1)  dir={x:0,y:-1};
+    if(['ArrowDown','s'].includes(e.key)&&dir.y!==-1)dir={x:0,y:1};
+    if(['ArrowLeft','a'].includes(e.key)&&dir.x!==1) dir={x:-1,y:0};
+    if(['ArrowRight','d'].includes(e.key)&&dir.x!==-1)dir={x:1,y:0};
+    if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+  });
+
+  start();
+}
+
+/* ── TETRIS ── */
+function loadTetris(arena) {
+  const COLS=10,ROWS=20,SZ=28;
+  arena.style.minHeight=(ROWS*SZ+100)+'px';
+  arena.innerHTML=`
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="tetScore">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tetLines">0</div><div class="g-hud-key">Lines</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tetLevel">1</div><div class="g-hud-key">Level</div></div>
+      </div>
+      <canvas id="tetCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.15);"></canvas>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">← → move &nbsp;↑ rotate &nbsp;↓ soft drop &nbsp;Space hard drop</p>
+    </div>`;
+
+  const canvas=document.getElementById('tetCanvas');
+  const ctx=canvas.getContext('2d');
+  const COLORS=['','#c9a96e','#e8d5a3','#8a6d3b','#5a9e6f','#6e9ec9','#d97070','#b07ec9'];
+  const SHAPES=[
+    null,
+    [[1,1,1,1]],
+    [[2,2],[2,2]],
+    [[0,3,0],[3,3,3]],
+    [[0,4,4],[4,4,0]],
+    [[5,5,0],[0,5,5]],
+    [[6,0,0],[6,6,6]],
+    [[0,0,7],[7,7,7]]
+  ];
+
+  let board,piece,px,py,score,lines,level,loop,alive;
+
+  function newBoard(){ return Array.from({length:ROWS},()=>Array(COLS).fill(0)); }
+  function randPiece(){ const t=Math.floor(Math.random()*7)+1; return SHAPES[t].map(r=>[...r]); }
+
+  function start(){
+    board=newBoard(); score=0; lines=0; level=1; alive=true;
+    piece=randPiece(); px=3; py=0;
+    clearInterval(loop); loop=setInterval(()=>{if(alive)drop();},600);
+    const ov=document.getElementById('tetOver');if(ov)ov.remove();
+    draw();
+  }
+
+  function rotate(p){ return p[0].map((_,i)=>p.map(r=>r[i]).reverse()); }
+  function fits(p,x,y){ return p.every((row,dy)=>row.every((v,dx)=>!v||( (y+dy)>=0&&(y+dy)<ROWS&&(x+dx)>=0&&(x+dx)<COLS&&!board[y+dy][x+dx] ))); }
+
+  function drop(){
+    if(fits(piece,px,py+1)){py++;}
+    else{
+      piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v)board[py+dy][px+dx]=v;}));
+      let cleared=0;
+      for(let r=ROWS-1;r>=0;r--){
+        if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
+      }
+      if(cleared){lines+=cleared;score+=cleared*100*level;if(lines%10===0){level++;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},Math.max(100,600-level*50));}}
+      document.getElementById('tetScore').textContent=score;
+      document.getElementById('tetLines').textContent=lines;
+      document.getElementById('tetLevel').textContent=level;
+      piece=randPiece();px=3;py=0;
+      if(!fits(piece,px,py)){alive=false;clearInterval(loop);tetGameOver();}
+    }
+    draw();
+  }
+
+  function draw(){
+    ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);
+    board.forEach((row,y)=>row.forEach((v,x)=>{
+      if(v){ctx.fillStyle=COLORS[v];ctx.fillRect(x*SZ+1,y*SZ+1,SZ-2,SZ-2);}
+    }));
+    if(piece){
+      piece.forEach((row,dy)=>row.forEach((v,dx)=>{
+        if(v){ctx.fillStyle=COLORS[v];ctx.fillRect((px+dx)*SZ+1,(py+dy)*SZ+1,SZ-2,SZ-2);}
+      }));
+    }
+    // grid
+    ctx.strokeStyle='rgba(201,169,110,.04)';
+    for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}
+    for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}
+  }
+
+  function tetGameOver(){
+    const ov=document.createElement('div');ov.id='tetOver';ov.className='g-overlay';
+    ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over · ${lines} lines</div><button class="g-btn" onclick="loadTetris(document.getElementById('gameArena'))">Play Again</button>`;
+    canvas.parentElement.parentElement.appendChild(ov);
+  }
+
+  document.addEventListener('keydown',function tetKey(e){
+    if(!document.getElementById('tetCanvas')){document.removeEventListener('keydown',tetKey);return;}
+    if(!alive)return;
+    if(e.key==='ArrowLeft'&&fits(piece,px-1,py))px--;
+    else if(e.key==='ArrowRight'&&fits(piece,px+1,py))px++;
+    else if(e.key==='ArrowDown'){drop();return;}
+    else if(e.key==='ArrowUp'){const r=rotate(piece);if(fits(r,px,py))piece=r;}
+    else if(e.key===' '){while(fits(piece,px,py+1))py++;drop();return;}
+    else return;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
+    draw();
+  });
+
+  start();
+}
+
+/* ── 2048 ── */
+function load2048(arena) {
+  const SZ=4;
+  arena.innerHTML=`
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="g2score">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="g2best">0</div><div class="g-hud-key">Best</div></div>
+      </div>
+      <div id="g2board" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;background:rgba(201,169,110,.08);padding:10px;"></div>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys to slide tiles</p>
+    </div>`;
+
+  const TILE_COLORS={0:'rgba(201,169,110,.05)',2:'#2a2420',4:'#332b23',8:'#8a6d3b',16:'#9d7a3e',32:'#b08844',64:'#c9a96e',128:'#d4b87a',256:'#dfc886',512:'#ead895',1024:'#f0e4a8',2048:'#c9a96e'};
+  let board,score,best2=0;
+
+  function newBoard2(){ return Array.from({length:SZ},()=>Array(SZ).fill(0)); }
+  function addTile(){
+    const empty=[];
+    board.forEach((r,y)=>r.forEach((v,x)=>{if(!v)empty.push({x,y});}));
+    if(!empty.length)return;
+    const {x,y}=empty[Math.floor(Math.random()*empty.length)];
+    board[y][x]=Math.random()<0.9?2:4;
+  }
+
+  function drawBoard(){
+    const el=document.getElementById('g2board');if(!el)return;
+    el.innerHTML=board.map(row=>row.map(v=>`
+      <div style="width:80px;height:80px;background:${TILE_COLORS[Math.min(v,2048)]||'#c9a96e'};display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:${v>999?20:v>99?26:32}px;font-weight:300;color:${v>=8?'#0e0c09':'#c4b99a'};">${v||''}</div>`).join('')).join('');
+    document.getElementById('g2score').textContent=score;
+    if(score>best2){best2=score;document.getElementById('g2best').textContent=best2;}
+  }
+
+  function slide(row){
+    let r=row.filter(v=>v); let s=0;
+    for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;s+=r[i];r.splice(i+1,1);i++;}}
+    score+=s;
+    while(r.length<SZ)r.push(0);
+    return r;
+  }
+
+  function move(dir){
+    let moved=false;
+    const b=board.map(r=>[...r]);
+    if(dir==='left')  board=board.map(r=>{const s=slide(r);if(s.join()!==r.join())moved=true;return s;});
+    if(dir==='right') board=board.map(r=>{const s=slide([...r].reverse()).reverse();if(s.join()!==r.join())moved=true;return s;});
+    if(dir==='up'||dir==='down'){
+      for(let x=0;x<SZ;x++){
+        let col=board.map(r=>r[x]);
+        const sc=dir==='up'?slide(col):slide([...col].reverse()).reverse();
+        sc.forEach((v,y)=>{if(board[y][x]!==v)moved=true;board[y][x]=v;});
+      }
+    }
+    if(moved){addTile();drawBoard();}
+  }
+
+  function start2(){board=newBoard2();score=0;addTile();addTile();drawBoard();}
+
+  document.addEventListener('keydown',function g2Key(e){
+    if(!document.getElementById('g2board')){document.removeEventListener('keydown',g2Key);return;}
+    const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
+    if(map[e.key]){e.preventDefault();move(map[e.key]);}
+  });
+
+  start2();
+}
+
+/* ── MINESWEEPER ── */
+function loadMinesweeper(arena) {
+  const COLS=16,ROWS=12,MINES=30;
+  arena.innerHTML=`
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="msFlags">0</div><div class="g-hud-key">Flags</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="msMines">${MINES}</div><div class="g-hud-key">Mines</div></div>
+        <div class="g-hud-item"><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))" style="padding:6px 18px;font-size:9px;">New Game</button></div>
+      </div>
+      <div id="msGrid" style="display:grid;grid-template-columns:repeat(${COLS},32px);gap:2px;"></div>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Left click to reveal · Right click to flag</p>
+    </div>`;
+
+  let board,revealed,flagged,firstClick;
+
+  function initBoard(){
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+    revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    flagged=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    firstClick=true;
+  }
+
+  function placeMines(skipR,skipC){
+    let placed=0;
+    while(placed<MINES){
+      const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);
+      if(board[r][c]!=-1&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){board[r][c]=-1;placed++;}
+    }
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(board[r][c]===-1)continue;
+      let n=0;
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1)n++;}
+      board[r][c]=n;
+    }
+  }
+
+  function reveal(r,c){
+    if(r<0||r>=ROWS||c<0||c>=COLS||revealed[r][c]||flagged[r][c])return;
+    revealed[r][c]=true;
+    if(board[r][c]===0){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);}
+  }
+
+  const NCOLORS=['','#6e9ec9','#5a9e6f','#d97070','#8a6d3b','#d97070','#6e9ec9','#c9a96e','#8a8070'];
+
+  function drawMS(){
+    const el=document.getElementById('msGrid');if(!el)return;
+    el.innerHTML='';
+    let flags=0;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');
+      cell.style.cssText='width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;user-select:none;font-family:Josefin Sans,sans-serif;font-weight:400;';
+      if(flagged[r][c]){flags++;cell.textContent='🚩';cell.style.background='rgba(217,112,112,.15)';}
+      else if(!revealed[r][c]){cell.style.background='rgba(201,169,110,.1)';cell.style.border='1px solid rgba(201,169,110,.15)';}
+      else if(board[r][c]===-1){cell.textContent='💣';cell.style.background='rgba(217,112,112,.2)';}
+      else{cell.style.background='rgba(14,12,9,.5)';cell.style.color=NCOLORS[board[r][c]]||'transparent';cell.style.fontSize='12px';cell.style.letterSpacing='.1em';if(board[r][c])cell.textContent=board[r][c];}
+      const rr=r,cc=c;
+      cell.onclick=()=>{
+        if(flagged[rr][cc])return;
+        if(firstClick){placeMines(rr,cc);firstClick=false;}
+        if(board[rr][cc]===-1){revealAll();drawMS();showMSOver(false);return;}
+        reveal(rr,cc);
+        drawMS();
+        checkMSWin();
+      };
+      cell.oncontextmenu=(e)=>{e.preventDefault();if(!revealed[rr][cc])flagged[rr][cc]=!flagged[rr][cc];drawMS();};
+      el.appendChild(cell);
+    }
+    document.getElementById('msFlags').textContent=flags;
+  }
+
+  function revealAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)revealed[r][c]=true;}
+
+  function checkMSWin(){
+    const won=board.flat().every((v,i)=>v===-1||revealed[Math.floor(i/COLS)][i%COLS]);
+    if(won)showMSOver(true);
+  }
+
+  function showMSOver(won){
+    const ov=document.createElement('div');ov.className='g-overlay';
+    ov.innerHTML=`<div class="g-score" style="font-size:36px;">${won?'You Won!':'💣 Boom'}</div><div class="g-label">${won?'All mines flagged!':'Better luck next time'}</div><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))">Play Again</button>`;
+    document.getElementById('msGrid').parentElement.parentElement.appendChild(ov);
+  }
+
+  initBoard();drawMS();
+}
+
+/* ── WORDLE ── */
+function loadWordle(arena) {
+  const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT','FLAIR'];
+  const target=WORDS[Math.floor(Math.random()*WORDS.length)];
+  let guesses=[],current='',gameOver2=false;
+
+  arena.innerHTML=`
+    <div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p>
+      <div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div>
+      <div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div>
+      <div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:20px;text-transform:uppercase;"></div>
+    </div>`;
+
+  const ROWS_W=6,COLS_W=5;
+  let grid=Array.from({length:ROWS_W},()=>Array(COLS_W).fill({letter:'',state:'empty'}));
+
+  function drawWGrid(){
+    const el=document.getElementById('wGrid');if(!el)return;
+    el.innerHTML='';
+    for(let r=0;r<ROWS_W;r++){
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:repeat(5,52px);gap:6px;';
+      for(let c=0;c<COLS_W;c++){
+        const cell=document.createElement('div');
+        const {letter,state}=grid[r][c];
+        const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#252119',empty:'rgba(201,169,110,.08)',active:'rgba(201,169,110,.12)'}[state]||'rgba(201,169,110,.08)';
+        cell.style.cssText=`width:52px;height:52px;border:1px solid rgba(201,169,110,${state==='empty'?'.15':'.4'});background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Josefin Sans',sans-serif;font-size:20px;font-weight:400;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;`;
+        cell.textContent=letter;
+        row.appendChild(cell);
+      }
+      el.appendChild(row);
+    }
+  }
+
+  function drawKeys(){
+    const el=document.getElementById('wKeys');if(!el)return;
+    const rows=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['ENTER','Z','X','C','V','B','N','M','⌫']];
+    const states={};
+    guesses.forEach(g=>{[...g].forEach((l,i)=>{
+      const t=target[i]===l?'correct':target.includes(l)?'present':'absent';
+      if(!states[l]||states[l]==='absent'||(states[l]==='present'&&t==='correct'))states[l]=t;
+    });});
+    el.innerHTML='';
+    rows.forEach(row=>{
+      const rowEl=document.createElement('div');rowEl.style.cssText='display:flex;gap:5px;';
+      row.forEach(k=>{
+        const btn=document.createElement('button');
+        const st=states[k]||'empty';
+        const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#1a1713',empty:'rgba(201,169,110,.1)'}[st];
+        btn.style.cssText=`background:${bg};border:1px solid rgba(201,169,110,.2);color:var(--cream);font-family:'Josefin Sans',sans-serif;font-size:${k.length>1?9:13}px;letter-spacing:.05em;padding:${k.length>1?'14px 6px':'14px 10px'};cursor:pointer;min-width:${k.length>1?52:36}px;text-transform:uppercase;`;
+        btn.textContent=k;
+        btn.onclick=()=>handleKey(k);
+        rowEl.appendChild(btn);
+      });
+      el.appendChild(rowEl);
+    });
+  }
+
+  function handleKey(k){
+    if(gameOver2)return;
+    const row=guesses.length;
+    if(k==='⌫'||k==='Backspace'){if(current.length>0){current=current.slice(0,-1);grid[row][current.length]={letter:'',state:'active'};if(current.length<COLS_W)grid[row][current.length]={letter:'',state:'active'};}}
+    else if(k==='ENTER'){
+      if(current.length<COLS_W){document.getElementById('wMsg').textContent='Not enough letters';return;}
+      const guess=current;
+      const result=Array(COLS_W).fill('absent');
+      const tArr=[...target],gArr=[...guess];
+      gArr.forEach((l,i)=>{if(l===tArr[i]){result[i]='correct';tArr[i]=null;gArr[i]=null;}});
+      gArr.forEach((l,i)=>{if(l&&tArr.includes(l)){result[i]='present';tArr[tArr.indexOf(l)]=null;}});
+      result.forEach((s,i)=>{grid[row][i]={letter:guess[i],state:s};});
+      guesses.push(guess);current='';
+      if(guess===target){document.getElementById('wMsg').textContent='🎉 Correct!';gameOver2=true;}
+      else if(guesses.length===ROWS_W){document.getElementById('wMsg').textContent='Answer: '+target;gameOver2=true;}
+    }
+    else if(/^[A-Z]$/i.test(k)&&current.length<COLS_W){
+      current+=k.toUpperCase();
+      grid[guesses.length][current.length-1]={letter:k.toUpperCase(),state:'active'};
+    }
+    drawWGrid();drawKeys();
+  }
+
+  document.addEventListener('keydown',function wKey(e){
+    if(!document.getElementById('wGrid')){document.removeEventListener('keydown',wKey);return;}
+    if(e.key==='Enter')handleKey('ENTER');
+    else if(e.key==='Backspace')handleKey('⌫');
+    else if(/^[a-zA-Z]$/.test(e.key))handleKey(e.key.toUpperCase());
+  });
+
+  for(let r=0;r<ROWS_W;r++)for(let c=0;c<COLS_W;c++)grid[r][c]={letter:'',state:'empty'};
+  drawWGrid();drawKeys();
+}
+
 /* ════════════════════════════════════════
    NAME PICKER
 ════════════════════════════════════════ */
 // Full class list — edit these to match your actual class
 const CLASS_NAMES = [
-  'Joshua','guanghan','kayden','tristan','daniel','pm tan','yuanbin','lucas(ng)','yu wen','ean','junhang','bright','ethan(low)','evan','jack','lucas(rich)','marshall','rayner','timothy','trevan','dimitris','jason','lifei','lucas(zhao)','mazhiyuan','szekai','chenglin','javier(lim)','javier(tan)','ethan(loo)','jingzhe','zixuan','boyan',
+  'Aiden Tan','Alyssa Lim','Benjamin Ng','Chloe Wong','Daniel Lee',
+  'Elise Toh','Ethan Koh','Fiona Goh','Gabriel Ong','Hannah Lim',
+  'Isaac Chan','Jasmine Yeo','Joshua Tan','Karen Ng','Leon Sim',
+  'Megan Chua','Nathan Lim','Nicole Tan','Oliver Goh','Priya Nair',
+  'Qi Xuan Chen','Rachel Lee','Samuel Teo','Tricia Ong','Umar Faruq',
+  'Vanessa Lim','Wei Ting Ng','Xavier Tan','Yolanda Koh','Zack Lim',
+  'Amirah Binte Said','Bryan Toh','Clara Seah','Dylan Chew','Eunice Tan',
+  'Fadhil Aziz','Grace Lim','Hamzah Yusof'
 ].sort();
 
 let currentUserName = null;
