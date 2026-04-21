@@ -176,6 +176,8 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .btn-gold:hover::before { transform:scaleX(1); }
 .btn-gold:hover { color:var(--dark); }
 .btn-gold span { position:relative; z-index:1; }
+.btn-gold:disabled { opacity:.45; cursor:not-allowed; }
+.btn-gold:disabled::before { transform:scaleX(0) !important; }
 .filter-bar { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; animation:fadeUp .8s .15s ease both; }
 .filter-btn { font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:var(--text-muted); border:1px solid rgba(201,169,110,.1); background:none; padding:7px 18px; cursor:pointer; font-family:'Josefin Sans',sans-serif; transition:color .2s,border-color .2s; }
 .filter-btn.active,.filter-btn:hover { color:var(--gold); border-color:rgba(201,169,110,.35); }
@@ -249,7 +251,6 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .countdown.today    { color:var(--gold); }
 .countdown.past     { color:rgba(138,128,112,.35); }
 
-
 /* ── Name Picker ── */
 .name-btn { background:var(--dark-3); border:1px solid rgba(201,169,110,.15); color:var(--cream); font-family:'Josefin Sans',sans-serif; font-size:11px; letter-spacing:.15em; text-transform:uppercase; padding:16px 12px; cursor:pointer; transition:background .2s,border-color .2s,color .2s; text-align:center; position:relative; overflow:hidden; }
 .name-btn::before { content:''; position:absolute; inset:0; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .35s cubic-bezier(.4,0,.2,1); z-index:0; }
@@ -257,7 +258,6 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .name-btn.taken { background:rgba(14,12,9,.6); border-color:rgba(201,169,110,.06); color:rgba(138,128,112,.35); cursor:not-allowed; text-decoration:line-through; }
 .name-btn.mine { border-color:#5a9e6f; color:#5a9e6f; background:rgba(90,158,111,.06); }
 .name-btn span { position:relative; z-index:1; }
-
 
 /* ── Games ── */
 .games-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1px; background:rgba(201,169,110,.08); margin-bottom:48px; animation:fadeUp .8s .1s ease both; }
@@ -287,9 +287,20 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .g-hud-val { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; color:var(--gold); line-height:1; }
 .g-hud-key { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-muted); }
 
+/* ── Chameleon game specific ── */
+.cham-panel { background:var(--dark-3); border:1px solid rgba(201,169,110,.1); padding:24px; }
+.cham-player-row { display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(201,169,110,.03); border:1px solid rgba(201,169,110,.05); margin-bottom:6px; transition:background .2s; }
+.cham-player-row:hover { background:rgba(201,169,110,.06); }
+.cham-dot { width:8px; height:8px; transform:rotate(45deg); flex-shrink:0; }
+.cham-vote-btn { background:var(--dark-3); border:1px solid rgba(201,169,110,.15); color:var(--cream); font-family:'Josefin Sans',sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:14px 20px; cursor:pointer; transition:border-color .2s,background .2s,color .2s; text-align:left; width:100%; margin-bottom:6px; }
+.cham-vote-btn:hover { border-color:var(--gold); color:var(--gold); background:rgba(201,169,110,.04); }
+.cham-tag { font-size:9px; letter-spacing:.3em; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+.cham-tag::before { content:''; display:block; width:12px; height:1px; }
+
 /* ── Animations ── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 @keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+@keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 /* ── Responsive ── */
 @media (max-width:768px) {
@@ -443,8 +454,8 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
     <div class="stat-grid">
       <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">33</div><div class="stat-note">Full class enrolled</div></div>
       <div class="stat-card"><div class="stat-label">Days to Exam</div><div class="stat-value" id="daysLeft">—</div><div class="stat-note">End-of-year finals</div></div>
-      <div class="stat-card"><div class="stat-label">Homework Entries</div><div class="stat-value" id="hwCount">67(basically none)</div><div class="stat-note">Logged this term</div></div>
-      <div class="stat-card"><div class="stat-label">Upcoming Events</div><div class="stat-value" id="evCount">idk</div><div class="stat-note">On the pinboard</div></div>
+      <div class="stat-card"><div class="stat-label">Homework Entries</div><div class="stat-value" id="hwCount">—</div><div class="stat-note">Logged this term</div></div>
+      <div class="stat-card"><div class="stat-label">Upcoming Events</div><div class="stat-value" id="evCount">—</div><div class="stat-note">On the pinboard</div></div>
     </div>
     <section style="margin-bottom:52px;">
       <div class="section-head"><h2 class="section-title">Announcements</h2><div class="section-line"></div></div>
@@ -723,6 +734,13 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="game-title">Wordle</div>
         <div class="game-desc">Guess the 5-letter word in 6 tries</div>
       </div>
+      <!-- NEW: The Chameleon -->
+      <div class="game-card" id="gc-chameleon" onclick="loadGame('chameleon')" style="position:relative;">
+        <div style="position:absolute;top:10px;right:10px;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#5a9e6f;border:1px solid rgba(90,158,111,.3);padding:3px 8px;">Multiplayer</div>
+        <span class="game-icon">🦎</span>
+        <div class="game-title">The Chameleon</div>
+        <div class="game-desc">Social deduction — find the spy before they blend in</div>
+      </div>
     </div>
 
     <div class="section-head"><h2 class="section-title" id="gameArenaTitle">Select a game above</h2><div class="section-line"></div></div>
@@ -740,12 +758,8 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 ═══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ══════════════════════════════════════════════════════
-   ▶▶  PASTE YOUR SUPABASE KEYS HERE  ◀◀
-══════════════════════════════════════════════════════ */
 const SUPABASE_URL  = 'https://nkvtdrdskxgwphbhdodw.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rdnRkcmRza3hnd3BoYmhkb2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2OTcyMTUsImV4cCI6MjA5MjI3MzIxNX0.C-QMpeaLQzUtMvQXNKvWd8WLPf7MjVd01Sx8hdr6a1U';
-/* ══════════════════════════════════════════════════════ */
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -756,7 +770,7 @@ let currentUser = null;
 /* ── Router ── */
 const PAGES = ['login','namepicker','dashboard','notes','homework','events','games'];
 function goto(id) {
-  if (id !== 'games') activeGame = null;
+  if (id !== 'games') { activeGame = null; chamCleanup(); }
   PAGES.forEach(p => document.getElementById('page-'+p).classList.toggle('active', p===id));
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
   const match = document.querySelector(`#page-dashboard .nav-link[onclick*="${id}"]`);
@@ -857,6 +871,7 @@ async function handleSubmit() {
 });
 
 async function signOut() {
+  chamCleanup();
   await db.auth.signOut();
   currentUser = null;
   goto('login');
@@ -1113,45 +1128,626 @@ async function delEvent(id){
   renderEvents();
 }
 
-
-
 /* ════════════════════════════════════════
    GAMES
 ════════════════════════════════════════ */
 let activeGame = null;
 
 function initGamesPage() {
-  // reset any active game highlight and clear arena back to placeholder
   document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('active-game'));
   const arena = document.getElementById('gameArena');
   const title = document.getElementById('gameArenaTitle');
   if (arena && !activeGame) {
-    arena.innerHTML = '<div class="game-placeholder"><div class="game-placeholder-icon">♟🐍🟦</div><p class="game-placeholder-text">Choose a game above to start playing</p></div>';
+    arena.innerHTML = '<div class="game-placeholder"><div class="game-placeholder-icon">♟🐍🟦🦎</div><p class="game-placeholder-text">Choose a game above to start playing</p></div>';
     title.textContent = 'Select a game above';
   }
 }
 
 function loadGame(id) {
-  // highlight selected card
   document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('active-game'));
   const card = document.getElementById('gc-'+id) || document.getElementById('gc-'+id.replace('g',''));
   if(card) card.classList.add('active-game');
   activeGame = id;
   const arena = document.getElementById('gameArena');
   const title = document.getElementById('gameArenaTitle');
-  const names = {chess:'Chess',snake:'Snake',tetris:'Tetris',g2048:'2048',minesweeper:'Minesweeper',wordle:'Wordle'};
+  const names = {chess:'Chess',snake:'Snake',tetris:'Tetris',g2048:'2048',minesweeper:'Minesweeper',wordle:'Wordle',chameleon:'The Chameleon'};
   title.textContent = names[id] || id;
   arena.innerHTML = '';
 
-  if (id==='chess')       loadChess(arena);
-  else if(id==='snake')   loadSnake(arena);
-  else if(id==='tetris')  loadTetris(arena);
-  else if(id==='g2048')   load2048(arena);
+  if (id==='chess')           loadChess(arena);
+  else if(id==='snake')       loadSnake(arena);
+  else if(id==='tetris')      loadTetris(arena);
+  else if(id==='g2048')       load2048(arena);
   else if(id==='minesweeper') loadMinesweeper(arena);
-  else if(id==='wordle')  loadWordle(arena);
+  else if(id==='wordle')      loadWordle(arena);
+  else if(id==='chameleon')   loadChameleon(arena);
 }
 
-/* ── CHESS — fully built-in, no external sites ── */
+/* ══════════════════════════════════════════════════════════════
+   ▐█ THE CHAMELEON — MULTIPLAYER SOCIAL DEDUCTION GAME ▐█
+   
+   SUPABASE SETUP REQUIRED — run this SQL in your Supabase dashboard:
+   ──────────────────────────────────────────────────────────────
+   create table if not exists chameleon_rooms (
+     id uuid primary key default gen_random_uuid(),
+     room_code text unique not null,
+     state jsonb not null default '{}'::jsonb,
+     updated_at timestamptz default now()
+   );
+   alter table chameleon_rooms enable row level security;
+   create policy "allow all" on chameleon_rooms for all
+     using (true) with check (true);
+   
+   Then in Supabase → Database → Replication → enable realtime
+   for the chameleon_rooms table.
+══════════════════════════════════════════════════════════════ */
+
+const CHAMELEON_DECKS = [
+  {category:'Animals',        words:['Lion','Tiger','Elephant','Giraffe','Zebra','Penguin','Dolphin','Eagle','Cheetah','Koala']},
+  {category:'Sports',         words:['Football','Tennis','Swimming','Basketball','Badminton','Cricket','Volleyball','Rugby','Golf','Fencing']},
+  {category:'Foods',          words:['Pizza','Sushi','Tacos','Pasta','Ramen','Burger','Curry','Satay','Waffles','Nachos']},
+  {category:'Countries',      words:['France','Japan','Brazil','Australia','Egypt','Canada','India','Italy','Norway','Iceland']},
+  {category:'Movies',         words:['Avatar','Titanic','Inception','Avengers','Frozen','Joker','Dune','Parasite','Oppenheimer','Interstellar']},
+  {category:'Professions',    words:['Doctor','Lawyer','Engineer','Teacher','Chef','Pilot','Artist','Scientist','Journalist','Architect']},
+  {category:'Instruments',    words:['Guitar','Piano','Violin','Drums','Trumpet','Flute','Cello','Harp','Saxophone','Ukulele']},
+  {category:'Singapore Food', words:['Laksa','Hainanese Chicken Rice','Char Kway Teow','Roti Prata','Nasi Lemak','Bak Kut Teh','Chilli Crab','Mee Goreng','Kaya Toast','Ice Kachang']},
+  {category:'Superheroes',    words:['Batman','Superman','Spider-Man','Iron Man','Captain America','Wonder Woman','Thor','Black Panther','Flash','Aquaman']},
+  {category:'School Subjects',words:['Mathematics','Chemistry','Physics','History','English','Biology','Geography','Literature','Music','Art']},
+];
+
+let chamChannel   = null;
+let chamPollTimer = null;
+let chamRoomCode  = null;
+
+function chamCleanup() {
+  if (chamChannel)   { try { db.removeChannel(chamChannel); } catch(e){} chamChannel = null; }
+  if (chamPollTimer) { clearInterval(chamPollTimer); chamPollTimer = null; }
+  chamRoomCode = null;
+}
+
+/* ── Entry screen ── */
+function loadChameleon(arena) {
+  if (!currentUser) { arena.innerHTML = chamMsg('Sign in first to play The Chameleon.'); return; }
+  chamCleanup();
+  arena.style.minHeight = '680px';
+  arena.innerHTML = `
+  <div style="width:100%;padding:40px 32px;display:flex;flex-direction:column;align-items:center;gap:28px;max-width:680px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-size:52px;margin-bottom:10px;">🦎</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--cream);letter-spacing:.08em;margin-bottom:8px;">The Chameleon</h2>
+      <p style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Multiplayer social deduction · 3–10 players</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(201,169,110,.08);width:100%;">
+      <div style="background:var(--dark-3);padding:28px;display:flex;flex-direction:column;gap:14px;align-items:center;">
+        <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);">Create Room</div>
+        <p style="font-size:11px;color:var(--text-muted);letter-spacing:.06em;text-align:center;line-height:1.8;">Host a game — share the code with classmates</p>
+        <button class="btn-gold" onclick="chamCreate()" style="width:100%;margin-top:4px;"><span>Create Room</span></button>
+      </div>
+      <div style="background:var(--dark-3);padding:28px;display:flex;flex-direction:column;gap:14px;align-items:center;">
+        <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);">Join Room</div>
+        <input class="f-input" type="text" id="chamJoinCode" placeholder="Room code" maxlength="6"
+          style="width:100%;text-align:center;letter-spacing:.4em;text-transform:uppercase;font-size:16px;"
+          onkeydown="if(event.key==='Enter')chamJoin()">
+        <button class="btn-gold" onclick="chamJoin()" style="width:100%;"><span>Join Room</span></button>
+      </div>
+    </div>
+
+    <div style="background:var(--dark-3);border:1px solid rgba(201,169,110,.08);padding:20px 24px;width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">How to Play</div>
+      <div style="font-size:11px;color:var(--text-muted);line-height:2;letter-spacing:.06em;">
+        1. A secret word and category are chosen (e.g. <em style="color:var(--text-soft);">Animals → Elephant</em>)<br>
+        2. Everyone sees the word — <strong style="color:#d97070;">except the Chameleon</strong>, who only sees the category<br>
+        3. Each player gives a one-word clue that hints at the word without being too obvious<br>
+        4. Players vote on who they think the Chameleon is<br>
+        5. If caught, the Chameleon gets one chance to <strong style="color:var(--gold);">guess the word</strong> and still win
+      </div>
+    </div>
+
+    <div id="chamErrMsg" style="font-size:11px;color:#d97070;letter-spacing:.1em;min-height:16px;text-align:center;"></div>
+  </div>`;
+}
+
+function chamErr(msg) {
+  const el = document.getElementById('chamErrMsg');
+  if (el) el.textContent = msg;
+}
+
+function chamMsg(txt) {
+  return `<div style="padding:60px 24px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">${txt}</div>`;
+}
+
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+async function chamCreate() {
+  if (!currentUserName) { chamErr('You need a display name. Please re-login and pick a name.'); return; }
+  const code = genCode();
+  const state = {
+    status: 'lobby',
+    creator_id: currentUser.id,
+    players: [{ user_id: currentUser.id, name: currentUserName, clue: null, vote: null }],
+    category: null, secret_word: null, chameleon_id: null,
+    vote_tally: null, chameleon_caught: null, chameleon_guess: null, chameleon_guess_correct: null
+  };
+  const { error } = await db.from('chameleon_rooms').insert({ room_code: code, state });
+  if (error) {
+    chamErr('Could not create room. Check console for SQL setup instructions.');
+    console.error('%c CHAMELEON TABLE MISSING — Run this SQL in Supabase:', 'color:#d97070;font-weight:bold;font-size:14px;');
+    console.log(`create table if not exists chameleon_rooms (
+  id uuid primary key default gen_random_uuid(),
+  room_code text unique not null,
+  state jsonb not null default '{}',
+  updated_at timestamptz default now()
+);
+alter table chameleon_rooms enable row level security;
+create policy "allow all" on chameleon_rooms for all using (true) with check (true);`);
+    return;
+  }
+  chamRoomCode = code;
+  chamSubscribe(code);
+  renderChamLobby(code, state);
+}
+
+async function chamJoin() {
+  if (!currentUserName) { chamErr('You need a display name. Please re-login and pick a name.'); return; }
+  const code = (document.getElementById('chamJoinCode')?.value||'').trim().toUpperCase();
+  if (code.length < 4) { chamErr('Enter a valid room code.'); return; }
+  const { data, error } = await db.from('chameleon_rooms').select('*').eq('room_code', code).single();
+  if (error || !data) { chamErr('Room not found. Double-check the code.'); return; }
+  const state = data.state;
+  if (state.status !== 'lobby') { chamErr('This game has already started. Wait for the next round.'); return; }
+  if (state.players.length >= 10) { chamErr('Room is full (10 players max).'); return; }
+  // Already in room
+  if (state.players.some(p => p.user_id === currentUser.id)) {
+    chamRoomCode = code;
+    chamSubscribe(code);
+    renderChamLobby(code, state);
+    return;
+  }
+  const newState = { ...state, players: [...state.players, { user_id: currentUser.id, name: currentUserName, clue: null, vote: null }] };
+  const { error: e2 } = await db.from('chameleon_rooms').update({ state: newState, updated_at: new Date().toISOString() }).eq('room_code', code);
+  if (e2) { chamErr('Could not join. Try again.'); return; }
+  chamRoomCode = code;
+  chamSubscribe(code);
+  renderChamLobby(code, newState);
+}
+
+/* ── Realtime subscription + polling fallback ── */
+function chamSubscribe(code) {
+  if (chamChannel) { try { db.removeChannel(chamChannel); } catch(e){} }
+  chamChannel = db.channel('cham_'+code)
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'chameleon_rooms', filter:`room_code=eq.${code}` },
+      payload => { chamDispatch(code, payload.new.state); })
+    .subscribe(status => {
+      // Fallback polling if realtime subscription fails
+      if (status === 'SUBSCRIBED') {
+        if (chamPollTimer) clearInterval(chamPollTimer);
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        if (!chamPollTimer) {
+          chamPollTimer = setInterval(async () => {
+            if (!chamRoomCode) { clearInterval(chamPollTimer); return; }
+            const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', chamRoomCode).single();
+            if (data) chamDispatch(chamRoomCode, data.state);
+          }, 2000);
+        }
+      }
+    });
+
+  // Always poll as a safety net
+  if (chamPollTimer) clearInterval(chamPollTimer);
+  chamPollTimer = setInterval(async () => {
+    if (!chamRoomCode || !document.getElementById('gameArena')) { clearInterval(chamPollTimer); return; }
+    const { data } = await db.from('chameleon_rooms').select('state,updated_at').eq('room_code', chamRoomCode).single();
+    if (data) chamDispatch(chamRoomCode, data.state);
+  }, 2500);
+}
+
+function chamDispatch(code, state) {
+  if (!state || !chamRoomCode) return;
+  const s = state.status;
+  if (s === 'lobby')    renderChamLobby(code, state);
+  else if (s === 'playing')  renderChamPlaying(code, state);
+  else if (s === 'voting')   renderChamVoting(code, state);
+  else if (s === 'guessing') renderChamGuessing(code, state);
+  else if (s === 'results')  renderChamResults(code, state);
+}
+
+/* ── LOBBY ── */
+function renderChamLobby(code, state) {
+  const arena = document.getElementById('gameArena');
+  if (!arena) return;
+  const isCreator = state.creator_id === currentUser?.id;
+  const canStart  = state.players.length >= 3;
+
+  // Build a stable HTML string to avoid re-rendering if already showing lobby
+  const html = `
+  <div style="width:100%;padding:36px 32px;display:flex;flex-direction:column;align-items:center;gap:24px;max-width:640px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">🦎 The Chameleon — Lobby</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--cream);letter-spacing:.5em;margin-bottom:6px;">${code}</div>
+      <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Share this code with classmates</div>
+    </div>
+
+    <div class="cham-panel" style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+        Players — ${state.players.length} / 10
+        ${canStart?'<span style="color:#5a9e6f;margin-left:10px;">· Ready to start</span>':'<span style="margin-left:10px;">· Need at least 3</span>'}
+      </div>
+      ${state.players.map((p,i)=>`
+        <div class="cham-player-row">
+          <div class="cham-dot" style="background:${p.user_id===currentUser?.id?'#5a9e6f':'var(--gold)'};"></div>
+          <span style="font-size:12px;letter-spacing:.1em;color:var(--cream);flex:1;">${p.name}</span>
+          ${p.user_id===state.creator_id?'<span style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,169,110,.2);padding:3px 10px;">Host</span>':''}
+          ${p.user_id===currentUser?.id&&p.user_id!==state.creator_id?'<span style="font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">You</span>':''}
+        </div>`).join('')}
+    </div>
+
+    ${isCreator ? `
+      <div style="width:100%;display:flex;flex-direction:column;gap:10px;align-items:stretch;">
+        <button class="btn-gold" onclick="chamStart('${code}')" ${canStart?'':'disabled'} style="width:100%;">
+          <span>${canStart?'Start Game ▶':'Waiting for players…'}</span>
+        </button>
+        ${!canStart?`<p style="font-size:10px;text-align:center;letter-spacing:.15em;color:var(--text-muted);">${3-state.players.length} more player${3-state.players.length===1?'':'s'} needed</p>`:''}
+      </div>` : `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:6px;height:6px;background:var(--gold);transform:rotate(45deg);animation:pulse 2s ease-in-out infinite;"></div>
+        <p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);">Waiting for host to start…</p>
+      </div>`}
+
+    <button onclick="chamLeave('${code}')" style="background:none;border:none;font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:rgba(138,128,112,.35);cursor:pointer;padding:4px 0;">Leave Room</button>
+  </div>`;
+
+  // Only re-render if something changed
+  if (arena.dataset.chamHtml !== html) {
+    arena.dataset.chamHtml = html;
+    arena.innerHTML = html;
+  }
+}
+
+async function chamStart(code) {
+  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
+  if (!data) return;
+  const state = data.state;
+  if (state.players.length < 3) return;
+  const deck = CHAMELEON_DECKS[Math.floor(Math.random()*CHAMELEON_DECKS.length)];
+  const word = deck.words[Math.floor(Math.random()*deck.words.length)];
+  const chameleonIdx = Math.floor(Math.random()*state.players.length);
+  const chameleonId  = state.players[chameleonIdx].user_id;
+  const newState = {
+    ...state, status:'playing',
+    category: deck.category, secret_word: word, chameleon_id: chameleonId,
+    players: state.players.map(p=>({...p,clue:null,vote:null})),
+    vote_tally:null, chameleon_caught:null, chameleon_guess:null, chameleon_guess_correct:null
+  };
+  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
+}
+
+async function chamLeave(code) {
+  chamCleanup();
+  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
+  if (data) {
+    const state = data.state;
+    const remaining = state.players.filter(p=>p.user_id!==currentUser.id);
+    if (remaining.length===0 || state.creator_id===currentUser.id) {
+      await db.from('chameleon_rooms').delete().eq('room_code', code);
+    } else {
+      await db.from('chameleon_rooms').update({ state:{...state,players:remaining}, updated_at:new Date().toISOString() }).eq('room_code',code);
+    }
+  }
+  loadChameleon(document.getElementById('gameArena'));
+}
+
+/* ── PLAYING — Clue submission ── */
+function renderChamPlaying(code, state) {
+  const arena = document.getElementById('gameArena');
+  if (!arena) return;
+  const me = state.players.find(p=>p.user_id===currentUser?.id);
+  const isCham = state.chameleon_id === currentUser?.id;
+  const myClue = me?.clue;
+  const cluedCount = state.players.filter(p=>p.clue).length;
+  const allDone = cluedCount === state.players.length;
+
+  arena.innerHTML = `
+  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:660px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">🦎 The Chameleon — Give Your Clue</div>
+    </div>
+
+    <!-- Role card -->
+    <div style="width:100%;padding:24px 28px;background:${isCham?'rgba(217,112,112,.06)':'rgba(90,158,111,.06)'};border:1px solid ${isCham?'rgba(217,112,112,.25)':'rgba(90,158,111,.25)'};">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:8px;height:8px;background:${isCham?'#d97070':'#5a9e6f'};transform:rotate(45deg);flex-shrink:0;"></div>
+        <span style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:${isCham?'#d97070':'#5a9e6f'};">${isCham?'You are the Chameleon':'You are a Villager'}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr ${isCham?'':'1fr'};gap:20px;">
+        <div>
+          <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Category</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--cream);">${state.category}</div>
+        </div>
+        ${!isCham?`
+        <div>
+          <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Secret Word</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--gold);">${state.secret_word}</div>
+        </div>`:
+        `<div style="font-size:11px;color:var(--text-muted);letter-spacing:.08em;line-height:1.8;align-self:center;">Blend in — give a clue that fits the category but don't reveal you don't know the word.</div>`}
+      </div>
+    </div>
+
+    <!-- Clue input -->
+    ${!myClue?`
+    <div style="width:100%;display:flex;gap:10px;">
+      <input class="f-input" type="text" id="chamClueInput"
+        placeholder="One word only…" maxlength="25" style="flex:1;font-size:14px;letter-spacing:.12em;"
+        onkeydown="if(event.key==='Enter')chamSubmitClue('${code}')">
+      <button class="btn-gold" onclick="chamSubmitClue('${code}')"><span>Submit</span></button>
+    </div>
+    <p style="font-size:10px;letter-spacing:.15em;color:var(--text-muted);">Hint at the word without giving it away — one word, no proper nouns</p>`:`
+    <div style="padding:14px 22px;border:1px solid rgba(201,169,110,.25);background:rgba(201,169,110,.04);text-align:center;">
+      <span style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Your clue — </span>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold);">${myClue}</span>
+    </div>`}
+
+    <!-- Player clue progress -->
+    <div class="cham-panel" style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">
+        Clues submitted — ${cluedCount} / ${state.players.length}
+        ${allDone?'<span style="color:#5a9e6f;margin-left:8px;">· All in!</span>':''}
+      </div>
+      ${state.players.map(p=>`
+        <div class="cham-player-row">
+          <div class="cham-dot" style="background:${p.clue?'#5a9e6f':'rgba(138,128,112,.3)'};"></div>
+          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${p.name}${p.user_id===currentUser?.id?' (you)':''}</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:16px;color:${p.clue?'var(--gold)':'var(--text-muted)'};">${p.clue||'…'}</span>
+        </div>`).join('')}
+    </div>
+
+    ${allDone?`<p style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5a9e6f;animation:pulse 1.5s ease-in-out infinite;">All clues submitted — moving to vote…</p>`:''}
+  </div>`;
+}
+
+async function chamSubmitClue(code) {
+  const input = document.getElementById('chamClueInput');
+  const clue = (input?.value||'').trim();
+  if (!clue) { toast('Type a clue first.'); return; }
+  if (/\s/.test(clue)) { toast('One word only — no spaces!'); return; }
+  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
+  if (!data) return;
+  const state = data.state;
+  if (state.players.find(p=>p.user_id===currentUser.id)?.clue) return; // already submitted
+  const newPlayers = state.players.map(p=>p.user_id===currentUser.id?{...p,clue}:p);
+  const allIn = newPlayers.every(p=>p.clue);
+  const newState = { ...state, players:newPlayers, status: allIn?'voting':'playing' };
+  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
+  renderChamPlaying(code, newState);
+}
+
+/* ── VOTING ── */
+function renderChamVoting(code, state) {
+  const arena = document.getElementById('gameArena');
+  if (!arena) return;
+  const me = state.players.find(p=>p.user_id===currentUser?.id);
+  const myVote = me?.vote;
+  const votedCount = state.players.filter(p=>p.vote).length;
+  const allVoted = votedCount === state.players.length;
+
+  arena.innerHTML = `
+  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:660px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">🦎 The Chameleon — Vote</div>
+      <p style="font-size:14px;font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--cream);">Who is the Chameleon?</p>
+      <p style="font-size:10px;letter-spacing:.15em;color:var(--text-muted);margin-top:6px;">Category was: <em style="color:var(--text-soft);">${state.category}</em></p>
+    </div>
+
+    <!-- All clues summary -->
+    <div class="cham-panel" style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">All Clues</div>
+      ${state.players.map(p=>`
+        <div class="cham-player-row">
+          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${p.name}</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);">${p.clue||'—'}</span>
+        </div>`).join('')}
+    </div>
+
+    <!-- Vote section -->
+    ${!myVote?`
+    <div style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Vote — you cannot vote for yourself</div>
+      ${state.players.filter(p=>p.user_id!==currentUser?.id).map(p=>`
+        <button class="cham-vote-btn" onclick="chamVote('${code}','${p.name.replace(/'/g,"\\'")}')">
+          <span style="font-size:12px;letter-spacing:.1em;">${p.name}</span>
+          <span style="float:right;font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);">${p.clue}</span>
+        </button>`).join('')}
+    </div>`:
+    `<div style="padding:16px 24px;border:1px solid rgba(201,169,110,.25);background:rgba(201,169,110,.04);text-align:center;width:100%;">
+      <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">You voted for — </span>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);">${myVote}</span>
+    </div>`}
+
+    <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">
+      ${votedCount} / ${state.players.length} votes cast
+      ${allVoted?'<span style="color:#5a9e6f;margin-left:8px;">· Tallying…</span>':''}
+    </div>
+  </div>`;
+}
+
+async function chamVote(code, targetName) {
+  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
+  if (!data) return;
+  const state = data.state;
+  if (state.players.find(p=>p.user_id===currentUser.id)?.vote) return; // already voted
+
+  const newPlayers = state.players.map(p=>p.user_id===currentUser.id?{...p,vote:targetName}:p);
+  const allVoted = newPlayers.every(p=>p.vote);
+
+  let newState = { ...state, players:newPlayers };
+
+  if (allVoted) {
+    // Tally
+    const tally = {};
+    newPlayers.forEach(p=>{ tally[p.vote] = (tally[p.vote]||0)+1; });
+    const maxV = Math.max(...Object.values(tally));
+    const topVoted = Object.keys(tally).filter(n=>tally[n]===maxV);
+    const chamPlayer = state.players.find(p=>p.user_id===state.chameleon_id);
+    // Chameleon is caught only if they alone have the most votes
+    const caught = topVoted.length===1 && topVoted[0]===chamPlayer?.name;
+    newState = { ...newState, status: caught?'guessing':'results', vote_tally:tally, chameleon_caught:caught };
+  }
+
+  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
+  renderChamVoting(code, newState);
+}
+
+/* ── GUESSING — Chameleon's last chance ── */
+function renderChamGuessing(code, state) {
+  const arena = document.getElementById('gameArena');
+  if (!arena) return;
+  const isCham = state.chameleon_id === currentUser?.id;
+  const chamPlayer = state.players.find(p=>p.user_id===state.chameleon_id);
+  const alreadyGuessed = state.chameleon_guess !== null && state.chameleon_guess !== undefined;
+
+  arena.innerHTML = `
+  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:600px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:#d97070;margin-bottom:12px;">🦎 Chameleon Caught!</div>
+      <p style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);">${chamPlayer?.name} was voted out</p>
+      <p style="font-size:11px;letter-spacing:.1em;color:var(--text-muted);margin-top:8px;">One last chance — guess the secret word to still win</p>
+    </div>
+
+    <div style="padding:20px 32px;border:1px solid rgba(201,169,110,.2);background:rgba(201,169,110,.04);text-align:center;width:100%;">
+      <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">The category was</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);">${state.category}</div>
+    </div>
+
+    ${isCham && !alreadyGuessed ? `
+    <div style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;">
+      <p style="font-size:11px;letter-spacing:.15em;color:#d97070;text-transform:uppercase;">Your guess — think carefully:</p>
+      <div style="display:flex;gap:10px;width:100%;">
+        <input class="f-input" type="text" id="chamGuessInput" placeholder="What is the secret word?" maxlength="30"
+          style="flex:1;font-size:14px;letter-spacing:.1em;" onkeydown="if(event.key==='Enter')chamSubmitGuess('${code}')">
+        <button class="btn-gold" onclick="chamSubmitGuess('${code}')"><span>Guess</span></button>
+      </div>
+    </div>` : isCham && alreadyGuessed ? `
+    <p style="font-size:11px;letter-spacing:.15em;color:var(--gold);text-transform:uppercase;animation:pulse 1.5s ease-in-out infinite;">Guess submitted — revealing results…</p>
+    ` : `
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:6px;height:6px;background:#d97070;transform:rotate(45deg);animation:pulse 1.5s ease-in-out infinite;"></div>
+      <p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);">Waiting for ${chamPlayer?.name} to guess…</p>
+    </div>`}
+
+    <!-- Vote breakdown -->
+    <div class="cham-panel" style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Vote Tally</div>
+      ${Object.entries(state.vote_tally||{}).sort((a,b)=>b[1]-a[1]).map(([name,v])=>`
+        <div class="cham-player-row">
+          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${name}</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);">${v}</span>
+          <span style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">vote${v!==1?'s':''}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+async function chamSubmitGuess(code) {
+  const input = document.getElementById('chamGuessInput');
+  const guess = (input?.value||'').trim();
+  if (!guess) { toast('Enter your guess.'); return; }
+  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
+  if (!data) return;
+  const state = data.state;
+  const correct = guess.toLowerCase().trim() === state.secret_word.toLowerCase().trim();
+  const newState = { ...state, status:'results', chameleon_guess:guess, chameleon_guess_correct:correct };
+  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
+}
+
+/* ── RESULTS ── */
+function renderChamResults(code, state) {
+  const arena = document.getElementById('gameArena');
+  if (!arena) return;
+  const chamPlayer = state.players.find(p=>p.user_id===state.chameleon_id);
+  const isCreator  = state.creator_id === currentUser?.id;
+
+  let resultTitle, resultColor, resultDesc;
+  if (!state.chameleon_caught) {
+    resultTitle = `${chamPlayer?.name} escaped!`;
+    resultDesc  = 'The Chameleon was not caught — Chameleon wins!';
+    resultColor = '#d97070';
+  } else if (state.chameleon_guess_correct) {
+    resultTitle = `${chamPlayer?.name} guessed correctly!`;
+    resultDesc  = 'The Chameleon was caught but guessed the word — Chameleon wins!';
+    resultColor = '#d97070';
+  } else {
+    resultTitle = 'The Chameleon was stopped!';
+    resultDesc  = `${chamPlayer?.name} was caught and failed to guess the word — Villagers win!`;
+    resultColor = '#5a9e6f';
+  }
+
+  arena.innerHTML = `
+  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:700px;margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">🦎 Game Over</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:${resultColor};line-height:1.35;">${resultTitle}</div>
+      <p style="font-size:11px;letter-spacing:.1em;color:var(--text-muted);margin-top:8px;">${resultDesc}</p>
+    </div>
+
+    <!-- Key info cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(201,169,110,.08);width:100%;">
+      <div style="background:var(--dark-3);padding:22px;text-align:center;">
+        <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Secret Word</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">${state.secret_word}</div>
+        <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-top:6px;">${state.category}</div>
+      </div>
+      <div style="background:var(--dark-3);padding:22px;text-align:center;">
+        <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">The Chameleon</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);">🦎 ${chamPlayer?.name}</div>
+        ${state.chameleon_guess!==null&&state.chameleon_guess!==undefined?`
+        <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-top:8px;">
+          Guessed: <span style="color:${state.chameleon_guess_correct?'#5a9e6f':'#d97070'};font-weight:600;">${state.chameleon_guess}</span>
+          ${state.chameleon_guess_correct?' ✓':' ✗'}
+        </div>`:''}
+      </div>
+    </div>
+
+    <!-- Vote tally -->
+    <div class="cham-panel" style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">Vote Tally</div>
+      ${Object.entries(state.vote_tally||{}).sort((a,b)=>b[1]-a[1]).map(([name,v])=>{
+        const isChP = name===chamPlayer?.name;
+        return`<div class="cham-player-row" style="${isChP?'border-color:rgba(217,112,112,.2);background:rgba(217,112,112,.04);':''}">
+          ${isChP?'<span style="font-size:12px;">🦎</span>':'<div style="width:14px;flex-shrink:0;"></div>'}
+          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${name}</span>
+          <span style="font-family:\'Cormorant Garamond\',serif;font-size:24px;color:var(--gold);margin-right:6px;">${v}</span>
+          <span style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">vote${v!==1?'s':''}</span>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- All clues post-mortem -->
+    <div class="cham-panel" style="width:100%;">
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">All Clues Given</div>
+      ${state.players.map(p=>{
+        const isChP = p.user_id===state.chameleon_id;
+        return`<div class="cham-player-row" style="${isChP?'border-color:rgba(217,112,112,.15);':''}">
+          ${isChP?'<span style="font-size:12px;">🦎</span>':'<div style="width:14px;flex-shrink:0;"></div>'}
+          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${p.name}${p.user_id===currentUser?.id?' (you)':''}</span>
+          <span style="font-family:\'Cormorant Garamond\',serif;font-size:18px;color:var(--gold);">${p.clue||'—'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;align-items:center;">
+      ${isCreator?`<button class="btn-gold" onclick="chamStart('${code}')" style="width:100%;"><span>Play Again ▶</span></button>`:`
+      <p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);">Waiting for host to start another round…</p>`}
+      <button onclick="chamLeave('${code}')" style="background:none;border:none;font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:rgba(138,128,112,.35);cursor:pointer;">Leave Room</button>
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════
+   CHESS
+════════════════════════════════════════ */
 function loadChess(arena) {
   arena.style.minHeight = '700px';
   arena.innerHTML = `
@@ -1166,15 +1762,7 @@ function loadChess(arena) {
       <button class="g-btn" onclick="chessReset()" style="font-size:9px;padding:8px 20px;margin-top:4px;">New Game</button>
     </div>`;
 
-  // chess engine state
-  window.CH = {
-    mode: 'ai',
-    board: null, turn: 'w', sel: null, validMoves: [],
-    captured: {w:[], b:[]},
-    gameOver: false,
-    promotePending: null,
-    SZ: 60
-  };
+  window.CH = { mode:'ai', board:null, turn:'w', sel:null, validMoves:[], captured:{w:[],b:[]}, gameOver:false, promotePending:null, SZ:60 };
   chessMode('ai');
 }
 
@@ -1205,689 +1793,165 @@ function chessReset() {
   c.onclick = chessClick;
 }
 
-function chessStatus(msg) {
-  const el = document.getElementById('chessStatus');
-  if (el) el.textContent = msg;
-}
+function chessStatus(msg) { const el=document.getElementById('chessStatus'); if(el)el.textContent=msg; }
 
-const PIECE_UNICODE = {
-  kw:'♔',qw:'♕',rw:'♖',bw:'♗',nw:'♘',pw:'♙',
-  kb:'♚',qb:'♛',rb:'♜',bb:'♝',nb:'♞',pb:'♟'
-};
+const PIECE_UNICODE = {kw:'♔',qw:'♕',rw:'♖',bw:'♗',nw:'♘',pw:'♙',kb:'♚',qb:'♛',rb:'♜',bb:'♝',nb:'♞',pb:'♟'};
 
 function chessDraw() {
-  const c = document.getElementById('chessBoard');
-  if (!c) return;
-  const ctx = c.getContext('2d');
-  const SZ = CH.SZ;
-  for (let r=0;r<8;r++) for (let f=0;f<8;f++) {
-    const light = (r+f)%2===0;
-    ctx.fillStyle = light ? '#2a2420' : '#1a1410';
-    ctx.fillRect(f*SZ, r*SZ, SZ, SZ);
-    // highlight selected
-    if (CH.sel && CH.sel[0]===r && CH.sel[1]===f) {
-      ctx.fillStyle = 'rgba(201,169,110,.35)';
-      ctx.fillRect(f*SZ, r*SZ, SZ, SZ);
-    }
-    // highlight valid moves
-    if (CH.validMoves.some(m=>m[0]===r&&m[1]===f)) {
-      ctx.fillStyle = 'rgba(201,169,110,.2)';
-      ctx.fillRect(f*SZ, r*SZ, SZ, SZ);
-      ctx.strokeStyle = 'rgba(201,169,110,.5)';
-      ctx.strokeRect(f*SZ+1, r*SZ+1, SZ-2, SZ-2);
-    }
-    // draw piece
-    const p = CH.board[r][f];
-    if (p) {
-      ctx.font = `${SZ*0.72}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = p[1]==='w' ? '#e8d5a3' : '#3a2a1a';
-      // shadow for dark pieces
-      if (p[1]==='b') { ctx.strokeStyle='#c9a96e'; ctx.lineWidth=0.5; ctx.strokeText(PIECE_UNICODE[p], f*SZ+SZ/2, r*SZ+SZ/2+1); }
-      ctx.fillText(PIECE_UNICODE[p], f*SZ+SZ/2, r*SZ+SZ/2+1);
-    }
+  const c=document.getElementById('chessBoard'); if(!c)return;
+  const ctx=c.getContext('2d'); const SZ=CH.SZ;
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const light=(r+f)%2===0;
+    ctx.fillStyle=light?'#2a2420':'#1a1410'; ctx.fillRect(f*SZ,r*SZ,SZ,SZ);
+    if(CH.sel&&CH.sel[0]===r&&CH.sel[1]===f){ctx.fillStyle='rgba(201,169,110,.35)';ctx.fillRect(f*SZ,r*SZ,SZ,SZ);}
+    if(CH.validMoves.some(m=>m[0]===r&&m[1]===f)){ctx.fillStyle='rgba(201,169,110,.2)';ctx.fillRect(f*SZ,r*SZ,SZ,SZ);ctx.strokeStyle='rgba(201,169,110,.5)';ctx.strokeRect(f*SZ+1,r*SZ+1,SZ-2,SZ-2);}
+    const p=CH.board[r][f];
+    if(p){ctx.font=`${SZ*.72}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=p[1]==='w'?'#e8d5a3':'#3a2a1a';if(p[1]==='b'){ctx.strokeStyle='#c9a96e';ctx.lineWidth=.5;ctx.strokeText(PIECE_UNICODE[p],f*SZ+SZ/2,r*SZ+SZ/2+1);}ctx.fillText(PIECE_UNICODE[p],f*SZ+SZ/2,r*SZ+SZ/2+1);}
   }
-  // coord labels
-  ctx.font = '10px Josefin Sans, sans-serif';
-  ctx.fillStyle = 'rgba(201,169,110,.4)';
-  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  for(let i=0;i<8;i++) {
-    ctx.fillText(8-i, 2, i*SZ+2);
-    ctx.textAlign='right'; ctx.textBaseline='bottom';
-    ctx.fillText(String.fromCharCode(97+i), (i+1)*SZ-2, 480-2);
-    ctx.textAlign='left'; ctx.textBaseline='top';
-  }
-  // update captured
-  const cap = document.getElementById('chessCaptured');
-  if (cap) {
-    const wb = CH.captured.b.map(p=>PIECE_UNICODE[p]).join('');
-    const bb = CH.captured.w.map(p=>PIECE_UNICODE[p]).join('');
-    cap.innerHTML = `<span style="color:#e8d5a3;">White captured: ${wb||'—'}</span> &nbsp;|&nbsp; <span style="color:#c9a96e;">Black captured: ${bb||'—'}</span>`;
-  }
+  ctx.font='10px Josefin Sans,sans-serif';ctx.fillStyle='rgba(201,169,110,.4)';
+  for(let i=0;i<8;i++){ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(8-i,2,i*SZ+2);ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(String.fromCharCode(97+i),(i+1)*SZ-2,480-2);}
+  const cap=document.getElementById('chessCaptured');
+  if(cap){const wb=CH.captured.b.map(p=>PIECE_UNICODE[p]).join('');const bb=CH.captured.w.map(p=>PIECE_UNICODE[p]).join('');cap.innerHTML=`<span style="color:#e8d5a3;">White captured: ${wb||'—'}</span> &nbsp;|&nbsp; <span style="color:#c9a96e;">Black captured: ${bb||'—'}</span>`;}
 }
 
 function chessClick(e) {
-  if (CH.gameOver) return;
-  if (CH.mode==='ai' && CH.turn==='b') return;
-  const rect = e.target.getBoundingClientRect();
-  const x = e.clientX - rect.left, y = e.clientY - rect.top;
-  const scale = e.target.width / rect.width;
-  const f = Math.floor(x*scale/CH.SZ), r = Math.floor(y*scale/CH.SZ);
-  if (f<0||f>7||r<0||r>7) return;
-
-  if (CH.sel) {
-    const mv = CH.validMoves.find(m=>m[0]===r&&m[1]===f);
-    if (mv) {
-      chessApplyMove(CH.sel[0],CH.sel[1],r,f);
-      CH.sel=null; CH.validMoves=[];
-      chessDraw();
-      if (!CH.gameOver && CH.mode==='ai' && CH.turn==='b') {
-        chessStatus("Computer thinking…");
-        setTimeout(chessAIMove, 300);
-      }
-      return;
-    }
-  }
-  // select a piece
-  const p = CH.board[r][f];
-  if (p && p[1]===CH.turn) {
-    CH.sel=[r,f];
-    CH.validMoves = chessGetMoves(r,f,true);
-    chessDraw();
-  } else {
-    CH.sel=null; CH.validMoves=[];
-    chessDraw();
-  }
+  if(CH.gameOver)return; if(CH.mode==='ai'&&CH.turn==='b')return;
+  const rect=e.target.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const scale=e.target.width/rect.width;const f=Math.floor(x*scale/CH.SZ),r=Math.floor(y*scale/CH.SZ);
+  if(f<0||f>7||r<0||r>7)return;
+  if(CH.sel){const mv=CH.validMoves.find(m=>m[0]===r&&m[1]===f);if(mv){chessApplyMove(CH.sel[0],CH.sel[1],r,f);CH.sel=null;CH.validMoves=[];chessDraw();if(!CH.gameOver&&CH.mode==='ai'&&CH.turn==='b'){chessStatus("Computer thinking…");setTimeout(chessAIMove,300);}return;}}
+  const p=CH.board[r][f];
+  if(p&&p[1]===CH.turn){CH.sel=[r,f];CH.validMoves=chessGetMoves(r,f,true);chessDraw();}
+  else{CH.sel=null;CH.validMoves=[];chessDraw();}
 }
 
-function chessApplyMove(r1,f1,r2,f2,promotion) {
-  const p = CH.board[r1][f1];
-  const captured = CH.board[r2][f2];
-  if (captured) CH.captured[p[1]].push(captured);
-
-  // en passant capture
-  if (p[0]==='p' && f1!==f2 && !CH.board[r2][f2]) {
-    CH.captured[p[1]].push(CH.board[r1][f2]);
-    CH.board[r1][f2]=null;
-  }
-  // castling
-  if (p[0]==='k') {
-    if (f2-f1===2) { CH.board[r1][5]=CH.board[r1][7]; CH.board[r1][7]=null; }
-    if (f1-f2===2) { CH.board[r1][3]=CH.board[r1][0]; CH.board[r1][0]=null; }
-    if (p[1]==='w'){CH.castling.wK=false;CH.castling.wQ=false;}
-    else{CH.castling.bK=false;CH.castling.bQ=false;}
-  }
-  if (p[0]==='r') {
-    if(r1===7&&f1===0)CH.castling.wQ=false;
-    if(r1===7&&f1===7)CH.castling.wK=false;
-    if(r1===0&&f1===0)CH.castling.bQ=false;
-    if(r1===0&&f1===7)CH.castling.bK=false;
-  }
-  // en passant flag
-  CH.enPassant = (p[0]==='p' && Math.abs(r2-r1)===2) ? [r1+(r2-r1)/2, f1] : null;
-
-  CH.board[r2][f2] = p;
-  CH.board[r1][f1] = null;
-
-  // pawn promotion
-  if (p[0]==='p' && (r2===0||r2===7)) {
-    CH.board[r2][f2] = (promotion||'q')+p[1];
-  }
-
-  CH.turn = CH.turn==='w'?'b':'w';
-  const inCheck = chessInCheck(CH.turn);
-  const hasMoves = chessHasAnyMoves(CH.turn);
-  if (!hasMoves) {
-    CH.gameOver=true;
-    if (inCheck) {
-      const winner = CH.turn==='w'?'Black':'White';
-      chessStatus(`♛ Checkmate — ${winner} wins!`);
-    } else {
-      chessStatus('½ Stalemate — draw!');
-    }
-  } else if (inCheck) {
-    chessStatus(`Check! ${CH.turn==='w'?'White':'Black'} to move`);
-  } else {
-    if (CH.mode==='friend') chessStatus(`${CH.turn==='w'?'White':'Black'}'s turn`);
-    else chessStatus(CH.turn==='w'?"Your turn":"Computer thinking…");
-  }
+function chessApplyMove(r1,f1,r2,f2,promotion){
+  const p=CH.board[r1][f1]; const captured=CH.board[r2][f2];
+  if(captured)CH.captured[p[1]].push(captured);
+  if(p[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){CH.captured[p[1]].push(CH.board[r1][f2]);CH.board[r1][f2]=null;}
+  if(p[0]==='k'){if(f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}if(f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}if(p[1]==='w'){CH.castling.wK=false;CH.castling.wQ=false;}else{CH.castling.bK=false;CH.castling.bQ=false;}}
+  if(p[0]==='r'){if(r1===7&&f1===0)CH.castling.wQ=false;if(r1===7&&f1===7)CH.castling.wK=false;if(r1===0&&f1===0)CH.castling.bQ=false;if(r1===0&&f1===7)CH.castling.bK=false;}
+  CH.enPassant=(p[0]==='p'&&Math.abs(r2-r1)===2)?[r1+(r2-r1)/2,f1]:null;
+  CH.board[r2][f2]=p; CH.board[r1][f1]=null;
+  if(p[0]==='p'&&(r2===0||r2===7))CH.board[r2][f2]=(promotion||'q')+p[1];
+  CH.turn=CH.turn==='w'?'b':'w';
+  const inCheck=chessInCheck(CH.turn); const hasMoves=chessHasAnyMoves(CH.turn);
+  if(!hasMoves){CH.gameOver=true;if(inCheck)chessStatus(`♛ Checkmate — ${CH.turn==='w'?'Black':'White'} wins!`);else chessStatus('½ Stalemate — draw!');}
+  else if(inCheck)chessStatus(`Check! ${CH.turn==='w'?'White':'Black'} to move`);
+  else{if(CH.mode==='friend')chessStatus(`${CH.turn==='w'?'White':'Black'}'s turn`);else chessStatus(CH.turn==='w'?"Your turn":"Computer thinking…");}
 }
 
-function chessGetMoves(r,f,filterCheck) {
-  const p = CH.board[r][f];
-  if (!p) return [];
-  const [type,color] = [p[0],p[1]];
-  const opp = color==='w'?'b':'w';
-  const moves = [];
-  const add = (tr,tf) => {
-    if(tr>=0&&tr<8&&tf>=0&&tf<8) {
-      const t=CH.board[tr][tf];
-      if(!t||t[1]===opp) moves.push([tr,tf]);
-    }
-  };
-  const slide = (dr,df) => {
-    let tr=r+dr,tf=f+df;
-    while(tr>=0&&tr<8&&tf>=0&&tf<8){
-      const t=CH.board[tr][tf];
-      if(t){if(t[1]===opp)moves.push([tr,tf]);break;}
-      moves.push([tr,tf]);tr+=dr;tf+=df;
-    }
-  };
-
-  if(type==='p'){
-    const dir=color==='w'?-1:1;
-    const start=color==='w'?6:1;
-    if(!CH.board[r+dir]?.[f]) {
-      moves.push([r+dir,f]);
-      if(r===start&&!CH.board[r+2*dir]?.[f]) moves.push([r+2*dir,f]);
-    }
-    for(const df of[-1,1]){
-      const tr=r+dir,tf=f+df;
-      if(tr>=0&&tr<8&&tf>=0&&tf<8){
-        if(CH.board[tr][tf]?.[1]===opp) moves.push([tr,tf]);
-        if(CH.enPassant&&CH.enPassant[0]===tr&&CH.enPassant[1]===tf) moves.push([tr,tf]);
-      }
-    }
-  } else if(type==='n'){
-    for(const[dr,df] of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) add(r+dr,f+df);
-  } else if(type==='b'){
-    for(const[dr,df] of[[-1,-1],[-1,1],[1,-1],[1,1]]) slide(dr,df);
-  } else if(type==='r'){
-    for(const[dr,df] of[[-1,0],[1,0],[0,-1],[0,1]]) slide(dr,df);
-  } else if(type==='q'){
-    for(const[dr,df] of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]]) slide(dr,df);
-  } else if(type==='k'){
-    for(const[dr,df] of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]) add(r+dr,f+df);
-    // castling
-    const rank=color==='w'?7:0;
-    if(r===rank&&f===4){
-      if(color==='w'&&CH.castling.wK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp)) moves.push([rank,6]);
-      if(color==='w'&&CH.castling.wQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp)) moves.push([rank,2]);
-      if(color==='b'&&CH.castling.bK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp)) moves.push([rank,6]);
-      if(color==='b'&&CH.castling.bQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp)) moves.push([rank,2]);
-    }
-  }
-
-  if(!filterCheck) return moves;
-  // filter moves that leave king in check
-  return moves.filter(([tr,tf])=>{
-    const save=CH.board[tr][tf], saveEP=CH.enPassant;
-    let epCapR=null,epCapSave=null;
-    if(type==='p'&&f!==tf&&!CH.board[tr][tf]){epCapR=r;epCapSave=CH.board[r][tf];CH.board[r][tf]=null;}
-    CH.board[tr][tf]=p; CH.board[r][f]=null;
-    const safe=!chessInCheck(color);
-    CH.board[r][f]=p; CH.board[tr][tf]=save;
-    if(epCapR!==null){CH.board[epCapR][tf]=epCapSave;}
-    CH.enPassant=saveEP;
-    return safe;
-  });
+function chessGetMoves(r,f,filterCheck){
+  const p=CH.board[r][f]; if(!p)return[];
+  const[type,color]=[p[0],p[1]]; const opp=color==='w'?'b':'w'; const moves=[];
+  const add=(tr,tf)=>{if(tr>=0&&tr<8&&tf>=0&&tf<8){const t=CH.board[tr][tf];if(!t||t[1]===opp)moves.push([tr,tf]);}};
+  const slide=(dr,df)=>{let tr=r+dr,tf=f+df;while(tr>=0&&tr<8&&tf>=0&&tf<8){const t=CH.board[tr][tf];if(t){if(t[1]===opp)moves.push([tr,tf]);break;}moves.push([tr,tf]);tr+=dr;tf+=df;}};
+  if(type==='p'){const dir=color==='w'?-1:1;const start=color==='w'?6:1;if(!CH.board[r+dir]?.[f]){moves.push([r+dir,f]);if(r===start&&!CH.board[r+2*dir]?.[f])moves.push([r+2*dir,f]);}for(const df of[-1,1]){const tr=r+dir,tf=f+df;if(tr>=0&&tr<8&&tf>=0&&tf<8){if(CH.board[tr][tf]?.[1]===opp)moves.push([tr,tf]);if(CH.enPassant&&CH.enPassant[0]===tr&&CH.enPassant[1]===tf)moves.push([tr,tf]);}}}
+  else if(type==='n'){for(const[dr,df]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]])add(r+dr,f+df);}
+  else if(type==='b'){for(const[dr,df]of[[-1,-1],[-1,1],[1,-1],[1,1]])slide(dr,df);}
+  else if(type==='r'){for(const[dr,df]of[[-1,0],[1,0],[0,-1],[0,1]])slide(dr,df);}
+  else if(type==='q'){for(const[dr,df]of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]])slide(dr,df);}
+  else if(type==='k'){for(const[dr,df]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]])add(r+dr,f+df);const rank=color==='w'?7:0;if(r===rank&&f===4){if(color==='w'&&CH.castling.wK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp))moves.push([rank,6]);if(color==='w'&&CH.castling.wQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp))moves.push([rank,2]);if(color==='b'&&CH.castling.bK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp))moves.push([rank,6]);if(color==='b'&&CH.castling.bQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp))moves.push([rank,2]);}}
+  if(!filterCheck)return moves;
+  return moves.filter(([tr,tf])=>{const save=CH.board[tr][tf],saveEP=CH.enPassant;let epCapR=null,epCapSave=null;if(type==='p'&&f!==tf&&!CH.board[tr][tf]){epCapR=r;epCapSave=CH.board[r][tf];CH.board[r][tf]=null;}CH.board[tr][tf]=p;CH.board[r][f]=null;const safe=!chessInCheck(color);CH.board[r][f]=p;CH.board[tr][tf]=save;if(epCapR!==null)CH.board[epCapR][tf]=epCapSave;CH.enPassant=saveEP;return safe;});
 }
 
-function chessSquareAttacked(r,f,byColor) {
-  for(let pr=0;pr<8;pr++) for(let pf=0;pf<8;pf++){
-    const p=CH.board[pr][pf];
-    if(p&&p[1]===byColor){
-      const ms=chessGetMoves(pr,pf,false);
-      if(ms.some(m=>m[0]===r&&m[1]===f)) return true;
-    }
-  }
-  return false;
-}
+function chessSquareAttacked(r,f,byColor){for(let pr=0;pr<8;pr++)for(let pf=0;pf<8;pf++){const p=CH.board[pr][pf];if(p&&p[1]===byColor){const ms=chessGetMoves(pr,pf,false);if(ms.some(m=>m[0]===r&&m[1]===f))return true;}}return false;}
+function chessInCheck(color){let kr=-1,kf=-1;for(let r=0;r<8;r++)for(let f=0;f<8;f++)if(CH.board[r][f]===(color==='w'?'kw':'kb')){kr=r;kf=f;}return chessSquareAttacked(kr,kf,color==='w'?'b':'w');}
+function chessHasAnyMoves(color){for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(p&&p[1]===color&&chessGetMoves(r,f,true).length>0)return true;}return false;}
 
-function chessInCheck(color) {
-  let kr=-1,kf=-1;
-  for(let r=0;r<8;r++) for(let f=0;f<8;f++) if(CH.board[r][f]===(color==='w'?'kw':'kb')){kr=r;kf=f;}
-  return chessSquareAttacked(kr,kf,color==='w'?'b':'w');
-}
+const PIECE_VAL={p:100,n:320,b:330,r:500,q:900,k:20000};
+const PST={p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]]};
 
-function chessHasAnyMoves(color) {
-  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
-    const p=CH.board[r][f];
-    if(p&&p[1]===color&&chessGetMoves(r,f,true).length>0) return true;
-  }
-  return false;
-}
+function chessEval(){let s=0;for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(!p)continue;const t=p[0],c=p[1];const pv=PIECE_VAL[t]||0;const pr=c==='w'?r:7-r;const ps=(PST[t]?.[pr]?.[f])||0;s+=c==='w'?-(pv+ps):(pv+ps);}return s;}
+function chessMinimax(depth,alpha,beta,maximizing){if(depth===0)return chessEval();const color=maximizing?'b':'w';const moves=[];for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(p&&p[1]===color)chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));}if(!moves.length)return maximizing?-99999:99999;let best=maximizing?-Infinity:Infinity;for(const[r1,f1,r2,f2]of moves){const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];const saveCast={...CH.castling};let epR=null,epSave=null;if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}CH.board[r2][f2]=saveBoard[0]==='p'&&(r2===0||r2===7)?'q'+saveBoard[1]:saveBoard;CH.board[r1][f1]=null;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;const val=chessMinimax(depth-1,alpha,beta,!maximizing);CH.board[r1][f1]=saveBoard;CH.board[r2][f2]=save;if(epR!==null)CH.board[epR][f2]=epSave;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}CH.enPassant=saveEP;CH.castling={...saveCast};if(maximizing){best=Math.max(best,val);alpha=Math.max(alpha,val);}else{best=Math.min(best,val);beta=Math.min(beta,val);}if(beta<=alpha)break;}return best;}
+function chessAIMove(){if(CH.gameOver||CH.turn!=='b')return;const moves=[];for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(p&&p[1]==='b')chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));}if(!moves.length)return;let best=-Infinity,bestMove=moves[0];for(const[r1,f1,r2,f2]of moves){const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];const saveCast={...CH.castling};let epR=null,epSave=null;if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}CH.board[r2][f2]=saveBoard[0]==='p'&&r2===0?'q'+saveBoard[1]:saveBoard;CH.board[r1][f1]=null;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;const val=chessMinimax(2,-Infinity,Infinity,false);CH.board[r1][f1]=saveBoard;CH.board[r2][f2]=save;if(epR!==null)CH.board[epR][f2]=epSave;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}CH.enPassant=saveEP;CH.castling={...saveCast};if(val>best){best=val;bestMove=[r1,f1,r2,f2];}}chessApplyMove(...bestMove);chessDraw();}
 
-/* ── AI (minimax depth 3) ── */
-const PIECE_VAL = {p:100,n:320,b:330,r:500,q:900,k:20000};
-const PST = {
-  p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
-  n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
-  b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
-  r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
-  q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
-  k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]]
-};
-
-function chessEval() {
-  let score=0;
-  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
-    const p=CH.board[r][f];
-    if(!p) continue;
-    const t=p[0],c=p[1];
-    const pv=PIECE_VAL[t]||0;
-    const pr=c==='w'?r:7-r;
-    const ps=(PST[t]?.[pr]?.[f])||0;
-    score += c==='w' ? -(pv+ps) : (pv+ps);
-  }
-  return score;
-}
-
-function chessMinimax(depth,alpha,beta,maximizing) {
-  if(depth===0) return chessEval();
-  const color=maximizing?'b':'w';
-  const moves=[];
-  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
-    const p=CH.board[r][f];
-    if(p&&p[1]===color) chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));
-  }
-  if(!moves.length) return maximizing ? -99999 : 99999;
-  let best=maximizing?-Infinity:Infinity;
-  for(const[r1,f1,r2,f2] of moves){
-    const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];
-    const saveCast={...CH.castling};
-    let epR=null,epSave=null;
-    if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}
-    CH.board[r2][f2]=saveBoard[0]==='p'&&(r2===0||r2===7)?'q'+saveBoard[1]:saveBoard;
-    CH.board[r1][f1]=null;
-    // castling rook
-    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}
-    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}
-    CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;
-    const val=chessMinimax(depth-1,alpha,beta,!maximizing);
-    // restore
-    CH.board[r1][f1]=saveBoard; CH.board[r2][f2]=save;
-    if(epR!==null){CH.board[epR][f2]=epSave;}
-    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}
-    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}
-    CH.enPassant=saveEP; CH.castling={...saveCast};
-    if(maximizing){best=Math.max(best,val);alpha=Math.max(alpha,val);}
-    else{best=Math.min(best,val);beta=Math.min(beta,val);}
-    if(beta<=alpha) break;
-  }
-  return best;
-}
-
-function chessAIMove() {
-  if(CH.gameOver||CH.turn!=='b') return;
-  const moves=[];
-  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
-    const p=CH.board[r][f];
-    if(p&&p[1]==='b') chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));
-  }
-  if(!moves.length) return;
-  let best=-Infinity, bestMove=moves[0];
-  for(const[r1,f1,r2,f2] of moves){
-    const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];
-    const saveCast={...CH.castling};
-    let epR=null,epSave=null;
-    if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}
-    CH.board[r2][f2]=saveBoard[0]==='p'&&r2===0?'q'+saveBoard[1]:saveBoard;
-    CH.board[r1][f1]=null;
-    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}
-    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}
-    CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;
-    const val=chessMinimax(2,-Infinity,Infinity,false);
-    CH.board[r1][f1]=saveBoard; CH.board[r2][f2]=save;
-    if(epR!==null){CH.board[epR][f2]=epSave;}
-    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}
-    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}
-    CH.enPassant=saveEP; CH.castling={...saveCast};
-    if(val>best){best=val;bestMove=[r1,f1,r2,f2];}
-  }
-  chessApplyMove(...bestMove);
-  chessDraw();
-}
-
-/* ── SNAKE ── */
+/* ════════════════════════════════════════
+   SNAKE
+════════════════════════════════════════ */
 function loadSnake(arena) {
-  const CELL=20, COLS=25, ROWS=20;
-  arena.style.minHeight = (ROWS*CELL+120)+'px';
-  arena.innerHTML = `
-    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
-      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
-        <div class="g-hud-item"><div class="g-hud-val" id="snakeScore">0</div><div class="g-hud-key">Score</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="snakeBest">0</div><div class="g-hud-key">Best</div></div>
-      </div>
-      <canvas id="snakeCanvas" width="${COLS*CELL}" height="${ROWS*CELL}" style="border:1px solid rgba(201,169,110,.15);display:block;"></canvas>
-      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys or WASD to move</p>
-    </div>`;
-
-  const canvas=document.getElementById('snakeCanvas');
-  const ctx=canvas.getContext('2d');
+  const CELL=20,COLS=25,ROWS=20;
+  arena.style.minHeight=(ROWS*CELL+120)+'px';
+  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="snakeScore">0</div><div class="g-hud-key">Score</div></div><div class="g-hud-item"><div class="g-hud-val" id="snakeBest">0</div><div class="g-hud-key">Best</div></div></div><canvas id="snakeCanvas" width="${COLS*CELL}" height="${ROWS*CELL}" style="border:1px solid rgba(201,169,110,.15);display:block;"></canvas><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys or WASD to move</p></div>`;
+  const canvas=document.getElementById('snakeCanvas'),ctx=canvas.getContext('2d');
   let snake,dir,food,score,best=0,loop,alive;
-
-  function start(){
-    snake=[{x:12,y:10},{x:11,y:10},{x:10,y:10}];
-    dir={x:1,y:0};
-    score=0;
-    alive=true;
-    spawnFood();
-    clearInterval(loop);
-    loop=setInterval(tick,120);
-    const ov=document.getElementById('snakeOver');
-    if(ov)ov.remove();
-  }
-
-  function spawnFood(){
-    do{ food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)}; }
-    while(snake.some(s=>s.x===food.x&&s.y===food.y));
-  }
-
-  function tick(){
-    if(!alive)return;
-    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
-    if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
-      alive=false; clearInterval(loop); gameOver(); return;
-    }
-    snake.unshift(head);
-    if(head.x===food.x&&head.y===food.y){ score++; spawnFood(); }
-    else snake.pop();
-    document.getElementById('snakeScore').textContent=score;
-    if(score>best){best=score;document.getElementById('snakeBest').textContent=best;}
-    draw();
-  }
-
-  function draw(){
-    ctx.fillStyle='#0e0c09'; ctx.fillRect(0,0,COLS*CELL,ROWS*CELL);
-    // food
-    ctx.fillStyle='#c9a96e';
-    ctx.fillRect(food.x*CELL+2,food.y*CELL+2,CELL-4,CELL-4);
-    // snake
-    snake.forEach((s,i)=>{
-      ctx.fillStyle=i===0?'#e8d5a3':'#8a6d3b';
-      ctx.fillRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2);
-    });
-  }
-
-  function gameOver(){
-    const ov=document.createElement('div');
-    ov.id='snakeOver';
-    ov.className='g-overlay';
-    ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over</div><button class="g-btn" onclick="loadSnake(document.getElementById('gameArena'))">Play Again</button>`;
-    canvas.parentElement.parentElement.appendChild(ov);
-  }
-
-  document.addEventListener('keydown',function snakeKey(e){
-    if(!document.getElementById('snakeCanvas')){document.removeEventListener('keydown',snakeKey);return;}
-    if(['ArrowUp','w'].includes(e.key)&&dir.y!==1)  dir={x:0,y:-1};
-    if(['ArrowDown','s'].includes(e.key)&&dir.y!==-1)dir={x:0,y:1};
-    if(['ArrowLeft','a'].includes(e.key)&&dir.x!==1) dir={x:-1,y:0};
-    if(['ArrowRight','d'].includes(e.key)&&dir.x!==-1)dir={x:1,y:0};
-    if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
-  });
-
+  function start(){snake=[{x:12,y:10},{x:11,y:10},{x:10,y:10}];dir={x:1,y:0};score=0;alive=true;spawnFood();clearInterval(loop);loop=setInterval(tick,120);const ov=document.getElementById('snakeOver');if(ov)ov.remove();}
+  function spawnFood(){do{food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}while(snake.some(s=>s.x===food.x&&s.y===food.y));}
+  function tick(){if(!alive)return;const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){alive=false;clearInterval(loop);gameOver();return;}snake.unshift(head);if(head.x===food.x&&head.y===food.y){score++;spawnFood();}else snake.pop();document.getElementById('snakeScore').textContent=score;if(score>best){best=score;document.getElementById('snakeBest').textContent=best;}draw();}
+  function draw(){ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*CELL,ROWS*CELL);ctx.fillStyle='#c9a96e';ctx.fillRect(food.x*CELL+2,food.y*CELL+2,CELL-4,CELL-4);snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#e8d5a3':'#8a6d3b';ctx.fillRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2);});}
+  function gameOver(){const ov=document.createElement('div');ov.id='snakeOver';ov.className='g-overlay';ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over</div><button class="g-btn" onclick="loadSnake(document.getElementById('gameArena'))">Play Again</button>`;canvas.parentElement.parentElement.appendChild(ov);}
+  document.addEventListener('keydown',function snakeKey(e){if(!document.getElementById('snakeCanvas')){document.removeEventListener('keydown',snakeKey);return;}if(['ArrowUp','w'].includes(e.key)&&dir.y!==1)dir={x:0,y:-1};if(['ArrowDown','s'].includes(e.key)&&dir.y!==-1)dir={x:0,y:1};if(['ArrowLeft','a'].includes(e.key)&&dir.x!==1)dir={x:-1,y:0};if(['ArrowRight','d'].includes(e.key)&&dir.x!==-1)dir={x:1,y:0};if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();});
   start();
 }
 
-/* ── TETRIS ── */
+/* ════════════════════════════════════════
+   TETRIS
+════════════════════════════════════════ */
 function loadTetris(arena) {
   const COLS=10,ROWS=20,SZ=28;
   arena.style.minHeight=(ROWS*SZ+100)+'px';
-  arena.innerHTML=`
-    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
-      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
-        <div class="g-hud-item"><div class="g-hud-val" id="tetScore">0</div><div class="g-hud-key">Score</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="tetLines">0</div><div class="g-hud-key">Lines</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="tetLevel">1</div><div class="g-hud-key">Level</div></div>
-      </div>
-      <canvas id="tetCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.15);"></canvas>
-      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">← → move &nbsp;↑ rotate &nbsp;↓ soft drop &nbsp;Space hard drop</p>
-    </div>`;
-
-  const canvas=document.getElementById('tetCanvas');
-  const ctx=canvas.getContext('2d');
+  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="tetScore">0</div><div class="g-hud-key">Score</div></div><div class="g-hud-item"><div class="g-hud-val" id="tetLines">0</div><div class="g-hud-key">Lines</div></div><div class="g-hud-item"><div class="g-hud-val" id="tetLevel">1</div><div class="g-hud-key">Level</div></div></div><canvas id="tetCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.15);"></canvas><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">← → move &nbsp;↑ rotate &nbsp;↓ soft drop &nbsp;Space hard drop</p></div>`;
+  const canvas=document.getElementById('tetCanvas'),ctx=canvas.getContext('2d');
   const COLORS=['','#c9a96e','#e8d5a3','#8a6d3b','#5a9e6f','#6e9ec9','#d97070','#b07ec9'];
-  const SHAPES=[
-    null,
-    [[1,1,1,1]],
-    [[2,2],[2,2]],
-    [[0,3,0],[3,3,3]],
-    [[0,4,4],[4,4,0]],
-    [[5,5,0],[0,5,5]],
-    [[6,0,0],[6,6,6]],
-    [[0,0,7],[7,7,7]]
-  ];
-
+  const SHAPES=[null,[[1,1,1,1]],[[2,2],[2,2]],[[0,3,0],[3,3,3]],[[0,4,4],[4,4,0]],[[5,5,0],[0,5,5]],[[6,0,0],[6,6,6]],[[0,0,7],[7,7,7]]];
   let board,piece,px,py,score,lines,level,loop,alive;
-
-  function newBoard(){ return Array.from({length:ROWS},()=>Array(COLS).fill(0)); }
-  function randPiece(){ const t=Math.floor(Math.random()*7)+1; return SHAPES[t].map(r=>[...r]); }
-
-  function start(){
-    board=newBoard(); score=0; lines=0; level=1; alive=true;
-    piece=randPiece(); px=3; py=0;
-    clearInterval(loop); loop=setInterval(()=>{if(alive)drop();},600);
-    const ov=document.getElementById('tetOver');if(ov)ov.remove();
-    draw();
-  }
-
-  function rotate(p){ return p[0].map((_,i)=>p.map(r=>r[i]).reverse()); }
-  function fits(p,x,y){ return p.every((row,dy)=>row.every((v,dx)=>!v||( (y+dy)>=0&&(y+dy)<ROWS&&(x+dx)>=0&&(x+dx)<COLS&&!board[y+dy][x+dx] ))); }
-
-  function drop(){
-    if(fits(piece,px,py+1)){py++;}
-    else{
-      piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v)board[py+dy][px+dx]=v;}));
-      let cleared=0;
-      for(let r=ROWS-1;r>=0;r--){
-        if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
-      }
-      if(cleared){lines+=cleared;score+=cleared*100*level;if(lines%10===0){level++;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},Math.max(100,600-level*50));}}
-      document.getElementById('tetScore').textContent=score;
-      document.getElementById('tetLines').textContent=lines;
-      document.getElementById('tetLevel').textContent=level;
-      piece=randPiece();px=3;py=0;
-      if(!fits(piece,px,py)){alive=false;clearInterval(loop);tetGameOver();}
-    }
-    draw();
-  }
-
-  function draw(){
-    ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);
-    board.forEach((row,y)=>row.forEach((v,x)=>{
-      if(v){ctx.fillStyle=COLORS[v];ctx.fillRect(x*SZ+1,y*SZ+1,SZ-2,SZ-2);}
-    }));
-    if(piece){
-      piece.forEach((row,dy)=>row.forEach((v,dx)=>{
-        if(v){ctx.fillStyle=COLORS[v];ctx.fillRect((px+dx)*SZ+1,(py+dy)*SZ+1,SZ-2,SZ-2);}
-      }));
-    }
-    // grid
-    ctx.strokeStyle='rgba(201,169,110,.04)';
-    for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}
-    for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}
-  }
-
-  function tetGameOver(){
-    const ov=document.createElement('div');ov.id='tetOver';ov.className='g-overlay';
-    ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over · ${lines} lines</div><button class="g-btn" onclick="loadTetris(document.getElementById('gameArena'))">Play Again</button>`;
-    canvas.parentElement.parentElement.appendChild(ov);
-  }
-
-  document.addEventListener('keydown',function tetKey(e){
-    if(!document.getElementById('tetCanvas')){document.removeEventListener('keydown',tetKey);return;}
-    if(!alive)return;
-    if(e.key==='ArrowLeft'&&fits(piece,px-1,py))px--;
-    else if(e.key==='ArrowRight'&&fits(piece,px+1,py))px++;
-    else if(e.key==='ArrowDown'){drop();return;}
-    else if(e.key==='ArrowUp'){const r=rotate(piece);if(fits(r,px,py))piece=r;}
-    else if(e.key===' '){while(fits(piece,px,py+1))py++;drop();return;}
-    else return;
-    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
-    draw();
-  });
-
+  function newBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(0));}
+  function randPiece(){const t=Math.floor(Math.random()*7)+1;return SHAPES[t].map(r=>[...r]);}
+  function start(){board=newBoard();score=0;lines=0;level=1;alive=true;piece=randPiece();px=3;py=0;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},600);const ov=document.getElementById('tetOver');if(ov)ov.remove();draw();}
+  function rotate(p){return p[0].map((_,i)=>p.map(r=>r[i]).reverse());}
+  function fits(p,x,y){return p.every((row,dy)=>row.every((v,dx)=>!v||((y+dy)>=0&&(y+dy)<ROWS&&(x+dx)>=0&&(x+dx)<COLS&&!board[y+dy][x+dx])));}
+  function drop(){if(fits(piece,px,py+1)){py++;}else{piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v)board[py+dy][px+dx]=v;}));let cleared=0;for(let r=ROWS-1;r>=0;r--){if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}}if(cleared){lines+=cleared;score+=cleared*100*level;if(lines%10===0){level++;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},Math.max(100,600-level*50));}}document.getElementById('tetScore').textContent=score;document.getElementById('tetLines').textContent=lines;document.getElementById('tetLevel').textContent=level;piece=randPiece();px=3;py=0;if(!fits(piece,px,py)){alive=false;clearInterval(loop);tetGameOver();}}draw();}
+  function draw(){ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);board.forEach((row,y)=>row.forEach((v,x)=>{if(v){ctx.fillStyle=COLORS[v];ctx.fillRect(x*SZ+1,y*SZ+1,SZ-2,SZ-2);}}));if(piece){piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v){ctx.fillStyle=COLORS[v];ctx.fillRect((px+dx)*SZ+1,(py+dy)*SZ+1,SZ-2,SZ-2);}}))}ctx.strokeStyle='rgba(201,169,110,.04)';for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}}
+  function tetGameOver(){const ov=document.createElement('div');ov.id='tetOver';ov.className='g-overlay';ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over · ${lines} lines</div><button class="g-btn" onclick="loadTetris(document.getElementById('gameArena'))">Play Again</button>`;canvas.parentElement.parentElement.appendChild(ov);}
+  document.addEventListener('keydown',function tetKey(e){if(!document.getElementById('tetCanvas')){document.removeEventListener('keydown',tetKey);return;}if(!alive)return;if(e.key==='ArrowLeft'&&fits(piece,px-1,py))px--;else if(e.key==='ArrowRight'&&fits(piece,px+1,py))px++;else if(e.key==='ArrowDown'){drop();return;}else if(e.key==='ArrowUp'){const r=rotate(piece);if(fits(r,px,py))piece=r;}else if(e.key===' '){while(fits(piece,px,py+1))py++;drop();return;}else return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();draw();});
   start();
 }
 
-/* ── 2048 ── */
+/* ════════════════════════════════════════
+   2048
+════════════════════════════════════════ */
 function load2048(arena) {
   const SZ=4;
-  arena.innerHTML=`
-    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
-      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
-        <div class="g-hud-item"><div class="g-hud-val" id="g2score">0</div><div class="g-hud-key">Score</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="g2best">0</div><div class="g-hud-key">Best</div></div>
-      </div>
-      <div id="g2board" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;background:rgba(201,169,110,.08);padding:10px;"></div>
-      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys to slide tiles</p>
-    </div>`;
-
+  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="g2score">0</div><div class="g-hud-key">Score</div></div><div class="g-hud-item"><div class="g-hud-val" id="g2best">0</div><div class="g-hud-key">Best</div></div></div><div id="g2board" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;background:rgba(201,169,110,.08);padding:10px;"></div><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys to slide tiles</p></div>`;
   const TILE_COLORS={0:'rgba(201,169,110,.05)',2:'#2a2420',4:'#332b23',8:'#8a6d3b',16:'#9d7a3e',32:'#b08844',64:'#c9a96e',128:'#d4b87a',256:'#dfc886',512:'#ead895',1024:'#f0e4a8',2048:'#c9a96e'};
   let board,score,best2=0;
-
-  function newBoard2(){ return Array.from({length:SZ},()=>Array(SZ).fill(0)); }
-  function addTile(){
-    const empty=[];
-    board.forEach((r,y)=>r.forEach((v,x)=>{if(!v)empty.push({x,y});}));
-    if(!empty.length)return;
-    const {x,y}=empty[Math.floor(Math.random()*empty.length)];
-    board[y][x]=Math.random()<0.9?2:4;
-  }
-
-  function drawBoard(){
-    const el=document.getElementById('g2board');if(!el)return;
-    el.innerHTML=board.map(row=>row.map(v=>`
-      <div style="width:80px;height:80px;background:${TILE_COLORS[Math.min(v,2048)]||'#c9a96e'};display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:${v>999?20:v>99?26:32}px;font-weight:300;color:${v>=8?'#0e0c09':'#c4b99a'};">${v||''}</div>`).join('')).join('');
-    document.getElementById('g2score').textContent=score;
-    if(score>best2){best2=score;document.getElementById('g2best').textContent=best2;}
-  }
-
-  function slide(row){
-    let r=row.filter(v=>v); let s=0;
-    for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;s+=r[i];r.splice(i+1,1);i++;}}
-    score+=s;
-    while(r.length<SZ)r.push(0);
-    return r;
-  }
-
-  function move(dir){
-    let moved=false;
-    const b=board.map(r=>[...r]);
-    if(dir==='left')  board=board.map(r=>{const s=slide(r);if(s.join()!==r.join())moved=true;return s;});
-    if(dir==='right') board=board.map(r=>{const s=slide([...r].reverse()).reverse();if(s.join()!==r.join())moved=true;return s;});
-    if(dir==='up'||dir==='down'){
-      for(let x=0;x<SZ;x++){
-        let col=board.map(r=>r[x]);
-        const sc=dir==='up'?slide(col):slide([...col].reverse()).reverse();
-        sc.forEach((v,y)=>{if(board[y][x]!==v)moved=true;board[y][x]=v;});
-      }
-    }
-    if(moved){addTile();drawBoard();}
-  }
-
+  function newBoard2(){return Array.from({length:SZ},()=>Array(SZ).fill(0));}
+  function addTile(){const empty=[];board.forEach((r,y)=>r.forEach((v,x)=>{if(!v)empty.push({x,y});}));if(!empty.length)return;const{x,y}=empty[Math.floor(Math.random()*empty.length)];board[y][x]=Math.random()<.9?2:4;}
+  function drawBoard(){const el=document.getElementById('g2board');if(!el)return;el.innerHTML=board.map(row=>row.map(v=>`<div style="width:80px;height:80px;background:${TILE_COLORS[Math.min(v,2048)]||'#c9a96e'};display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:${v>999?20:v>99?26:32}px;font-weight:300;color:${v>=8?'#0e0c09':'#c4b99a'};">${v||''}</div>`).join('')).join('');document.getElementById('g2score').textContent=score;if(score>best2){best2=score;document.getElementById('g2best').textContent=best2;}}
+  function slide(row){let r=row.filter(v=>v);let s=0;for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;s+=r[i];r.splice(i+1,1);i++;}}score+=s;while(r.length<SZ)r.push(0);return r;}
+  function move(dir){let moved=false;if(dir==='left')board=board.map(r=>{const s=slide(r);if(s.join()!==r.join())moved=true;return s;});if(dir==='right')board=board.map(r=>{const s=slide([...r].reverse()).reverse();if(s.join()!==r.join())moved=true;return s;});if(dir==='up'||dir==='down'){for(let x=0;x<SZ;x++){let col=board.map(r=>r[x]);const sc=dir==='up'?slide(col):slide([...col].reverse()).reverse();sc.forEach((v,y)=>{if(board[y][x]!==v)moved=true;board[y][x]=v;});}}if(moved){addTile();drawBoard();}}
   function start2(){board=newBoard2();score=0;addTile();addTile();drawBoard();}
-
-  document.addEventListener('keydown',function g2Key(e){
-    if(!document.getElementById('g2board')){document.removeEventListener('keydown',g2Key);return;}
-    const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
-    if(map[e.key]){e.preventDefault();move(map[e.key]);}
-  });
-
+  document.addEventListener('keydown',function g2Key(e){if(!document.getElementById('g2board')){document.removeEventListener('keydown',g2Key);return;}const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};if(map[e.key]){e.preventDefault();move(map[e.key]);}});
   start2();
 }
 
-/* ── MINESWEEPER ── */
+/* ════════════════════════════════════════
+   MINESWEEPER
+════════════════════════════════════════ */
 function loadMinesweeper(arena) {
   const COLS=16,ROWS=12,MINES=30;
-  arena.innerHTML=`
-    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
-      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
-        <div class="g-hud-item"><div class="g-hud-val" id="msFlags">0</div><div class="g-hud-key">Flags</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="msMines">${MINES}</div><div class="g-hud-key">Mines</div></div>
-        <div class="g-hud-item"><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))" style="padding:6px 18px;font-size:9px;">New Game</button></div>
-      </div>
-      <div id="msGrid" style="display:grid;grid-template-columns:repeat(${COLS},32px);gap:2px;"></div>
-      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Left click to reveal · Right click to flag</p>
-    </div>`;
-
+  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="msFlags">0</div><div class="g-hud-key">Flags</div></div><div class="g-hud-item"><div class="g-hud-val" id="msMines">${MINES}</div><div class="g-hud-key">Mines</div></div><div class="g-hud-item"><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))" style="padding:6px 18px;font-size:9px;">New Game</button></div></div><div id="msGrid" style="display:grid;grid-template-columns:repeat(${COLS},32px);gap:2px;"></div><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Left click to reveal · Right click to flag</p></div>`;
   let board,revealed,flagged,firstClick;
-
-  function initBoard(){
-    board=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-    revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));
-    flagged=Array.from({length:ROWS},()=>Array(COLS).fill(false));
-    firstClick=true;
-  }
-
-  function placeMines(skipR,skipC){
-    let placed=0;
-    while(placed<MINES){
-      const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);
-      if(board[r][c]!=-1&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){board[r][c]=-1;placed++;}
-    }
-    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(board[r][c]===-1)continue;
-      let n=0;
-      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1)n++;}
-      board[r][c]=n;
-    }
-  }
-
-  function reveal(r,c){
-    if(r<0||r>=ROWS||c<0||c>=COLS||revealed[r][c]||flagged[r][c])return;
-    revealed[r][c]=true;
-    if(board[r][c]===0){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);}
-  }
-
+  function initBoard(){board=Array.from({length:ROWS},()=>Array(COLS).fill(0));revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));flagged=Array.from({length:ROWS},()=>Array(COLS).fill(false));firstClick=true;}
+  function placeMines(skipR,skipC){let placed=0;while(placed<MINES){const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);if(board[r][c]!=-1&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){board[r][c]=-1;placed++;}}for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(board[r][c]===-1)continue;let n=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1)n++;}board[r][c]=n;}}
+  function reveal(r,c){if(r<0||r>=ROWS||c<0||c>=COLS||revealed[r][c]||flagged[r][c])return;revealed[r][c]=true;if(board[r][c]===0){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);}}
   const NCOLORS=['','#6e9ec9','#5a9e6f','#d97070','#8a6d3b','#d97070','#6e9ec9','#c9a96e','#8a8070'];
-
-  function drawMS(){
-    const el=document.getElementById('msGrid');if(!el)return;
-    el.innerHTML='';
-    let flags=0;
-    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      const cell=document.createElement('div');
-      cell.style.cssText='width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;user-select:none;font-family:Josefin Sans,sans-serif;font-weight:400;';
-      if(flagged[r][c]){flags++;cell.textContent='🚩';cell.style.background='rgba(217,112,112,.15)';}
-      else if(!revealed[r][c]){cell.style.background='rgba(201,169,110,.1)';cell.style.border='1px solid rgba(201,169,110,.15)';}
-      else if(board[r][c]===-1){cell.textContent='💣';cell.style.background='rgba(217,112,112,.2)';}
-      else{cell.style.background='rgba(14,12,9,.5)';cell.style.color=NCOLORS[board[r][c]]||'transparent';cell.style.fontSize='12px';cell.style.letterSpacing='.1em';if(board[r][c])cell.textContent=board[r][c];}
-      const rr=r,cc=c;
-      cell.onclick=()=>{
-        if(flagged[rr][cc])return;
-        if(firstClick){placeMines(rr,cc);firstClick=false;}
-        if(board[rr][cc]===-1){revealAll();drawMS();showMSOver(false);return;}
-        reveal(rr,cc);
-        drawMS();
-        checkMSWin();
-      };
-      cell.oncontextmenu=(e)=>{e.preventDefault();if(!revealed[rr][cc])flagged[rr][cc]=!flagged[rr][cc];drawMS();};
-      el.appendChild(cell);
-    }
-    document.getElementById('msFlags').textContent=flags;
-  }
-
+  function drawMS(){const el=document.getElementById('msGrid');if(!el)return;el.innerHTML='';let flags=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const cell=document.createElement('div');cell.style.cssText='width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;user-select:none;font-family:Josefin Sans,sans-serif;font-weight:400;';if(flagged[r][c]){flags++;cell.textContent='🚩';cell.style.background='rgba(217,112,112,.15)';}else if(!revealed[r][c]){cell.style.background='rgba(201,169,110,.1)';cell.style.border='1px solid rgba(201,169,110,.15)';}else if(board[r][c]===-1){cell.textContent='💣';cell.style.background='rgba(217,112,112,.2)';}else{cell.style.background='rgba(14,12,9,.5)';cell.style.color=NCOLORS[board[r][c]]||'transparent';cell.style.fontSize='12px';cell.style.letterSpacing='.1em';if(board[r][c])cell.textContent=board[r][c];}const rr=r,cc=c;cell.onclick=()=>{if(flagged[rr][cc])return;if(firstClick){placeMines(rr,cc);firstClick=false;}if(board[rr][cc]===-1){revealAll();drawMS();showMSOver(false);return;}reveal(rr,cc);drawMS();checkMSWin();};cell.oncontextmenu=(e)=>{e.preventDefault();if(!revealed[rr][cc])flagged[rr][cc]=!flagged[rr][cc];drawMS();};el.appendChild(cell);}document.getElementById('msFlags').textContent=flags;}
   function revealAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)revealed[r][c]=true;}
-
-  function checkMSWin(){
-    const won=board.flat().every((v,i)=>v===-1||revealed[Math.floor(i/COLS)][i%COLS]);
-    if(won)showMSOver(true);
-  }
-
-  function showMSOver(won){
-    const ov=document.createElement('div');ov.className='g-overlay';
-    ov.innerHTML=`<div class="g-score" style="font-size:36px;">${won?'You Won!':'💣 Boom'}</div><div class="g-label">${won?'All mines flagged!':'Better luck next time'}</div><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))">Play Again</button>`;
-    document.getElementById('msGrid').parentElement.parentElement.appendChild(ov);
-  }
-
+  function checkMSWin(){const won=board.flat().every((v,i)=>v===-1||revealed[Math.floor(i/COLS)][i%COLS]);if(won)showMSOver(true);}
+  function showMSOver(won){const ov=document.createElement('div');ov.className='g-overlay';ov.innerHTML=`<div class="g-score" style="font-size:36px;">${won?'You Won!':'💣 Boom'}</div><div class="g-label">${won?'All mines flagged!':'Better luck next time'}</div><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))">Play Again</button>`;document.getElementById('msGrid').parentElement.parentElement.appendChild(ov);}
   initBoard();drawMS();
 }
 
-/* ── WORDLE ── */
+/* ════════════════════════════════════════
+   WORDLE
+════════════════════════════════════════ */
 function loadWordle(arena) {
-  const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT','FLAIR'];
+  const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT'];
   const target=WORDS[Math.floor(Math.random()*WORDS.length)];
   let guesses=[],current='',gameOver2=false;
-
-  arena.innerHTML=`
-    <div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
-      <p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p>
-      <div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div>
-      <div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div>
-      <div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:20px;text-transform:uppercase;"></div>
+  arena.innerHTML=`<div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;"><p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p><div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div><div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div><div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height::20px;text-transform:uppercase;"></div>
     </div>`;
 
   const ROWS_W=6,COLS_W=5;
