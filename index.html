@@ -1181,6 +1181,7 @@ function loadGame(id) {
    Then in Supabase → Database → Replication → enable realtime
    for the chameleon_rooms table.
 ══════════════════════════════════════════════════════════════ */
+  
 
 const CHAMELEON_DECKS = [
   {category:'Animals',        words:['Lion','Tiger','Elephant','Giraffe','Zebra','Penguin','Dolphin','Eagle','Cheetah','Koala']},
@@ -1200,9 +1201,16 @@ let chamPollTimer = null;
 let chamRoomCode  = null;
 
 function chamCleanup() {
-  if (chamChannel)   { try { db.removeChannel(chamChannel); } catch(e){} chamChannel = null; }
-  if (chamPollTimer) { clearInterval(chamPollTimer); chamPollTimer = null; }
+  if (chamChannel) {
+    try { chamChannel.unsubscribe(); } catch(e){}
+    chamChannel = null;
+  }
+  if (chamPollTimer) {
+    clearInterval(chamPollTimer);
+    chamPollTimer = null;
+  }
   chamRoomCode = null;
+}
 }
 
 /* ── Entry screen ── */
@@ -1261,10 +1269,11 @@ function genCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
 }
+  
 
 async function chamCreate() {
   if (!currentUserName) { chamErr('You need a display name. Please re-login and pick a name.'); return; }
-  const code = genCode();
+  const code = genCode().toUpperCase();
   const state = {
     status: 'lobby',
     creator_id: currentUser.id,
@@ -1441,6 +1450,7 @@ async function chamLeave(code) {
 }
 
 /* ── PLAYING — Clue submission ── */
+<div id="gameArena"></div>
 function renderChamPlaying(code, state) {
   const arena = document.getElementById('gameArena');
   if (!arena) return;
