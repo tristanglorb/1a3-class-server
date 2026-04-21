@@ -673,9 +673,16 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
       <div class="brand-icon"><span></span></div>
       <div class="brand-name">1A3 Class Server</div>
     </div>
+    <div class="topbar-nav">
+      <span class="nav-link" onclick="goto('dashboard')">Dashboard</span>
+      <span class="nav-link" onclick="goto('notes')">Notes</span>
+      <span class="nav-link" onclick="goto('homework')">Homework</span>
+      <span class="nav-link" onclick="goto('events')">Events</span>
+      <span class="nav-link active" onclick="goto('games')">Games</span>
+    </div>
     <div class="topbar-right">
       <div class="badge">Games</div>
-      <span class="back-link" onclick="goto('dashboard')">← Dashboard</span>
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
     </div>
   </nav>
   <div class="page-body" style="max-width:1200px;">
@@ -749,6 +756,7 @@ let currentUser = null;
 /* ── Router ── */
 const PAGES = ['login','namepicker','dashboard','notes','homework','events','games'];
 function goto(id) {
+  if (id !== 'games') activeGame = null;
   PAGES.forEach(p => document.getElementById('page-'+p).classList.toggle('active', p===id));
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
   const match = document.querySelector(`#page-dashboard .nav-link[onclick*="${id}"]`);
@@ -758,6 +766,7 @@ function goto(id) {
   if (id==='notes')     renderFiles();
   if (id==='homework')  renderHW();
   if (id==='events')    renderEvents();
+  if (id==='games')     initGamesPage();
 }
 
 /* ── Toast ── */
@@ -1110,6 +1119,17 @@ async function delEvent(id){
    GAMES
 ════════════════════════════════════════ */
 let activeGame = null;
+
+function initGamesPage() {
+  // reset any active game highlight and clear arena back to placeholder
+  document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('active-game'));
+  const arena = document.getElementById('gameArena');
+  const title = document.getElementById('gameArenaTitle');
+  if (arena && !activeGame) {
+    arena.innerHTML = '<div class="game-placeholder"><div class="game-placeholder-icon">♟🐍🟦</div><p class="game-placeholder-text">Choose a game above to start playing</p></div>';
+    title.textContent = 'Select a game above';
+  }
+}
 
 function loadGame(id) {
   // highlight selected card
