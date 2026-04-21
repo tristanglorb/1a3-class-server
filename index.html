@@ -249,6 +249,15 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .countdown.today    { color:var(--gold); }
 .countdown.past     { color:rgba(138,128,112,.35); }
 
+
+/* ── Name Picker ── */
+.name-btn { background:var(--dark-3); border:1px solid rgba(201,169,110,.15); color:var(--cream); font-family:'Josefin Sans',sans-serif; font-size:11px; letter-spacing:.15em; text-transform:uppercase; padding:16px 12px; cursor:pointer; transition:background .2s,border-color .2s,color .2s; text-align:center; position:relative; overflow:hidden; }
+.name-btn::before { content:''; position:absolute; inset:0; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .35s cubic-bezier(.4,0,.2,1); z-index:0; }
+.name-btn:hover:not(.taken) { border-color:var(--gold); color:var(--gold); }
+.name-btn.taken { background:rgba(14,12,9,.6); border-color:rgba(201,169,110,.06); color:rgba(138,128,112,.35); cursor:not-allowed; text-decoration:line-through; }
+.name-btn.mine { border-color:#5a9e6f; color:#5a9e6f; background:rgba(90,158,111,.06); }
+.name-btn span { position:relative; z-index:1; }
+
 /* ── Animations ── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 @keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
@@ -301,7 +310,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="login-header">
           <div class="login-divider"><div class="login-gem"></div></div>
           <h2 class="login-title" id="loginTitle">Sign In</h2>
-          <p class="login-subtitle" id="loginSubtitle">Welcome back, 1A3</p>
+          <p class="login-subtitle" id="loginSubtitle">HCI student emails only</p>
         </div>
         <div class="tabs">
           <button class="tab active" onclick="switchTab('login')">Sign In</button>
@@ -311,7 +320,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>
           <div class="input-wrap">
-            <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email">
+            <input class="form-input" type="email" id="email" placeholder="you@student.hci.edu.sg" autocomplete="email">
             <div class="input-glow"></div>
           </div>
         </div>
@@ -345,6 +354,36 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════
+     PAGE: NAME PICKER
+═══════════════════════════════════════ -->
+<div id="page-namepicker" class="page-view">
+  <div class="login-layout" style="min-height:100vh;">
+    <div class="panel-left">
+      <div class="brand-mark">
+        <div class="brand-icon"><span></span></div>
+        <div class="brand-name">1A3 Class Server</div>
+      </div>
+      <h1 class="headline">Who are<br><em>you?</em></h1>
+      <p class="tagline">Touch your name to<br>claim it and enter.<br>Each name can only<br>be chosen once.</p>
+      <div class="diamonds">
+        <div class="diamond" style="width:60px;height:60px;left:0;top:0;"></div>
+        <div class="diamond" style="width:36px;height:36px;left:70px;top:30px;opacity:.6;"></div>
+        <div class="diamond" style="width:18px;height:18px;left:20px;top:70px;opacity:.4;"></div>
+      </div>
+    </div>
+    <div class="panel-right" style="flex-direction:column;align-items:stretch;padding:48px;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div class="login-divider" style="margin-bottom:16px;"><div class="login-gem"></div></div>
+        <h2 class="login-title" style="font-size:24px;margin-bottom:6px;">Select Your Name</h2>
+        <p class="login-subtitle" id="namePickerSub">Tap your name to continue</p>
+      </div>
+      <div id="nameGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;overflow-y:auto;max-height:58vh;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════
      PAGE: DASHBOARD
 ═══════════════════════════════════════ -->
@@ -368,7 +407,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
   <div class="page-body" style="max-width:1200px;">
     <div class="page-header">
       <div class="divider-line"><div class="divider-gem"></div></div>
-      <h1 class="page-title">Welcome back,<br><em>1A3.</em></h1>
+      <h1 class="page-title" id="dashWelcome">Welcome back,<br><em>1A3.</em></h1>
       <p class="page-subtitle" id="dashDateLine">—</p>
     </div>
     <div class="stat-grid">
@@ -612,7 +651,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
 
 /* ── Router ── */
-const PAGES = ['login','dashboard','notes','homework','events'];
+const PAGES = ['login','namepicker','dashboard','notes','homework','events'];
 function goto(id) {
   PAGES.forEach(p => document.getElementById('page-'+p).classList.toggle('active', p===id));
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
@@ -649,7 +688,7 @@ function switchTab(m) {
   loginMode = m;
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0)===(m==='login')));
   document.getElementById('loginTitle').textContent    = m==='login'?'Sign In':'Create Account';
-  document.getElementById('loginSubtitle').textContent = m==='login'?'Welcome back, 1A3':'Join 1A3 Class Server';
+  document.getElementById('loginSubtitle').textContent = m==='login'?'HCI student emails only':'Join 1A3 Class Server';
   document.getElementById('btnText').textContent       = m==='login'?'Sign In':'Create Account';
   document.getElementById('confirmGroup').style.display = m==='register'?'block':'none';
   document.getElementById('loginOptions').style.display = m==='login'?'flex':'none';
@@ -670,6 +709,9 @@ async function handleSubmit() {
   const btn      = document.getElementById('submitBtn');
   const btnText  = document.getElementById('btnText');
   if (!email)    { showMsg('Please enter your email address.','error'); return; }
+  if (!email.toLowerCase().endsWith('@student.hci.edu.sg')) {
+    showMsg('Only @student.hci.edu.sg email addresses are allowed.','error'); return;
+  }
   if (!password) { showMsg('Please enter your password.','error'); return; }
   if (loginMode==='register') {
     const confirm = document.getElementById('confirmPassword').value;
@@ -700,7 +742,7 @@ async function handleSubmit() {
   btnText.textContent = loginMode==='login'?'✓  Access Granted':'✓  Account Created';
   const label = loginMode==='login'?`Welcome back, ${email}`:`Account created! Check your email to confirm, then sign in.`;
   showMsg(label,'success-msg');
-  if (loginMode==='login') setTimeout(()=>goto('dashboard'),1200);
+  if (loginMode==='login') setTimeout(()=>goToNamePicker(),1200);
   else { btn.disabled=false; btnText.textContent='Create Account'; btn.classList.remove('success'); }
 }
 
@@ -721,6 +763,10 @@ async function signOut() {
 async function refreshDashboardStats() {
   const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
   document.getElementById('dashDateLine').textContent = new Date().toLocaleDateString('en-SG',opts).toUpperCase();
+  if (currentUserName) {
+    const first = currentUserName.split(' ')[0];
+    document.getElementById('dashWelcome').innerHTML = `Welcome back,<br><em>${first}.</em>`;
+  }
   const exam=new Date('2026-11-15');
   const diff=Math.ceil((exam-new Date())/(1000*60*60*24));
   document.getElementById('daysLeft').textContent = diff>0?diff:'—';
@@ -962,6 +1008,75 @@ async function delEvent(id){
   renderEvents();
 }
 
+
+/* ════════════════════════════════════════
+   NAME PICKER
+════════════════════════════════════════ */
+// Full class list — edit these to match your actual class
+const CLASS_NAMES = [
+  'Joshua','guanghan','kayden','tristan','daniel','pm tan','yuanbin','lucas(ng)','yu wen','ean','junhang','bright','ethan(low)','evan','jack','lucas(rich)','marshall','rayner','timothy','trevan','dimitris','jason','lifei','lucas(zhao)','mazhiyuan','szekai','chenglin','javier(lim)','javier(tan)','ethan(loo)','jingzhe','zixuan','boyan',
+].sort();
+
+let currentUserName = null;
+
+async function goToNamePicker() {
+  goto('namepicker');
+  await loadNameGrid();
+}
+
+async function loadNameGrid() {
+  const grid = document.getElementById('nameGrid');
+  const sub  = document.getElementById('namePickerSub');
+  grid.innerHTML = '<div class="empty-state"><p class="empty-label">Loading names…</p></div>';
+
+  // fetch all already-claimed names
+  const { data: claimed } = await db.from('names').select('display_name, user_id');
+  const claimedMap = {};
+  (claimed||[]).forEach(r => claimedMap[r.display_name] = r.user_id);
+
+  // check if this user already has a name (e.g. came back)
+  const myName = Object.keys(claimedMap).find(n => claimedMap[n] === currentUser?.id);
+  if (myName) {
+    currentUserName = myName;
+    goto('dashboard');
+    return;
+  }
+
+  grid.innerHTML = CLASS_NAMES.map(name => {
+    const isTaken = !!claimedMap[name];
+    return `<button class="name-btn ${isTaken?'taken':''}" onclick="${isTaken?'':`pickName('${name.replace(/'/,"\'")}')`}" ${isTaken?'disabled':''}>
+      <span>${name}</span>
+    </button>`;
+  }).join('');
+
+  sub.textContent = `${Object.keys(claimedMap).length} of ${CLASS_NAMES.length} names taken`;
+}
+
+async function pickName(name) {
+  if (!currentUser) return;
+  const sub = document.getElementById('namePickerSub');
+  sub.textContent = 'Claiming name…';
+
+  // double-check it's not taken (race condition guard)
+  const { data: existing } = await db.from('names').select('id').eq('display_name', name).single();
+  if (existing) {
+    sub.textContent = 'That name was just taken! Please choose another.';
+    await loadNameGrid();
+    return;
+  }
+
+  const { error } = await db.from('names').insert({ display_name: name, user_id: currentUser.id });
+  if (error) {
+    sub.textContent = 'Could not claim name. Try again.';
+    await loadNameGrid();
+    return;
+  }
+
+  currentUserName = name;
+  toast('Welcome, ' + name + '!');
+  goto('dashboard');
+}
+
 /* ════════════════════════════════════════
    INIT — check if already logged in
 ════════════════════════════════════════ */
@@ -969,12 +1084,18 @@ async function delEvent(id){
   const { data:{ session } } = await db.auth.getSession();
   if (session?.user) {
     currentUser = session.user;
-    goto('dashboard');
+    // check if they already claimed a name
+    const { data: claimed } = await db.from('names').select('display_name').eq('user_id', currentUser.id).single();
+    if (claimed?.display_name) {
+      currentUserName = claimed.display_name;
+      goto('dashboard');
+    } else {
+      goToNamePicker();
+    }
   }
-  // keep session in sync across tabs
   db.auth.onAuthStateChange((_event, session)=>{
     currentUser = session?.user || null;
-    if (!currentUser) goto('login');
+    if (!currentUser) { currentUserName = null; goto('login'); }
   });
 })();
 </script>
