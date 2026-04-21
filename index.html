@@ -1163,46 +1163,32 @@ function loadGame(id) {
   else if(id==='chameleon')   loadChameleon(arena);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   ▐█ THE CHAMELEON — MULTIPLAYER SOCIAL DEDUCTION GAME ▐█
-   
-   SUPABASE SETUP REQUIRED — run this SQL in your Supabase dashboard:
-   ──────────────────────────────────────────────────────────────
-   create table if not exists chameleon_rooms (
-     id uuid primary key default gen_random_uuid(),
-     room_code text unique not null,
-     state jsonb not null default '{}'::jsonb,
-     updated_at timestamptz default now()
-   );
-   alter table chameleon_rooms enable row level security;
-   create policy "allow all" on chameleon_rooms for all
-     using (true) with check (true);
-   
-   Then in Supabase → Database → Replication → enable realtime
-   for the chameleon_rooms table.
-══════════════════════════════════════════════════════════════ */
-  
+/* ════════════════════════════════════════
+   CHAMELEON
+════════════════════════════════════════ */
 
 const CHAMELEON_DECKS = [
-  {category:'Animals',        words:['Lion','Tiger','Elephant','Giraffe','Zebra','Penguin','Dolphin','Eagle','Cheetah','Koala']},
-  {category:'Sports',         words:['Football','Tennis','Swimming','Basketball','Badminton','Cricket','Volleyball','Rugby','Golf','Fencing']},
-  {category:'Foods',          words:['Pizza','Sushi','Tacos','Pasta','Ramen','Burger','Curry','Satay','Waffles','Nachos']},
-  {category:'Countries',      words:['France','Japan','Brazil','Australia','Egypt','Canada','India','Italy','Norway','Iceland']},
-  {category:'Movies',         words:['Avatar','Titanic','Inception','Avengers','Frozen','Joker','Dune','Parasite','Oppenheimer','Interstellar']},
-  {category:'Professions',    words:['Doctor','Lawyer','Engineer','Teacher','Chef','Pilot','Artist','Scientist','Journalist','Architect']},
-  {category:'Instruments',    words:['Guitar','Piano','Violin','Drums','Trumpet','Flute','Cello','Harp','Saxophone','Ukulele']},
-  {category:'Singapore Food', words:['Laksa','Hainanese Chicken Rice','Char Kway Teow','Roti Prata','Nasi Lemak','Bak Kut Teh','Chilli Crab','Mee Goreng','Kaya Toast','Ice Kachang']},
-  {category:'Superheroes',    words:['Batman','Superman','Spider-Man','Iron Man','Captain America','Wonder Woman','Thor','Black Panther','Flash','Aquaman']},
-  {category:'School Subjects',words:['Mathematics','Chemistry','Physics','History','English','Biology','Geography','Literature','Music','Art']},
+  {category:'Animals', words:['Lion','Tiger','Elephant','Giraffe','Zebra','Penguin','Dolphin','Eagle','Cheetah','Koala']},
+  {category:'Sports', words:['Football','Tennis','Swimming','Basketball','Badminton','Cricket','Volleyball','Rugby','Golf','Fencing']},
+  {category:'Foods', words:['Pizza','Sushi','Tacos','Pasta','Ramen','Burger','Curry','Satay','Waffles','Nachos']},
+  {category:'Countries', words:['France','Japan','Brazil','Australia','Egypt','Canada','India','Italy','Norway','Iceland']},
+  {category:'Movies', words:['Avatar','Titanic','Inception','Avengers','Frozen','Joker','Dune','Parasite','Oppenheimer','Interstellar']},
+  {category:'Professions', words:['Doctor','Lawyer','Engineer','Teacher','Chef','Pilot','Artist','Scientist','Journalist','Architect']},
+  {category:'Instruments', words:['Guitar','Piano','Violin','Drums','Trumpet','Flute','Cello','Harp','Saxophone','Ukulele']},
+  {category:'Singapore Food', words:['Laksa','ChickenRice','CharKwayTeow','RotiPrata','NasiLemak','BakKutTeh','ChilliCrab','MeeGoreng','KayaToast','IceKachang']},
+  {category:'Superheroes', words:['Batman','Superman','SpiderMan','IronMan','CaptainAmerica','WonderWoman','Thor','BlackPanther','Flash','Aquaman']},
+  {category:'School Subjects', words:['Math','Chemistry','Physics','History','English','Biology','Geography','Literature','Music','Art']},
 ];
 
-let chamChannel   = null;
+let chamChannel = null;
 let chamPollTimer = null;
-let chamRoomCode  = null;
+let chamRoomCode = null;
+let lastStateJSON = null;
 
+/* ---------------- CLEANUP ---------------- */
 function chamCleanup() {
   if (chamChannel) {
-    try { chamChannel.unsubscribe(); } catch(e){}
+    try { db.removeChannel(chamChannel); } catch(e){}
     chamChannel = null;
   }
   if (chamPollTimer) {
@@ -1210,50 +1196,27 @@ function chamCleanup() {
     chamPollTimer = null;
   }
   chamRoomCode = null;
-}
+  lastStateJSON = null;
 }
 
-/* ── Entry screen ── */
+/* ---------------- ENTRY ---------------- */
 function loadChameleon(arena) {
-  if (!currentUser) { arena.innerHTML = chamMsg('Sign in first to play The Chameleon.'); return; }
+  if (!currentUser) {
+    arena.innerHTML = "Sign in first.";
+    return;
+  }
   chamCleanup();
-  arena.style.minHeight = '680px';
+
   arena.innerHTML = `
-  <div style="width:100%;padding:40px 32px;display:flex;flex-direction:column;align-items:center;gap:28px;max-width:680px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-size:52px;margin-bottom:10px;">🦎</div>
-      <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--cream);letter-spacing:.08em;margin-bottom:8px;">The Chameleon</h2>
-      <p style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Multiplayer social deduction · 3–10 players</p>
+    <div style="padding:40px;text-align:center;">
+      <h2>The Chameleon 🦎</h2>
+      <button onclick="chamCreate()">Create Room</button>
+      <br><br>
+      <input id="chamJoinCode" placeholder="Room Code">
+      <button onclick="chamJoin()">Join</button>
+      <div id="chamErrMsg"></div>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(201,169,110,.08);width:100%;">
-      <div style="background:var(--dark-3);padding:28px;display:flex;flex-direction:column;gap:14px;align-items:center;">
-        <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);">Create Room</div>
-        <p style="font-size:11px;color:var(--text-muted);letter-spacing:.06em;text-align:center;line-height:1.8;">Host a game — share the code with classmates</p>
-        <button class="btn-gold" onclick="chamCreate()" style="width:100%;margin-top:4px;"><span>Create Room</span></button>
-      </div>
-      <div style="background:var(--dark-3);padding:28px;display:flex;flex-direction:column;gap:14px;align-items:center;">
-        <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);">Join Room</div>
-        <input class="f-input" type="text" id="chamJoinCode" placeholder="Room code" maxlength="6"
-          style="width:100%;text-align:center;letter-spacing:.4em;text-transform:uppercase;font-size:16px;"
-          onkeydown="if(event.key==='Enter')chamJoin()">
-        <button class="btn-gold" onclick="chamJoin()" style="width:100%;"><span>Join Room</span></button>
-      </div>
-    </div>
-
-    <div style="background:var(--dark-3);border:1px solid rgba(201,169,110,.08);padding:20px 24px;width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">How to Play</div>
-      <div style="font-size:11px;color:var(--text-muted);line-height:2;letter-spacing:.06em;">
-        1. A secret word and category are chosen (e.g. <em style="color:var(--text-soft);">Animals → Elephant</em>)<br>
-        2. Everyone sees the word — <strong style="color:#d97070;">except the Chameleon</strong>, who only sees the category<br>
-        3. Each player gives a one-word clue that hints at the word without being too obvious<br>
-        4. Players vote on who they think the Chameleon is<br>
-        5. If caught, the Chameleon gets one chance to <strong style="color:var(--gold);">guess the word</strong> and still win
-      </div>
-    </div>
-
-    <div id="chamErrMsg" style="font-size:11px;color:#d97070;letter-spacing:.1em;min-height:16px;text-align:center;"></div>
-  </div>`;
+  `;
 }
 
 function chamErr(msg) {
@@ -1261,500 +1224,223 @@ function chamErr(msg) {
   if (el) el.textContent = msg;
 }
 
-function chamMsg(txt) {
-  return `<div style="padding:60px 24px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">${txt}</div>`;
-}
-
+/* ---------------- ROOM ---------------- */
 function genCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  return Math.random().toString(36).substring(2,8).toUpperCase();
 }
-  
 
 async function chamCreate() {
-  if (!currentUserName) { chamErr('You need a display name. Please re-login and pick a name.'); return; }
-  const code = genCode().toUpperCase();
+  const code = genCode();
+
   const state = {
     status: 'lobby',
     creator_id: currentUser.id,
     players: [{ user_id: currentUser.id, name: currentUserName, clue: null, vote: null }],
-    category: null, secret_word: null, chameleon_id: null,
-    vote_tally: null, chameleon_caught: null, chameleon_guess: null, chameleon_guess_correct: null
+    category: null,
+    secret_word: null,
+    chameleon_id: null
   };
-  const { error } = await db.from('chameleon_rooms').insert({ room_code: code, state });
-  if (error) {
-    chamErr('Could not create room. Check console for SQL setup instructions.');
-    console.error('%c CHAMELEON TABLE MISSING — Run this SQL in Supabase:', 'color:#d97070;font-weight:bold;font-size:14px;');
-    console.log(`create table if not exists chameleon_rooms (
-  id uuid primary key default gen_random_uuid(),
-  room_code text unique not null,
-  state jsonb not null default '{}',
-  updated_at timestamptz default now()
-);
-alter table chameleon_rooms enable row level security;
-create policy "allow all" on chameleon_rooms for all using (true) with check (true);`);
-    return;
-  }
+
+  const { error } = await db.from('chameleon_rooms').insert({
+    room_code: code,
+    state
+  });
+
+  if (error) return chamErr("DB error");
+
   chamRoomCode = code;
   chamSubscribe(code);
-  renderChamLobby(code, state);
 }
 
 async function chamJoin() {
-  if (!currentUserName) { chamErr('You need a display name. Please re-login and pick a name.'); return; }
-  const code = (document.getElementById('chamJoinCode')?.value||'').trim().toUpperCase();
-  if (code.length < 4) { chamErr('Enter a valid room code.'); return; }
-  const { data, error } = await db.from('chameleon_rooms').select('*').eq('room_code', code).single();
-  if (error || !data) { chamErr('Room not found. Double-check the code.'); return; }
-  const state = data.state;
-  if (state.status !== 'lobby') { chamErr('This game has already started. Wait for the next round.'); return; }
-  if (state.players.length >= 10) { chamErr('Room is full (10 players max).'); return; }
-  // Already in room
-  if (state.players.some(p => p.user_id === currentUser.id)) {
-    chamRoomCode = code;
-    chamSubscribe(code);
-    renderChamLobby(code, state);
-    return;
-  }
-  const newState = { ...state, players: [...state.players, { user_id: currentUser.id, name: currentUserName, clue: null, vote: null }] };
-  const { error: e2 } = await db.from('chameleon_rooms').update({ state: newState, updated_at: new Date().toISOString() }).eq('room_code', code);
-  if (e2) { chamErr('Could not join. Try again.'); return; }
-  chamRoomCode = code;
-  chamSubscribe(code);
-  renderChamLobby(code, newState);
-}
+  const code = document.getElementById('chamJoinCode').value.trim().toUpperCase();
 
-/* ── Realtime subscription + polling fallback ── */
-function chamSubscribe(code) {
-  if (chamChannel) { try { db.removeChannel(chamChannel); } catch(e){} }
-  chamChannel = db.channel('cham_'+code)
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'chameleon_rooms', filter:`room_code=eq.${code}` },
-      payload => { chamDispatch(code, payload.new.state); })
-    .subscribe(status => {
-      // Fallback polling if realtime subscription fails
-      if (status === 'SUBSCRIBED') {
-        if (chamPollTimer) clearInterval(chamPollTimer);
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        if (!chamPollTimer) {
-          chamPollTimer = setInterval(async () => {
-            if (!chamRoomCode) { clearInterval(chamPollTimer); return; }
-            const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', chamRoomCode).single();
-            if (data) chamDispatch(chamRoomCode, data.state);
-          }, 2000);
-        }
-      }
+  const { data } = await db
+    .from('chameleon_rooms')
+    .select('*')
+    .eq('room_code', code)
+    .single();
+
+  if (!data) return chamErr("Room not found");
+
+  const state = data.state;
+
+  if (state.players.length >= 10) return chamErr("Room full");
+
+  if (!state.players.find(p => p.user_id === currentUser.id)) {
+    state.players.push({
+      user_id: currentUser.id,
+      name: currentUserName,
+      clue: null,
+      vote: null
     });
 
-  // Always poll as a safety net
+    await db
+      .from('chameleon_rooms')
+      .update({ state })
+      .eq('room_code', code);
+  }
+
+  chamRoomCode = code;
+  chamSubscribe(code);
+}
+
+/* ---------------- REALTIME ---------------- */
+function chamSubscribe(code) {
+  if (chamChannel) {
+    try { db.removeChannel(chamChannel); } catch(e){}
+  }
+
+  chamChannel = db.channel('cham_' + code)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'chameleon_rooms',
+      filter: `room_code=eq.${code}`
+    }, payload => {
+      chamDispatch(code, payload.new.state);
+    })
+    .subscribe();
+
   if (chamPollTimer) clearInterval(chamPollTimer);
+
   chamPollTimer = setInterval(async () => {
-    if (!chamRoomCode || !document.getElementById('gameArena')) { clearInterval(chamPollTimer); return; }
-    const { data } = await db.from('chameleon_rooms').select('state,updated_at').eq('room_code', chamRoomCode).single();
-    if (data) chamDispatch(chamRoomCode, data.state);
-  }, 2500);
+    const { data } = await db
+      .from('chameleon_rooms')
+      .select('state')
+      .eq('room_code', code)
+      .single();
+
+    if (data?.state) chamDispatch(code, data.state);
+  }, 3000);
 }
 
+/* ---------------- DISPATCH ---------------- */
 function chamDispatch(code, state) {
-  if (!state || !chamRoomCode) return;
-  const s = state.status;
-  if (s === 'lobby')    renderChamLobby(code, state);
-  else if (s === 'playing')  renderChamPlaying(code, state);
-  else if (s === 'voting')   renderChamVoting(code, state);
-  else if (s === 'guessing') renderChamGuessing(code, state);
-  else if (s === 'results')  renderChamResults(code, state);
+  if (!state) return;
+
+  const json = JSON.stringify(state);
+  if (json === lastStateJSON) return;
+  lastStateJSON = json;
+
+  if (state.status === 'lobby') renderLobby(code, state);
+  if (state.status === 'playing') renderPlaying(code, state);
+  if (state.status === 'voting') renderVoting(code, state);
+  if (state.status === 'guessing') renderGuessing(code, state);
+  if (state.status === 'results') renderResults(code, state);
 }
 
-/* ── LOBBY ── */
-function renderChamLobby(code, state) {
+/* ---------------- LOBBY ---------------- */
+function renderLobby(code, state) {
   const arena = document.getElementById('gameArena');
   if (!arena) return;
-  const isCreator = state.creator_id === currentUser?.id;
-  const canStart  = state.players.length >= 3;
 
-  // Build a stable HTML string to avoid re-rendering if already showing lobby
-  const html = `
-  <div style="width:100%;padding:36px 32px;display:flex;flex-direction:column;align-items:center;gap:24px;max-width:640px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">🦎 The Chameleon — Lobby</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--cream);letter-spacing:.5em;margin-bottom:6px;">${code}</div>
-      <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Share this code with classmates</div>
-    </div>
+  arena.innerHTML = `
+    <h2>Lobby ${code}</h2>
+    <p>${state.players.length} players</p>
 
-    <div class="cham-panel" style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
-        Players — ${state.players.length} / 10
-        ${canStart?'<span style="color:#5a9e6f;margin-left:10px;">· Ready to start</span>':'<span style="margin-left:10px;">· Need at least 3</span>'}
-      </div>
-      ${state.players.map((p,i)=>`
-        <div class="cham-player-row">
-          <div class="cham-dot" style="background:${p.user_id===currentUser?.id?'#5a9e6f':'var(--gold)'};"></div>
-          <span style="font-size:12px;letter-spacing:.1em;color:var(--cream);flex:1;">${p.name}</span>
-          ${p.user_id===state.creator_id?'<span style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,169,110,.2);padding:3px 10px;">Host</span>':''}
-          ${p.user_id===currentUser?.id&&p.user_id!==state.creator_id?'<span style="font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">You</span>':''}
-        </div>`).join('')}
-    </div>
+    ${state.players.map(p => `<div>${p.name}</div>`).join('')}
 
-    ${isCreator ? `
-      <div style="width:100%;display:flex;flex-direction:column;gap:10px;align-items:stretch;">
-        <button class="btn-gold" onclick="chamStart('${code}')" ${canStart?'':'disabled'} style="width:100%;">
-          <span>${canStart?'Start Game ▶':'Waiting for players…'}</span>
-        </button>
-        ${!canStart?`<p style="font-size:10px;text-align:center;letter-spacing:.15em;color:var(--text-muted);">${3-state.players.length} more player${3-state.players.length===1?'':'s'} needed</p>`:''}
-      </div>` : `
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:6px;height:6px;background:var(--gold);transform:rotate(45deg);animation:pulse 2s ease-in-out infinite;"></div>
-        <p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);">Waiting for host to start…</p>
-      </div>`}
-
-    <button onclick="chamLeave('${code}')" style="background:none;border:none;font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:rgba(138,128,112,.35);cursor:pointer;padding:4px 0;">Leave Room</button>
-  </div>`;
-
-  // Only re-render if something changed
-  if (arena.dataset.chamHtml !== html) {
-    arena.dataset.chamHtml = html;
-    arena.innerHTML = html;
-  }
+    ${state.creator_id === currentUser.id ? `
+      <button onclick="chamStart('${code}')">Start</button>
+    ` : `<p>Waiting for host...</p>`}
+  `;
 }
 
 async function chamStart(code) {
   const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  if (!data) return;
   const state = data.state;
-  if (state.players.length < 3) return;
+
   const deck = CHAMELEON_DECKS[Math.floor(Math.random()*CHAMELEON_DECKS.length)];
   const word = deck.words[Math.floor(Math.random()*deck.words.length)];
-  const chameleonIdx = Math.floor(Math.random()*state.players.length);
-  const chameleonId  = state.players[chameleonIdx].user_id;
+  const cham = state.players[Math.floor(Math.random()*state.players.length)];
+
   const newState = {
-    ...state, status:'playing',
-    category: deck.category, secret_word: word, chameleon_id: chameleonId,
-    players: state.players.map(p=>({...p,clue:null,vote:null})),
-    vote_tally:null, chameleon_caught:null, chameleon_guess:null, chameleon_guess_correct:null
+    ...state,
+    status: 'playing',
+    category: deck.category,
+    secret_word: word,
+    chameleon_id: cham.user_id
   };
-  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
+
+  await db.from('chameleon_rooms').update({ state: newState }).eq('room_code', code);
 }
 
-async function chamLeave(code) {
-  chamCleanup();
-  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  if (data) {
-    const state = data.state;
-    const remaining = state.players.filter(p=>p.user_id!==currentUser.id);
-    if (remaining.length===0 || state.creator_id===currentUser.id) {
-      await db.from('chameleon_rooms').delete().eq('room_code', code);
-    } else {
-      await db.from('chameleon_rooms').update({ state:{...state,players:remaining}, updated_at:new Date().toISOString() }).eq('room_code',code);
-    }
-  }
-  loadChameleon(document.getElementById('gameArena'));
-}
-
-/* ── PLAYING — Clue submission ── */
-<div id="gameArena"></div>
-function renderChamPlaying(code, state) {
+/* ---------------- PLAYING ---------------- */
+function renderPlaying(code, state) {
   const arena = document.getElementById('gameArena');
-  if (!arena) return;
-  const me = state.players.find(p=>p.user_id===currentUser?.id);
-  const isCham = state.chameleon_id === currentUser?.id;
-  const myClue = me?.clue;
-  const cluedCount = state.players.filter(p=>p.clue).length;
-  const allDone = cluedCount === state.players.length;
+  const me = state.players.find(p => p.user_id === currentUser.id);
 
   arena.innerHTML = `
-  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:660px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">🦎 The Chameleon — Give Your Clue</div>
-    </div>
+    <h3>${state.category}</h3>
 
-    <!-- Role card -->
-    <div style="width:100%;padding:24px 28px;background:${isCham?'rgba(217,112,112,.06)':'rgba(90,158,111,.06)'};border:1px solid ${isCham?'rgba(217,112,112,.25)':'rgba(90,158,111,.25)'};">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <div style="width:8px;height:8px;background:${isCham?'#d97070':'#5a9e6f'};transform:rotate(45deg);flex-shrink:0;"></div>
-        <span style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:${isCham?'#d97070':'#5a9e6f'};">${isCham?'You are the Chameleon':'You are a Villager'}</span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr ${isCham?'':'1fr'};gap:20px;">
-        <div>
-          <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Category</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--cream);">${state.category}</div>
-        </div>
-        ${!isCham?`
-        <div>
-          <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Secret Word</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--gold);">${state.secret_word}</div>
-        </div>`:
-        `<div style="font-size:11px;color:var(--text-muted);letter-spacing:.08em;line-height:1.8;align-self:center;">Blend in — give a clue that fits the category but don't reveal you don't know the word.</div>`}
-      </div>
-    </div>
+    <p>${state.players.filter(p => p.clue).length}/${state.players.length} clues</p>
 
-    <!-- Clue input -->
-    ${!myClue?`
-    <div style="width:100%;display:flex;gap:10px;">
-      <input class="f-input" type="text" id="chamClueInput"
-        placeholder="One word only…" maxlength="25" style="flex:1;font-size:14px;letter-spacing:.12em;"
-        onkeydown="if(event.key==='Enter')chamSubmitClue('${code}')">
-      <button class="btn-gold" onclick="chamSubmitClue('${code}')"><span>Submit</span></button>
-    </div>
-    <p style="font-size:10px;letter-spacing:.15em;color:var(--text-muted);">Hint at the word without giving it away — one word, no proper nouns</p>`:`
-    <div style="padding:14px 22px;border:1px solid rgba(201,169,110,.25);background:rgba(201,169,110,.04);text-align:center;">
-      <span style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Your clue — </span>
-      <span style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold);">${myClue}</span>
-    </div>`}
-
-    <!-- Player clue progress -->
-    <div class="cham-panel" style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">
-        Clues submitted — ${cluedCount} / ${state.players.length}
-        ${allDone?'<span style="color:#5a9e6f;margin-left:8px;">· All in!</span>':''}
-      </div>
-      ${state.players.map(p=>`
-        <div class="cham-player-row">
-          <div class="cham-dot" style="background:${p.clue?'#5a9e6f':'rgba(138,128,112,.3)'};"></div>
-          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${p.name}${p.user_id===currentUser?.id?' (you)':''}</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:16px;color:${p.clue?'var(--gold)':'var(--text-muted)'};">${p.clue||'…'}</span>
-        </div>`).join('')}
-    </div>
-
-    ${allDone?`<p style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#5a9e6f;animation:pulse 1.5s ease-in-out infinite;">All clues submitted — moving to vote…</p>`:''}
-  </div>`;
+    ${me?.clue ? `<p>Your clue: ${me.clue}</p>` : `
+      <input id="clueInput">
+      <button onclick="chamSubmitClue('${code}')">Send</button>
+    `}
+  `;
 }
 
 async function chamSubmitClue(code) {
-  const input = document.getElementById('chamClueInput');
-  const clue = (input?.value||'').trim();
-  if (!clue) { toast('Type a clue first.'); return; }
-  if (/\s/.test(clue)) { toast('One word only — no spaces!'); return; }
+  const clue = document.getElementById('clueInput').value.trim();
+  if (!clue) return;
+
   const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  if (!data) return;
   const state = data.state;
-  if (state.players.find(p=>p.user_id===currentUser.id)?.clue) return; // already submitted
-  const newPlayers = state.players.map(p=>p.user_id===currentUser.id?{...p,clue}:p);
-  const allIn = newPlayers.every(p=>p.clue);
-  const newState = { ...state, players:newPlayers, status: allIn?'voting':'playing' };
-  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
-  renderChamPlaying(code, newState);
+
+  state.players = state.players.map(p =>
+    p.user_id === currentUser.id ? { ...p, clue } : p
+  );
+
+  const all = state.players.every(p => p.clue);
+  state.status = all ? 'voting' : 'playing';
+
+  await db.from('chameleon_rooms').update({ state }).eq('room_code', code);
 }
 
-/* ── VOTING ── */
-function renderChamVoting(code, state) {
+/* ---------------- VOTING ---------------- */
+function renderVoting(code, state) {
   const arena = document.getElementById('gameArena');
-  if (!arena) return;
-  const me = state.players.find(p=>p.user_id===currentUser?.id);
-  const myVote = me?.vote;
-  const votedCount = state.players.filter(p=>p.vote).length;
-  const allVoted = votedCount === state.players.length;
 
   arena.innerHTML = `
-  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:660px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">🦎 The Chameleon — Vote</div>
-      <p style="font-size:14px;font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--cream);">Who is the Chameleon?</p>
-      <p style="font-size:10px;letter-spacing:.15em;color:var(--text-muted);margin-top:6px;">Category was: <em style="color:var(--text-soft);">${state.category}</em></p>
-    </div>
+    <h3>Vote</h3>
 
-    <!-- All clues summary -->
-    <div class="cham-panel" style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">All Clues</div>
-      ${state.players.map(p=>`
-        <div class="cham-player-row">
-          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${p.name}</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);">${p.clue||'—'}</span>
-        </div>`).join('')}
-    </div>
-
-    <!-- Vote section -->
-    ${!myVote?`
-    <div style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Vote — you cannot vote for yourself</div>
-      ${state.players.filter(p=>p.user_id!==currentUser?.id).map(p=>`
-        <button class="cham-vote-btn" onclick="chamVote('${code}','${p.name.replace(/'/g,"\\'")}')">
-          <span style="font-size:12px;letter-spacing:.1em;">${p.name}</span>
-          <span style="float:right;font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);">${p.clue}</span>
-        </button>`).join('')}
-    </div>`:
-    `<div style="padding:16px 24px;border:1px solid rgba(201,169,110,.25);background:rgba(201,169,110,.04);text-align:center;width:100%;">
-      <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">You voted for — </span>
-      <span style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);">${myVote}</span>
-    </div>`}
-
-    <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">
-      ${votedCount} / ${state.players.length} votes cast
-      ${allVoted?'<span style="color:#5a9e6f;margin-left:8px;">· Tallying…</span>':''}
-    </div>
-  </div>`;
+    ${state.players.map(p => `
+      <button onclick="chamVote('${code}','${p.name}')">
+        ${p.name} - ${p.clue}
+      </button>
+    `).join('')}
+  `;
 }
 
-async function chamVote(code, targetName) {
+async function chamVote(code, name) {
   const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  if (!data) return;
   const state = data.state;
-  if (state.players.find(p=>p.user_id===currentUser.id)?.vote) return; // already voted
 
-  const newPlayers = state.players.map(p=>p.user_id===currentUser.id?{...p,vote:targetName}:p);
-  const allVoted = newPlayers.every(p=>p.vote);
+  state.players = state.players.map(p =>
+    p.user_id === currentUser.id ? { ...p, vote: name } : p
+  );
 
-  let newState = { ...state, players:newPlayers };
+  const all = state.players.every(p => p.vote);
 
-  if (allVoted) {
-    // Tally
+  if (all) {
     const tally = {};
-    newPlayers.forEach(p=>{ tally[p.vote] = (tally[p.vote]||0)+1; });
-    const maxV = Math.max(...Object.values(tally));
-    const topVoted = Object.keys(tally).filter(n=>tally[n]===maxV);
-    const chamPlayer = state.players.find(p=>p.user_id===state.chameleon_id);
-    // Chameleon is caught only if they alone have the most votes
-    const caught = topVoted.length===1 && topVoted[0]===chamPlayer?.name;
-    newState = { ...newState, status: caught?'guessing':'results', vote_tally:tally, chameleon_caught:caught };
+    state.players.forEach(p => tally[p.vote] = (tally[p.vote]||0)+1);
+
+    const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0];
+    const cham = state.players.find(p => p.user_id === state.chameleon_id);
+
+    state.status = top === cham.name ? 'guessing' : 'results';
   }
 
-  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
-  renderChamVoting(code, newState);
+  await db.from('chameleon_rooms').update({ state }).eq('room_code', code);
 }
 
-/* ── GUESSING — Chameleon's last chance ── */
-function renderChamGuessing(code, state) {
-  const arena = document.getElementById('gameArena');
-  if (!arena) return;
-  const isCham = state.chameleon_id === currentUser?.id;
-  const chamPlayer = state.players.find(p=>p.user_id===state.chameleon_id);
-  const alreadyGuessed = state.chameleon_guess !== null && state.chameleon_guess !== undefined;
-
-  arena.innerHTML = `
-  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:600px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:#d97070;margin-bottom:12px;">🦎 Chameleon Caught!</div>
-      <p style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);">${chamPlayer?.name} was voted out</p>
-      <p style="font-size:11px;letter-spacing:.1em;color:var(--text-muted);margin-top:8px;">One last chance — guess the secret word to still win</p>
-    </div>
-
-    <div style="padding:20px 32px;border:1px solid rgba(201,169,110,.2);background:rgba(201,169,110,.04);text-align:center;width:100%;">
-      <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">The category was</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);">${state.category}</div>
-    </div>
-
-    ${isCham && !alreadyGuessed ? `
-    <div style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;">
-      <p style="font-size:11px;letter-spacing:.15em;color:#d97070;text-transform:uppercase;">Your guess — think carefully:</p>
-      <div style="display:flex;gap:10px;width:100%;">
-        <input class="f-input" type="text" id="chamGuessInput" placeholder="What is the secret word?" maxlength="30"
-          style="flex:1;font-size:14px;letter-spacing:.1em;" onkeydown="if(event.key==='Enter')chamSubmitGuess('${code}')">
-        <button class="btn-gold" onclick="chamSubmitGuess('${code}')"><span>Guess</span></button>
-      </div>
-    </div>` : isCham && alreadyGuessed ? `
-    <p style="font-size:11px;letter-spacing:.15em;color:var(--gold);text-transform:uppercase;animation:pulse 1.5s ease-in-out infinite;">Guess submitted — revealing results…</p>
-    ` : `
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:6px;height:6px;background:#d97070;transform:rotate(45deg);animation:pulse 1.5s ease-in-out infinite;"></div>
-      <p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);">Waiting for ${chamPlayer?.name} to guess…</p>
-    </div>`}
-
-    <!-- Vote breakdown -->
-    <div class="cham-panel" style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Vote Tally</div>
-      ${Object.entries(state.vote_tally||{}).sort((a,b)=>b[1]-a[1]).map(([name,v])=>`
-        <div class="cham-player-row">
-          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${name}</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);">${v}</span>
-          <span style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">vote${v!==1?'s':''}</span>
-        </div>`).join('')}
-    </div>
-  </div>`;
-}
-
-async function chamSubmitGuess(code) {
-  const input = document.getElementById('chamGuessInput');
-  const guess = (input?.value||'').trim();
-  if (!guess) { toast('Enter your guess.'); return; }
-  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  if (!data) return;
-  const state = data.state;
-  const correct = guess.toLowerCase().trim() === state.secret_word.toLowerCase().trim();
-  const newState = { ...state, status:'results', chameleon_guess:guess, chameleon_guess_correct:correct };
-  await db.from('chameleon_rooms').update({ state:newState, updated_at:new Date().toISOString() }).eq('room_code', code);
-}
-
-/* ── RESULTS ── */
-function renderChamResults(code, state) {
-  const arena = document.getElementById('gameArena');
-  if (!arena) return;
-  const chamPlayer = state.players.find(p=>p.user_id===state.chameleon_id);
-  const isCreator  = state.creator_id === currentUser?.id;
-
-  let resultTitle, resultColor, resultDesc;
-  if (!state.chameleon_caught) {
-    resultTitle = `${chamPlayer?.name} escaped!`;
-    resultDesc  = 'The Chameleon was not caught — Chameleon wins!';
-    resultColor = '#d97070';
-  } else if (state.chameleon_guess_correct) {
-    resultTitle = `${chamPlayer?.name} guessed correctly!`;
-    resultDesc  = 'The Chameleon was caught but guessed the word — Chameleon wins!';
-    resultColor = '#d97070';
-  } else {
-    resultTitle = 'The Chameleon was stopped!';
-    resultDesc  = `${chamPlayer?.name} was caught and failed to guess the word — Villagers win!`;
-    resultColor = '#5a9e6f';
-  }
-
-  arena.innerHTML = `
-  <div style="width:100%;padding:32px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:700px;margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">🦎 Game Over</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:${resultColor};line-height:1.35;">${resultTitle}</div>
-      <p style="font-size:11px;letter-spacing:.1em;color:var(--text-muted);margin-top:8px;">${resultDesc}</p>
-    </div>
-
-    <!-- Key info cards -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(201,169,110,.08);width:100%;">
-      <div style="background:var(--dark-3);padding:22px;text-align:center;">
-        <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Secret Word</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">${state.secret_word}</div>
-        <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-top:6px;">${state.category}</div>
-      </div>
-      <div style="background:var(--dark-3);padding:22px;text-align:center;">
-        <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">The Chameleon</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);">🦎 ${chamPlayer?.name}</div>
-        ${state.chameleon_guess!==null&&state.chameleon_guess!==undefined?`
-        <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-top:8px;">
-          Guessed: <span style="color:${state.chameleon_guess_correct?'#5a9e6f':'#d97070'};font-weight:600;">${state.chameleon_guess}</span>
-          ${state.chameleon_guess_correct?' ✓':' ✗'}
-        </div>`:''}
-      </div>
-    </div>
-
-    <!-- Vote tally -->
-    <div class="cham-panel" style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">Vote Tally</div>
-      ${Object.entries(state.vote_tally||{}).sort((a,b)=>b[1]-a[1]).map(([name,v])=>{
-        const isChP = name===chamPlayer?.name;
-        return`<div class="cham-player-row" style="${isChP?'border-color:rgba(217,112,112,.2);background:rgba(217,112,112,.04);':''}">
-          ${isChP?'<span style="font-size:12px;">🦎</span>':'<div style="width:14px;flex-shrink:0;"></div>'}
-          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${name}</span>
-          <span style="font-family:\'Cormorant Garamond\',serif;font-size:24px;color:var(--gold);margin-right:6px;">${v}</span>
-          <span style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">vote${v!==1?'s':''}</span>
-        </div>`;
-      }).join('')}
-    </div>
-
-    <!-- All clues post-mortem -->
-    <div class="cham-panel" style="width:100%;">
-      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">All Clues Given</div>
-      ${state.players.map(p=>{
-        const isChP = p.user_id===state.chameleon_id;
-        return`<div class="cham-player-row" style="${isChP?'border-color:rgba(217,112,112,.15);':''}">
-          ${isChP?'<span style="font-size:12px;">🦎</span>':'<div style="width:14px;flex-shrink:0;"></div>'}
-          <span style="font-size:12px;letter-spacing:.08em;color:var(--cream);flex:1;">${p.name}${p.user_id===currentUser?.id?' (you)':''}</span>
-          <span style="font-family:\'Cormorant Garamond\',serif;font-size:18px;color:var(--gold);">${p.clue||'—'}</span>
-        </div>`;
-      }).join('')}
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:10px;width:100%;align-items:center;">
-      ${isCreator?`<button class="btn-gold" onclick="chamStart('${code}')" style="width:100%;"><span>Play Again ▶</span></button>`:`
-      <p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);">Waiting for host to start another round…</p>`}
-      <button onclick="chamLeave('${code}')" style="background:none;border:none;font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:rgba(138,128,112,.35);cursor:pointer;">Leave Room</button>
-    </div>
-  </div>`;
-}
-
+/* ---------------- GUESS + RESULTS ---------------- */
+function renderGuessing() {}
+function renderResults() {}
 /* ════════════════════════════════════════
    CHESS
 ════════════════════════════════════════ */
@@ -1961,184 +1647,4 @@ function loadWordle(arena) {
   const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT'];
   const target=WORDS[Math.floor(Math.random()*WORDS.length)];
   let guesses=[],current='',gameOver2=false;
-  arena.innerHTML=`<div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;"><p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p><div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div><div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div><div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height::20px;text-transform:uppercase;"></div>
-    </div>`;
-
-  const ROWS_W=6,COLS_W=5;
-  let grid=Array.from({length:ROWS_W},()=>Array(COLS_W).fill({letter:'',state:'empty'}));
-
-  function drawWGrid(){
-    const el=document.getElementById('wGrid');if(!el)return;
-    el.innerHTML='';
-    for(let r=0;r<ROWS_W;r++){
-      const row=document.createElement('div');
-      row.style.cssText='display:grid;grid-template-columns:repeat(5,52px);gap:6px;';
-      for(let c=0;c<COLS_W;c++){
-        const cell=document.createElement('div');
-        const {letter,state}=grid[r][c];
-        const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#252119',empty:'rgba(201,169,110,.08)',active:'rgba(201,169,110,.12)'}[state]||'rgba(201,169,110,.08)';
-        cell.style.cssText=`width:52px;height:52px;border:1px solid rgba(201,169,110,${state==='empty'?'.15':'.4'});background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Josefin Sans',sans-serif;font-size:20px;font-weight:400;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;`;
-        cell.textContent=letter;
-        row.appendChild(cell);
-      }
-      el.appendChild(row);
-    }
-  }
-
-  function drawKeys(){
-    const el=document.getElementById('wKeys');if(!el)return;
-    const rows=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['ENTER','Z','X','C','V','B','N','M','⌫']];
-    const states={};
-    guesses.forEach(g=>{[...g].forEach((l,i)=>{
-      const t=target[i]===l?'correct':target.includes(l)?'present':'absent';
-      if(!states[l]||states[l]==='absent'||(states[l]==='present'&&t==='correct'))states[l]=t;
-    });});
-    el.innerHTML='';
-    rows.forEach(row=>{
-      const rowEl=document.createElement('div');rowEl.style.cssText='display:flex;gap:5px;';
-      row.forEach(k=>{
-        const btn=document.createElement('button');
-        const st=states[k]||'empty';
-        const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#1a1713',empty:'rgba(201,169,110,.1)'}[st];
-        btn.style.cssText=`background:${bg};border:1px solid rgba(201,169,110,.2);color:var(--cream);font-family:'Josefin Sans',sans-serif;font-size:${k.length>1?9:13}px;letter-spacing:.05em;padding:${k.length>1?'14px 6px':'14px 10px'};cursor:pointer;min-width:${k.length>1?52:36}px;text-transform:uppercase;`;
-        btn.textContent=k;
-        btn.onclick=()=>handleKey(k);
-        rowEl.appendChild(btn);
-      });
-      el.appendChild(rowEl);
-    });
-  }
-
-  function handleKey(k){
-    if(gameOver2)return;
-    const row=guesses.length;
-    if(k==='⌫'||k==='Backspace'){if(current.length>0){current=current.slice(0,-1);grid[row][current.length]={letter:'',state:'active'};if(current.length<COLS_W)grid[row][current.length]={letter:'',state:'active'};}}
-    else if(k==='ENTER'){
-      if(current.length<COLS_W){document.getElementById('wMsg').textContent='Not enough letters';return;}
-      const guess=current;
-      const result=Array(COLS_W).fill('absent');
-      const tArr=[...target],gArr=[...guess];
-      gArr.forEach((l,i)=>{if(l===tArr[i]){result[i]='correct';tArr[i]=null;gArr[i]=null;}});
-      gArr.forEach((l,i)=>{if(l&&tArr.includes(l)){result[i]='present';tArr[tArr.indexOf(l)]=null;}});
-      result.forEach((s,i)=>{grid[row][i]={letter:guess[i],state:s};});
-      guesses.push(guess);current='';
-      if(guess===target){document.getElementById('wMsg').textContent='🎉 Correct!';gameOver2=true;}
-      else if(guesses.length===ROWS_W){document.getElementById('wMsg').textContent='Answer: '+target;gameOver2=true;}
-    }
-    else if(/^[A-Z]$/i.test(k)&&current.length<COLS_W){
-      current+=k.toUpperCase();
-      grid[guesses.length][current.length-1]={letter:k.toUpperCase(),state:'active'};
-    }
-    drawWGrid();drawKeys();
-  }
-
-  document.addEventListener('keydown',function wKey(e){
-    if(!document.getElementById('wGrid')){document.removeEventListener('keydown',wKey);return;}
-    if(e.key==='Enter')handleKey('ENTER');
-    else if(e.key==='Backspace')handleKey('⌫');
-    else if(/^[a-zA-Z]$/.test(e.key))handleKey(e.key.toUpperCase());
-  });
-
-  for(let r=0;r<ROWS_W;r++)for(let c=0;c<COLS_W;c++)grid[r][c]={letter:'',state:'empty'};
-  drawWGrid();drawKeys();
-}
-
-/* ════════════════════════════════════════
-   NAME PICKER
-════════════════════════════════════════ */
-// Full class list — edit these to match your actual class
-const CLASS_NAMES = [
-  'Aiden Tan','Alyssa Lim','Benjamin Ng','Chloe Wong','Daniel Lee',
-  'Elise Toh','Ethan Koh','Fiona Goh','Gabriel Ong','Hannah Lim',
-  'Isaac Chan','Jasmine Yeo','Joshua Tan','Karen Ng','Leon Sim',
-  'Megan Chua','Nathan Lim','Nicole Tan','Oliver Goh','Priya Nair',
-  'Qi Xuan Chen','Rachel Lee','Samuel Teo','Tricia Ong','Umar Faruq',
-  'Vanessa Lim','Wei Ting Ng','Xavier Tan','Yolanda Koh','Zack Lim',
-  'Amirah Binte Said','Bryan Toh','Clara Seah','Dylan Chew','Eunice Tan',
-  'Fadhil Aziz','Grace Lim','Hamzah Yusof'
-].sort();
-
-let currentUserName = null;
-
-async function goToNamePicker() {
-  goto('namepicker');
-  await loadNameGrid();
-}
-
-async function loadNameGrid() {
-  const grid = document.getElementById('nameGrid');
-  const sub  = document.getElementById('namePickerSub');
-  grid.innerHTML = '<div class="empty-state"><p class="empty-label">Loading names…</p></div>';
-
-  // fetch all already-claimed names
-  const { data: claimed } = await db.from('names').select('display_name, user_id');
-  const claimedMap = {};
-  (claimed||[]).forEach(r => claimedMap[r.display_name] = r.user_id);
-
-  // check if this user already has a name (e.g. came back)
-  const myName = Object.keys(claimedMap).find(n => claimedMap[n] === currentUser?.id);
-  if (myName) {
-    currentUserName = myName;
-    goto('dashboard');
-    return;
-  }
-
-  grid.innerHTML = CLASS_NAMES.map(name => {
-    const isTaken = !!claimedMap[name];
-    return `<button class="name-btn ${isTaken?'taken':''}" onclick="${isTaken?'':`pickName('${name.replace(/'/,"\'")}')`}" ${isTaken?'disabled':''}>
-      <span>${name}</span>
-    </button>`;
-  }).join('');
-
-  sub.textContent = `${Object.keys(claimedMap).length} of ${CLASS_NAMES.length} names taken`;
-}
-
-async function pickName(name) {
-  if (!currentUser) return;
-  const sub = document.getElementById('namePickerSub');
-  sub.textContent = 'Claiming name…';
-
-  // double-check it's not taken (race condition guard)
-  const { data: existing } = await db.from('names').select('id').eq('display_name', name).single();
-  if (existing) {
-    sub.textContent = 'That name was just taken! Please choose another.';
-    await loadNameGrid();
-    return;
-  }
-
-  const { error } = await db.from('names').insert({ display_name: name, user_id: currentUser.id });
-  if (error) {
-    sub.textContent = 'Could not claim name. Try again.';
-    await loadNameGrid();
-    return;
-  }
-
-  currentUserName = name;
-  toast('Welcome, ' + name + '!');
-  goto('dashboard');
-}
-
-/* ════════════════════════════════════════
-   INIT — check if already logged in
-════════════════════════════════════════ */
-(async()=>{
-  const { data:{ session } } = await db.auth.getSession();
-  if (session?.user) {
-    currentUser = session.user;
-    // check if they already claimed a name
-    const { data: claimed } = await db.from('names').select('display_name').eq('user_id', currentUser.id).single();
-    if (claimed?.display_name) {
-      currentUserName = claimed.display_name;
-      goto('dashboard');
-    } else {
-      goToNamePicker();
-    }
-  }
-  db.auth.onAuthStateChange((_event, session)=>{
-    currentUser = session?.user || null;
-    if (!currentUser) { currentUserName = null; goto('login'); }
-  });
-})();
-</script>
-</body>
-</html>
+  arena.innerHTML=`<div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;"><p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p><div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div><div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div><div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:
