@@ -176,8 +176,6 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .btn-gold:hover::before { transform:scaleX(1); }
 .btn-gold:hover { color:var(--dark); }
 .btn-gold span { position:relative; z-index:1; }
-.btn-gold:disabled { opacity:.45; cursor:not-allowed; }
-.btn-gold:disabled::before { transform:scaleX(0) !important; }
 .filter-bar { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; animation:fadeUp .8s .15s ease both; }
 .filter-btn { font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:var(--text-muted); border:1px solid rgba(201,169,110,.1); background:none; padding:7px 18px; cursor:pointer; font-family:'Josefin Sans',sans-serif; transition:color .2s,border-color .2s; }
 .filter-btn.active,.filter-btn:hover { color:var(--gold); border-color:rgba(201,169,110,.35); }
@@ -251,6 +249,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .countdown.today    { color:var(--gold); }
 .countdown.past     { color:rgba(138,128,112,.35); }
 
+
 /* ── Name Picker ── */
 .name-btn { background:var(--dark-3); border:1px solid rgba(201,169,110,.15); color:var(--cream); font-family:'Josefin Sans',sans-serif; font-size:11px; letter-spacing:.15em; text-transform:uppercase; padding:16px 12px; cursor:pointer; transition:background .2s,border-color .2s,color .2s; text-align:center; position:relative; overflow:hidden; }
 .name-btn::before { content:''; position:absolute; inset:0; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .35s cubic-bezier(.4,0,.2,1); z-index:0; }
@@ -258,6 +257,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .name-btn.taken { background:rgba(14,12,9,.6); border-color:rgba(201,169,110,.06); color:rgba(138,128,112,.35); cursor:not-allowed; text-decoration:line-through; }
 .name-btn.mine { border-color:#5a9e6f; color:#5a9e6f; background:rgba(90,158,111,.06); }
 .name-btn span { position:relative; z-index:1; }
+
 
 /* ── Games ── */
 .games-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1px; background:rgba(201,169,110,.08); margin-bottom:48px; animation:fadeUp .8s .1s ease both; }
@@ -287,20 +287,9 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .g-hud-val { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; color:var(--gold); line-height:1; }
 .g-hud-key { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-muted); }
 
-/* ── Chameleon game specific ── */
-.cham-panel { background:var(--dark-3); border:1px solid rgba(201,169,110,.1); padding:24px; }
-.cham-player-row { display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(201,169,110,.03); border:1px solid rgba(201,169,110,.05); margin-bottom:6px; transition:background .2s; }
-.cham-player-row:hover { background:rgba(201,169,110,.06); }
-.cham-dot { width:8px; height:8px; transform:rotate(45deg); flex-shrink:0; }
-.cham-vote-btn { background:var(--dark-3); border:1px solid rgba(201,169,110,.15); color:var(--cream); font-family:'Josefin Sans',sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:14px 20px; cursor:pointer; transition:border-color .2s,background .2s,color .2s; text-align:left; width:100%; margin-bottom:6px; }
-.cham-vote-btn:hover { border-color:var(--gold); color:var(--gold); background:rgba(201,169,110,.04); }
-.cham-tag { font-size:9px; letter-spacing:.3em; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
-.cham-tag::before { content:''; display:block; width:12px; height:1px; }
-
 /* ── Animations ── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 @keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
-@keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 /* ── Responsive ── */
 @media (max-width:768px) {
@@ -439,6 +428,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
       <span class="nav-link" onclick="goto('homework')">Homework</span>
       <span class="nav-link" onclick="goto('events')">Events</span>
       <span class="nav-link" onclick="goto('games')">Games</span>
+      <span class="nav-link" onclick="goto('chameleon')">Chameleon</span>
     </div>
     <div class="topbar-right">
       <div class="badge">1A3</div>
@@ -452,10 +442,10 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
       <p class="page-subtitle" id="dashDateLine">—</p>
     </div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">33</div><div class="stat-note">Full class enrolled</div></div>
+      <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">38</div><div class="stat-note">Full class enrolled</div></div>
       <div class="stat-card"><div class="stat-label">Days to Exam</div><div class="stat-value" id="daysLeft">—</div><div class="stat-note">End-of-year finals</div></div>
-      <div class="stat-card"><div class="stat-label">Homework Entries</div><div class="stat-value" id="hwCount">—</div><div class="stat-note">Logged this term</div></div>
-      <div class="stat-card"><div class="stat-label">Upcoming Events</div><div class="stat-value" id="evCount">—</div><div class="stat-note">On the pinboard</div></div>
+      <div class="stat-card"><div class="stat-label">Homework Entries</div><div class="stat-value" id="hwCount">0</div><div class="stat-note">Logged this term</div></div>
+      <div class="stat-card"><div class="stat-label">Upcoming Events</div><div class="stat-value" id="evCount">0</div><div class="stat-note">On the pinboard</div></div>
     </div>
     <section style="margin-bottom:52px;">
       <div class="section-head"><h2 class="section-title">Announcements</h2><div class="section-line"></div></div>
@@ -486,6 +476,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="link-card" onclick="goto('homework')"><div class="link-icon"><span></span></div><div class="link-title">Homework</div><div class="link-desc">Daily homework log</div></div>
         <div class="link-card" onclick="goto('events')"><div class="link-icon"><span></span></div><div class="link-title">Important Events</div><div class="link-desc">Key dates &amp; pinboard</div></div>
         <div class="link-card" onclick="goto('games')"><div class="link-icon"><span></span></div><div class="link-title">Games</div><div class="link-desc">Chess, Tetris, Snake &amp; more</div></div>
+        <div class="link-card" onclick="goto('chameleon')"><div class="link-icon"><span></span></div><div class="link-title">Chameleon</div><div class="link-desc">Live party game — create or join a room</div></div>
         <div class="link-card"><div class="link-icon"><span></span></div><div class="link-title">Members</div><div class="link-desc">Full class contact list</div></div>
         <div class="link-card"><div class="link-icon"><span></span></div><div class="link-title">Forum</div><div class="link-desc">Class discussion board</div></div>
       </div>
@@ -729,17 +720,15 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="game-title">Minesweeper</div>
         <div class="game-desc">Clear the board without hitting a mine</div>
       </div>
+      <div class="game-card" id="gc-chameleon" onclick="goto('chameleon')" style="border-left:2px solid rgba(201,169,110,.3);">
+        <span class="game-icon">🦎</span>
+        <div class="game-title">Chameleon</div>
+        <div class="game-desc">Multiplayer — create a room and play live with classmates</div>
+      </div>
       <div class="game-card" id="gc-wordle" onclick="loadGame('wordle')">
         <span class="game-icon">🔤</span>
         <div class="game-title">Wordle</div>
         <div class="game-desc">Guess the 5-letter word in 6 tries</div>
-      </div>
-      <!-- NEW: The Chameleon -->
-      <div class="game-card" id="gc-chameleon" onclick="loadGame('chameleon')" style="position:relative;">
-        <div style="position:absolute;top:10px;right:10px;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#5a9e6f;border:1px solid rgba(90,158,111,.3);padding:3px 8px;">Multiplayer</div>
-        <span class="game-icon">🦎</span>
-        <div class="game-title">The Chameleon</div>
-        <div class="game-desc">Social deduction — find the spy before they blend in</div>
       </div>
     </div>
 
@@ -753,13 +742,154 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════
+     PAGE: CHAMELEON
+═══════════════════════════════════════ -->
+<div id="page-chameleon" class="page-view">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="goto('dashboard')">
+      <div class="brand-icon"><span></span></div>
+      <div class="brand-name">1A3 Class Server</div>
+    </div>
+    <div class="topbar-nav">
+      <span class="nav-link" onclick="goto('dashboard')">Dashboard</span>
+      <span class="nav-link" onclick="goto('games')">Games</span>
+      <span class="nav-link active">Chameleon</span>
+    </div>
+    <div class="topbar-right">
+      <div class="badge">Live</div>
+      <button class="signout-btn" onclick="leaveChameleonRoom();goto('dashboard')">Leave</button>
+    </div>
+  </nav>
+  <div class="page-body" style="max-width:900px;">
+    <div class="page-header">
+      <div class="divider-line"><div class="divider-gem"></div></div>
+      <h1 class="page-title">The <em>Chameleon</em></h1>
+      <p class="page-subtitle">One player is the chameleon — they don't know the secret word</p>
+    </div>
+
+    <!-- LOBBY VIEW -->
+    <div id="ch-lobby">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(201,169,110,.08);margin-bottom:32px;">
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Create a New Room</div>
+          <button class="btn-gold" onclick="chCreateRoom()" style="width:100%;"><span>Create Room</span></button>
+        </div>
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Join with Room Code</div>
+          <div style="display:flex;gap:8px;">
+            <input class="f-input" id="chJoinCode" placeholder="e.g. XKPQ" maxlength="4" style="text-transform:uppercase;letter-spacing:.3em;font-size:18px;text-align:center;">
+            <button class="btn-gold" onclick="chJoinRoom()" style="white-space:nowrap;"><span>Join</span></button>
+          </div>
+        </div>
+      </div>
+      <div id="ch-msg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);text-align:center;min-height:20px;text-transform:uppercase;margin-bottom:24px;"></div>
+
+      <!-- How to play -->
+      <div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.08);padding:28px;">
+        <div class="section-head" style="margin-bottom:16px;"><h2 class="section-title">How to Play</h2><div class="section-line"></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+          <div style="font-size:11px;letter-spacing:.08em;color:var(--text-muted);line-height:1.9;"><span style="color:var(--gold);display:block;margin-bottom:6px;font-size:10px;letter-spacing:.25em;text-transform:uppercase;">1 · The Setup</span>Everyone sees a topic and 16 words. All players except the Chameleon also see the secret word.</div>
+          <div style="font-size:11px;letter-spacing:.08em;color:var(--text-muted);line-height:1.9;"><span style="color:var(--gold);display:block;margin-bottom:6px;font-size:10px;letter-spacing:.25em;text-transform:uppercase;">2 · Give a Clue</span>Each player says one word that hints at the secret word — without making it too obvious. The Chameleon must bluff.</div>
+          <div style="font-size:11px;letter-spacing:.08em;color:var(--text-muted);line-height:1.9;"><span style="color:var(--gold);display:block;margin-bottom:6px;font-size:10px;letter-spacing:.25em;text-transform:uppercase;">3 · Vote</span>After all clues, vote on who you think the Chameleon is. Most votes = accused. If correct, Chameleon can still win by guessing the word!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM VIEW (waiting/playing) -->
+    <div id="ch-room" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="f-label" style="margin-bottom:4px;">Room Code</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--gold);letter-spacing:.3em;" id="ch-room-code">—</div>
+        </div>
+        <div id="ch-room-status" style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);text-align:right;"></div>
+      </div>
+
+      <!-- Players list -->
+      <div style="margin-bottom:28px;">
+        <div class="section-head" style="margin-bottom:12px;"><h2 class="section-title">Players</h2><div class="section-line"></div></div>
+        <div id="ch-players" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+
+      <!-- Host start button -->
+      <div id="ch-host-controls" style="display:none;margin-bottom:28px;">
+        <button class="btn-gold" id="ch-start-btn" onclick="chStartGame()" style="width:100%;opacity:.5;cursor:not-allowed;" disabled><span>Waiting for 3+ players…</span></button>
+      </div>
+
+      <!-- Game area (shown during play) -->
+      <div id="ch-game-area" style="display:none;">
+
+        <!-- Role reveal -->
+        <div id="ch-role-reveal" style="display:none;text-align:center;padding:48px 24px;background:var(--dark-2);border:1px solid rgba(201,169,110,.1);margin-bottom:28px;">
+          <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">Your Role</div>
+          <div id="ch-role-text" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);margin-bottom:16px;"></div>
+          <div id="ch-word-reveal" style="font-size:14px;letter-spacing:.15em;color:var(--cream);margin-bottom:24px;"></div>
+          <button class="btn-gold" onclick="chShowBoard()"><span>See the Word Grid →</span></button>
+        </div>
+
+        <!-- Word grid -->
+        <div id="ch-board-area" style="display:none;margin-bottom:28px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <div class="f-label" style="margin-bottom:4px;">Topic</div>
+              <div id="ch-topic-display" style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);"></div>
+            </div>
+            <div id="ch-secret-display" style="text-align:right;"></div>
+          </div>
+          <div id="ch-word-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:24px;"></div>
+
+          <!-- Clue submission -->
+          <div id="ch-clue-area" style="background:var(--dark-2);border:1px solid rgba(201,169,110,.08);padding:24px;margin-bottom:16px;">
+            <div class="f-label" style="margin-bottom:12px;">Your Clue Word</div>
+            <div style="display:flex;gap:8px;">
+              <input class="f-input" id="ch-clue-input" placeholder="One word only…" maxlength="20">
+              <button class="btn-gold" onclick="chSubmitClue()"><span>Submit</span></button>
+            </div>
+          </div>
+
+          <!-- Clues submitted -->
+          <div id="ch-clues-list" style="margin-bottom:16px;"></div>
+
+          <!-- Voting -->
+          <div id="ch-vote-area" style="display:none;">
+            <div class="section-head" style="margin-bottom:12px;"><h2 class="section-title">Vote — Who is the Chameleon?</h2><div class="section-line"></div></div>
+            <div id="ch-vote-btns" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+          </div>
+
+          <!-- Results -->
+          <div id="ch-results" style="display:none;background:var(--dark-2);border:1px solid rgba(201,169,110,.1);padding:28px;text-align:center;">
+            <div id="ch-result-text" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--cream);margin-bottom:16px;"></div>
+            <div id="ch-result-sub" style="font-size:11px;letter-spacing:.15em;color:var(--text-muted);margin-bottom:24px;"></div>
+            <!-- Chameleon guess word -->
+            <div id="ch-guess-area" style="display:none;margin-bottom:20px;">
+              <div class="f-label" style="margin-bottom:10px;">You are the Chameleon! Guess the secret word to win:</div>
+              <div style="display:flex;gap:8px;justify-content:center;">
+                <input class="f-input" id="ch-guess-input" placeholder="Guess the word…" style="max-width:240px;">
+                <button class="btn-gold" onclick="chGuessWord()"><span>Guess</span></button>
+              </div>
+            </div>
+            <div id="ch-final-result" style="font-size:13px;letter-spacing:.15em;color:var(--gold);min-height:20px;"></div>
+            <button class="btn-gold" onclick="chNewRound()" style="margin-top:20px;" id="ch-new-round-btn"><span>New Round</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════
      JAVASCRIPT
 ═══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ══════════════════════════════════════════════════════
+   ▶▶  PASTE YOUR SUPABASE KEYS HERE  ◀◀
+══════════════════════════════════════════════════════ */
 const SUPABASE_URL  = 'https://nkvtdrdskxgwphbhdodw.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rdnRkcmRza3hnd3BoYmhkb2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2OTcyMTUsImV4cCI6MjA5MjI3MzIxNX0.C-QMpeaLQzUtMvQXNKvWd8WLPf7MjVd01Sx8hdr6a1U';
+/* ══════════════════════════════════════════════════════ */
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -768,9 +898,9 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
 
 /* ── Router ── */
-const PAGES = ['login','namepicker','dashboard','notes','homework','events','games'];
+const PAGES = ['login','namepicker','dashboard','notes','homework','events','games','chameleon'];
 function goto(id) {
-  if (id !== 'games') { activeGame = null; chamCleanup(); }
+  if (id !== 'games') activeGame = null;
   PAGES.forEach(p => document.getElementById('page-'+p).classList.toggle('active', p===id));
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
   const match = document.querySelector(`#page-dashboard .nav-link[onclick*="${id}"]`);
@@ -780,6 +910,8 @@ function goto(id) {
   if (id==='notes')     renderFiles();
   if (id==='homework')  renderHW();
   if (id==='events')    renderEvents();
+  if (id==='chameleon') initChameleon();
+  if (id!=='chameleon') stopChameleonPolling();
   if (id==='games')     initGamesPage();
 }
 
@@ -871,7 +1003,6 @@ async function handleSubmit() {
 });
 
 async function signOut() {
-  chamCleanup();
   await db.auth.signOut();
   currentUser = null;
   goto('login');
@@ -1128,322 +1259,45 @@ async function delEvent(id){
   renderEvents();
 }
 
+
+
 /* ════════════════════════════════════════
    GAMES
 ════════════════════════════════════════ */
 let activeGame = null;
 
 function initGamesPage() {
+  // reset any active game highlight and clear arena back to placeholder
   document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('active-game'));
   const arena = document.getElementById('gameArena');
   const title = document.getElementById('gameArenaTitle');
   if (arena && !activeGame) {
-    arena.innerHTML = '<div class="game-placeholder"><div class="game-placeholder-icon">♟🐍🟦🦎</div><p class="game-placeholder-text">Choose a game above to start playing</p></div>';
+    arena.innerHTML = '<div class="game-placeholder"><div class="game-placeholder-icon">♟🐍🟦</div><p class="game-placeholder-text">Choose a game above to start playing</p></div>';
     title.textContent = 'Select a game above';
   }
 }
 
 function loadGame(id) {
+  // highlight selected card
   document.querySelectorAll('.game-card').forEach(c=>c.classList.remove('active-game'));
   const card = document.getElementById('gc-'+id) || document.getElementById('gc-'+id.replace('g',''));
   if(card) card.classList.add('active-game');
   activeGame = id;
   const arena = document.getElementById('gameArena');
   const title = document.getElementById('gameArenaTitle');
-  const names = {chess:'Chess',snake:'Snake',tetris:'Tetris',g2048:'2048',minesweeper:'Minesweeper',wordle:'Wordle',chameleon:'The Chameleon'};
+  const names = {chess:'Chess',snake:'Snake',tetris:'Tetris',g2048:'2048',minesweeper:'Minesweeper',wordle:'Wordle'};
   title.textContent = names[id] || id;
   arena.innerHTML = '';
 
-  if (id==='chess')           loadChess(arena);
-  else if(id==='snake')       loadSnake(arena);
-  else if(id==='tetris')      loadTetris(arena);
-  else if(id==='g2048')       load2048(arena);
+  if (id==='chess')       loadChess(arena);
+  else if(id==='snake')   loadSnake(arena);
+  else if(id==='tetris')  loadTetris(arena);
+  else if(id==='g2048')   load2048(arena);
   else if(id==='minesweeper') loadMinesweeper(arena);
-  else if(id==='wordle')      loadWordle(arena);
-  else if(id==='chameleon')   loadChameleon(arena);
+  else if(id==='wordle')  loadWordle(arena);
 }
 
-/* ════════════════════════════════════════
-   CHAMELEON
-════════════════════════════════════════ */
-
-const CHAMELEON_DECKS = [
-  {category:'Animals', words:['Lion','Tiger','Elephant','Giraffe','Zebra','Penguin','Dolphin','Eagle','Cheetah','Koala']},
-  {category:'Sports', words:['Football','Tennis','Swimming','Basketball','Badminton','Cricket','Volleyball','Rugby','Golf','Fencing']},
-  {category:'Foods', words:['Pizza','Sushi','Tacos','Pasta','Ramen','Burger','Curry','Satay','Waffles','Nachos']},
-  {category:'Countries', words:['France','Japan','Brazil','Australia','Egypt','Canada','India','Italy','Norway','Iceland']},
-  {category:'Movies', words:['Avatar','Titanic','Inception','Avengers','Frozen','Joker','Dune','Parasite','Oppenheimer','Interstellar']},
-  {category:'Professions', words:['Doctor','Lawyer','Engineer','Teacher','Chef','Pilot','Artist','Scientist','Journalist','Architect']},
-  {category:'Instruments', words:['Guitar','Piano','Violin','Drums','Trumpet','Flute','Cello','Harp','Saxophone','Ukulele']},
-  {category:'Singapore Food', words:['Laksa','ChickenRice','CharKwayTeow','RotiPrata','NasiLemak','BakKutTeh','ChilliCrab','MeeGoreng','KayaToast','IceKachang']},
-  {category:'Superheroes', words:['Batman','Superman','SpiderMan','IronMan','CaptainAmerica','WonderWoman','Thor','BlackPanther','Flash','Aquaman']},
-  {category:'School Subjects', words:['Math','Chemistry','Physics','History','English','Biology','Geography','Literature','Music','Art']},
-];
-
-let chamChannel = null;
-let chamPollTimer = null;
-let chamRoomCode = null;
-let lastStateJSON = null;
-
-/* ---------------- CLEANUP ---------------- */
-function chamCleanup() {
-  if (chamChannel) {
-    try { db.removeChannel(chamChannel); } catch(e){}
-    chamChannel = null;
-  }
-  if (chamPollTimer) {
-    clearInterval(chamPollTimer);
-    chamPollTimer = null;
-  }
-  chamRoomCode = null;
-  lastStateJSON = null;
-}
-
-/* ---------------- ENTRY ---------------- */
-function loadChameleon(arena) {
-  if (!currentUser) {
-    arena.innerHTML = "Sign in first.";
-    return;
-  }
-  chamCleanup();
-
-  arena.innerHTML = `
-    <div style="padding:40px;text-align:center;">
-      <h2>The Chameleon 🦎</h2>
-      <button onclick="chamCreate()">Create Room</button>
-      <br><br>
-      <input id="chamJoinCode" placeholder="Room Code">
-      <button onclick="chamJoin()">Join</button>
-      <div id="chamErrMsg"></div>
-    </div>
-  `;
-}
-
-function chamErr(msg) {
-  const el = document.getElementById('chamErrMsg');
-  if (el) el.textContent = msg;
-}
-
-/* ---------------- ROOM ---------------- */
-function genCode() {
-  return Math.random().toString(36).substring(2,8).toUpperCase();
-}
-
-async function chamCreate() {
-  const code = genCode();
-
-  const state = {
-    status: 'lobby',
-    creator_id: currentUser.id,
-    players: [{ user_id: currentUser.id, name: currentUserName, clue: null, vote: null }],
-    category: null,
-    secret_word: null,
-    chameleon_id: null
-  };
-
-  const { error } = await db.from('chameleon_rooms').insert({
-    room_code: code,
-    state
-  });
-
-  if (error) return chamErr("DB error");
-
-  chamRoomCode = code;
-  chamSubscribe(code);
-}
-
-async function chamJoin() {
-  const code = document.getElementById('chamJoinCode').value.trim().toUpperCase();
-
-  const { data } = await db
-    .from('chameleon_rooms')
-    .select('*')
-    .eq('room_code', code)
-    .single();
-
-  if (!data) return chamErr("Room not found");
-
-  const state = data.state;
-
-  if (state.players.length >= 10) return chamErr("Room full");
-
-  if (!state.players.find(p => p.user_id === currentUser.id)) {
-    state.players.push({
-      user_id: currentUser.id,
-      name: currentUserName,
-      clue: null,
-      vote: null
-    });
-
-    await db
-      .from('chameleon_rooms')
-      .update({ state })
-      .eq('room_code', code);
-  }
-
-  chamRoomCode = code;
-  chamSubscribe(code);
-}
-
-/* ---------------- REALTIME ---------------- */
-function chamSubscribe(code) {
-  if (chamChannel) {
-    try { db.removeChannel(chamChannel); } catch(e){}
-  }
-
-  chamChannel = db.channel('cham_' + code)
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'chameleon_rooms',
-      filter: `room_code=eq.${code}`
-    }, payload => {
-      chamDispatch(code, payload.new.state);
-    })
-    .subscribe();
-
-  if (chamPollTimer) clearInterval(chamPollTimer);
-
-  chamPollTimer = setInterval(async () => {
-    const { data } = await db
-      .from('chameleon_rooms')
-      .select('state')
-      .eq('room_code', code)
-      .single();
-
-    if (data?.state) chamDispatch(code, data.state);
-  }, 3000);
-}
-
-/* ---------------- DISPATCH ---------------- */
-function chamDispatch(code, state) {
-  if (!state) return;
-
-  const json = JSON.stringify(state);
-  if (json === lastStateJSON) return;
-  lastStateJSON = json;
-
-  if (state.status === 'lobby') renderLobby(code, state);
-  if (state.status === 'playing') renderPlaying(code, state);
-  if (state.status === 'voting') renderVoting(code, state);
-  if (state.status === 'guessing') renderGuessing(code, state);
-  if (state.status === 'results') renderResults(code, state);
-}
-
-/* ---------------- LOBBY ---------------- */
-function renderLobby(code, state) {
-  const arena = document.getElementById('gameArena');
-  if (!arena) return;
-
-  arena.innerHTML = `
-    <h2>Lobby ${code}</h2>
-    <p>${state.players.length} players</p>
-
-    ${state.players.map(p => `<div>${p.name}</div>`).join('')}
-
-    ${state.creator_id === currentUser.id ? `
-      <button onclick="chamStart('${code}')">Start</button>
-    ` : `<p>Waiting for host...</p>`}
-  `;
-}
-
-async function chamStart(code) {
-  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  const state = data.state;
-
-  const deck = CHAMELEON_DECKS[Math.floor(Math.random()*CHAMELEON_DECKS.length)];
-  const word = deck.words[Math.floor(Math.random()*deck.words.length)];
-  const cham = state.players[Math.floor(Math.random()*state.players.length)];
-
-  const newState = {
-    ...state,
-    status: 'playing',
-    category: deck.category,
-    secret_word: word,
-    chameleon_id: cham.user_id
-  };
-
-  await db.from('chameleon_rooms').update({ state: newState }).eq('room_code', code);
-}
-
-/* ---------------- PLAYING ---------------- */
-function renderPlaying(code, state) {
-  const arena = document.getElementById('gameArena');
-  const me = state.players.find(p => p.user_id === currentUser.id);
-
-  arena.innerHTML = `
-    <h3>${state.category}</h3>
-
-    <p>${state.players.filter(p => p.clue).length}/${state.players.length} clues</p>
-
-    ${me?.clue ? `<p>Your clue: ${me.clue}</p>` : `
-      <input id="clueInput">
-      <button onclick="chamSubmitClue('${code}')">Send</button>
-    `}
-  `;
-}
-
-async function chamSubmitClue(code) {
-  const clue = document.getElementById('clueInput').value.trim();
-  if (!clue) return;
-
-  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  const state = data.state;
-
-  state.players = state.players.map(p =>
-    p.user_id === currentUser.id ? { ...p, clue } : p
-  );
-
-  const all = state.players.every(p => p.clue);
-  state.status = all ? 'voting' : 'playing';
-
-  await db.from('chameleon_rooms').update({ state }).eq('room_code', code);
-}
-
-/* ---------------- VOTING ---------------- */
-function renderVoting(code, state) {
-  const arena = document.getElementById('gameArena');
-
-  arena.innerHTML = `
-    <h3>Vote</h3>
-
-    ${state.players.map(p => `
-      <button onclick="chamVote('${code}','${p.name}')">
-        ${p.name} - ${p.clue}
-      </button>
-    `).join('')}
-  `;
-}
-
-async function chamVote(code, name) {
-  const { data } = await db.from('chameleon_rooms').select('state').eq('room_code', code).single();
-  const state = data.state;
-
-  state.players = state.players.map(p =>
-    p.user_id === currentUser.id ? { ...p, vote: name } : p
-  );
-
-  const all = state.players.every(p => p.vote);
-
-  if (all) {
-    const tally = {};
-    state.players.forEach(p => tally[p.vote] = (tally[p.vote]||0)+1);
-
-    const top = Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0];
-    const cham = state.players.find(p => p.user_id === state.chameleon_id);
-
-    state.status = top === cham.name ? 'guessing' : 'results';
-  }
-
-  await db.from('chameleon_rooms').update({ state }).eq('room_code', code);
-}
-
-/* ---------------- GUESS + RESULTS ---------------- */
-function renderGuessing() {}
-function renderResults() {}
-/* ════════════════════════════════════════
-   CHESS
-════════════════════════════════════════ */
+/* ── CHESS — fully built-in, no external sites ── */
 function loadChess(arena) {
   arena.style.minHeight = '700px';
   arena.innerHTML = `
@@ -1458,7 +1312,15 @@ function loadChess(arena) {
       <button class="g-btn" onclick="chessReset()" style="font-size:9px;padding:8px 20px;margin-top:4px;">New Game</button>
     </div>`;
 
-  window.CH = { mode:'ai', board:null, turn:'w', sel:null, validMoves:[], captured:{w:[],b:[]}, gameOver:false, promotePending:null, SZ:60 };
+  // chess engine state
+  window.CH = {
+    mode: 'ai',
+    board: null, turn: 'w', sel: null, validMoves: [],
+    captured: {w:[], b:[]},
+    gameOver: false,
+    promotePending: null,
+    SZ: 60
+  };
   chessMode('ai');
 }
 
@@ -1489,162 +1351,1252 @@ function chessReset() {
   c.onclick = chessClick;
 }
 
-function chessStatus(msg) { const el=document.getElementById('chessStatus'); if(el)el.textContent=msg; }
+function chessStatus(msg) {
+  const el = document.getElementById('chessStatus');
+  if (el) el.textContent = msg;
+}
 
-const PIECE_UNICODE = {kw:'♔',qw:'♕',rw:'♖',bw:'♗',nw:'♘',pw:'♙',kb:'♚',qb:'♛',rb:'♜',bb:'♝',nb:'♞',pb:'♟'};
+const PIECE_UNICODE = {
+  kw:'♔',qw:'♕',rw:'♖',bw:'♗',nw:'♘',pw:'♙',
+  kb:'♚',qb:'♛',rb:'♜',bb:'♝',nb:'♞',pb:'♟'
+};
 
 function chessDraw() {
-  const c=document.getElementById('chessBoard'); if(!c)return;
-  const ctx=c.getContext('2d'); const SZ=CH.SZ;
-  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
-    const light=(r+f)%2===0;
-    ctx.fillStyle=light?'#2a2420':'#1a1410'; ctx.fillRect(f*SZ,r*SZ,SZ,SZ);
-    if(CH.sel&&CH.sel[0]===r&&CH.sel[1]===f){ctx.fillStyle='rgba(201,169,110,.35)';ctx.fillRect(f*SZ,r*SZ,SZ,SZ);}
-    if(CH.validMoves.some(m=>m[0]===r&&m[1]===f)){ctx.fillStyle='rgba(201,169,110,.2)';ctx.fillRect(f*SZ,r*SZ,SZ,SZ);ctx.strokeStyle='rgba(201,169,110,.5)';ctx.strokeRect(f*SZ+1,r*SZ+1,SZ-2,SZ-2);}
-    const p=CH.board[r][f];
-    if(p){ctx.font=`${SZ*.72}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=p[1]==='w'?'#e8d5a3':'#3a2a1a';if(p[1]==='b'){ctx.strokeStyle='#c9a96e';ctx.lineWidth=.5;ctx.strokeText(PIECE_UNICODE[p],f*SZ+SZ/2,r*SZ+SZ/2+1);}ctx.fillText(PIECE_UNICODE[p],f*SZ+SZ/2,r*SZ+SZ/2+1);}
+  const c = document.getElementById('chessBoard');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const SZ = CH.SZ;
+  for (let r=0;r<8;r++) for (let f=0;f<8;f++) {
+    const light = (r+f)%2===0;
+    ctx.fillStyle = light ? '#2a2420' : '#1a1410';
+    ctx.fillRect(f*SZ, r*SZ, SZ, SZ);
+    // highlight selected
+    if (CH.sel && CH.sel[0]===r && CH.sel[1]===f) {
+      ctx.fillStyle = 'rgba(201,169,110,.35)';
+      ctx.fillRect(f*SZ, r*SZ, SZ, SZ);
+    }
+    // highlight valid moves
+    if (CH.validMoves.some(m=>m[0]===r&&m[1]===f)) {
+      ctx.fillStyle = 'rgba(201,169,110,.2)';
+      ctx.fillRect(f*SZ, r*SZ, SZ, SZ);
+      ctx.strokeStyle = 'rgba(201,169,110,.5)';
+      ctx.strokeRect(f*SZ+1, r*SZ+1, SZ-2, SZ-2);
+    }
+    // draw piece
+    const p = CH.board[r][f];
+    if (p) {
+      ctx.font = `${SZ*0.72}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = p[1]==='w' ? '#e8d5a3' : '#3a2a1a';
+      // shadow for dark pieces
+      if (p[1]==='b') { ctx.strokeStyle='#c9a96e'; ctx.lineWidth=0.5; ctx.strokeText(PIECE_UNICODE[p], f*SZ+SZ/2, r*SZ+SZ/2+1); }
+      ctx.fillText(PIECE_UNICODE[p], f*SZ+SZ/2, r*SZ+SZ/2+1);
+    }
   }
-  ctx.font='10px Josefin Sans,sans-serif';ctx.fillStyle='rgba(201,169,110,.4)';
-  for(let i=0;i<8;i++){ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(8-i,2,i*SZ+2);ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(String.fromCharCode(97+i),(i+1)*SZ-2,480-2);}
-  const cap=document.getElementById('chessCaptured');
-  if(cap){const wb=CH.captured.b.map(p=>PIECE_UNICODE[p]).join('');const bb=CH.captured.w.map(p=>PIECE_UNICODE[p]).join('');cap.innerHTML=`<span style="color:#e8d5a3;">White captured: ${wb||'—'}</span> &nbsp;|&nbsp; <span style="color:#c9a96e;">Black captured: ${bb||'—'}</span>`;}
+  // coord labels
+  ctx.font = '10px Josefin Sans, sans-serif';
+  ctx.fillStyle = 'rgba(201,169,110,.4)';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  for(let i=0;i<8;i++) {
+    ctx.fillText(8-i, 2, i*SZ+2);
+    ctx.textAlign='right'; ctx.textBaseline='bottom';
+    ctx.fillText(String.fromCharCode(97+i), (i+1)*SZ-2, 480-2);
+    ctx.textAlign='left'; ctx.textBaseline='top';
+  }
+  // update captured
+  const cap = document.getElementById('chessCaptured');
+  if (cap) {
+    const wb = CH.captured.b.map(p=>PIECE_UNICODE[p]).join('');
+    const bb = CH.captured.w.map(p=>PIECE_UNICODE[p]).join('');
+    cap.innerHTML = `<span style="color:#e8d5a3;">White captured: ${wb||'—'}</span> &nbsp;|&nbsp; <span style="color:#c9a96e;">Black captured: ${bb||'—'}</span>`;
+  }
 }
 
 function chessClick(e) {
-  if(CH.gameOver)return; if(CH.mode==='ai'&&CH.turn==='b')return;
-  const rect=e.target.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;
-  const scale=e.target.width/rect.width;const f=Math.floor(x*scale/CH.SZ),r=Math.floor(y*scale/CH.SZ);
-  if(f<0||f>7||r<0||r>7)return;
-  if(CH.sel){const mv=CH.validMoves.find(m=>m[0]===r&&m[1]===f);if(mv){chessApplyMove(CH.sel[0],CH.sel[1],r,f);CH.sel=null;CH.validMoves=[];chessDraw();if(!CH.gameOver&&CH.mode==='ai'&&CH.turn==='b'){chessStatus("Computer thinking…");setTimeout(chessAIMove,300);}return;}}
-  const p=CH.board[r][f];
-  if(p&&p[1]===CH.turn){CH.sel=[r,f];CH.validMoves=chessGetMoves(r,f,true);chessDraw();}
-  else{CH.sel=null;CH.validMoves=[];chessDraw();}
+  if (CH.gameOver) return;
+  if (CH.mode==='ai' && CH.turn==='b') return;
+  const rect = e.target.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const scale = e.target.width / rect.width;
+  const f = Math.floor(x*scale/CH.SZ), r = Math.floor(y*scale/CH.SZ);
+  if (f<0||f>7||r<0||r>7) return;
+
+  if (CH.sel) {
+    const mv = CH.validMoves.find(m=>m[0]===r&&m[1]===f);
+    if (mv) {
+      chessApplyMove(CH.sel[0],CH.sel[1],r,f);
+      CH.sel=null; CH.validMoves=[];
+      chessDraw();
+      if (!CH.gameOver && CH.mode==='ai' && CH.turn==='b') {
+        chessStatus("Computer thinking…");
+        setTimeout(chessAIMove, 300);
+      }
+      return;
+    }
+  }
+  // select a piece
+  const p = CH.board[r][f];
+  if (p && p[1]===CH.turn) {
+    CH.sel=[r,f];
+    CH.validMoves = chessGetMoves(r,f,true);
+    chessDraw();
+  } else {
+    CH.sel=null; CH.validMoves=[];
+    chessDraw();
+  }
 }
 
-function chessApplyMove(r1,f1,r2,f2,promotion){
-  const p=CH.board[r1][f1]; const captured=CH.board[r2][f2];
-  if(captured)CH.captured[p[1]].push(captured);
-  if(p[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){CH.captured[p[1]].push(CH.board[r1][f2]);CH.board[r1][f2]=null;}
-  if(p[0]==='k'){if(f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}if(f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}if(p[1]==='w'){CH.castling.wK=false;CH.castling.wQ=false;}else{CH.castling.bK=false;CH.castling.bQ=false;}}
-  if(p[0]==='r'){if(r1===7&&f1===0)CH.castling.wQ=false;if(r1===7&&f1===7)CH.castling.wK=false;if(r1===0&&f1===0)CH.castling.bQ=false;if(r1===0&&f1===7)CH.castling.bK=false;}
-  CH.enPassant=(p[0]==='p'&&Math.abs(r2-r1)===2)?[r1+(r2-r1)/2,f1]:null;
-  CH.board[r2][f2]=p; CH.board[r1][f1]=null;
-  if(p[0]==='p'&&(r2===0||r2===7))CH.board[r2][f2]=(promotion||'q')+p[1];
-  CH.turn=CH.turn==='w'?'b':'w';
-  const inCheck=chessInCheck(CH.turn); const hasMoves=chessHasAnyMoves(CH.turn);
-  if(!hasMoves){CH.gameOver=true;if(inCheck)chessStatus(`♛ Checkmate — ${CH.turn==='w'?'Black':'White'} wins!`);else chessStatus('½ Stalemate — draw!');}
-  else if(inCheck)chessStatus(`Check! ${CH.turn==='w'?'White':'Black'} to move`);
-  else{if(CH.mode==='friend')chessStatus(`${CH.turn==='w'?'White':'Black'}'s turn`);else chessStatus(CH.turn==='w'?"Your turn":"Computer thinking…");}
+function chessApplyMove(r1,f1,r2,f2,promotion) {
+  const p = CH.board[r1][f1];
+  const captured = CH.board[r2][f2];
+  if (captured) CH.captured[p[1]].push(captured);
+
+  // en passant capture
+  if (p[0]==='p' && f1!==f2 && !CH.board[r2][f2]) {
+    CH.captured[p[1]].push(CH.board[r1][f2]);
+    CH.board[r1][f2]=null;
+  }
+  // castling
+  if (p[0]==='k') {
+    if (f2-f1===2) { CH.board[r1][5]=CH.board[r1][7]; CH.board[r1][7]=null; }
+    if (f1-f2===2) { CH.board[r1][3]=CH.board[r1][0]; CH.board[r1][0]=null; }
+    if (p[1]==='w'){CH.castling.wK=false;CH.castling.wQ=false;}
+    else{CH.castling.bK=false;CH.castling.bQ=false;}
+  }
+  if (p[0]==='r') {
+    if(r1===7&&f1===0)CH.castling.wQ=false;
+    if(r1===7&&f1===7)CH.castling.wK=false;
+    if(r1===0&&f1===0)CH.castling.bQ=false;
+    if(r1===0&&f1===7)CH.castling.bK=false;
+  }
+  // en passant flag
+  CH.enPassant = (p[0]==='p' && Math.abs(r2-r1)===2) ? [r1+(r2-r1)/2, f1] : null;
+
+  CH.board[r2][f2] = p;
+  CH.board[r1][f1] = null;
+
+  // pawn promotion
+  if (p[0]==='p' && (r2===0||r2===7)) {
+    CH.board[r2][f2] = (promotion||'q')+p[1];
+  }
+
+  CH.turn = CH.turn==='w'?'b':'w';
+  const inCheck = chessInCheck(CH.turn);
+  const hasMoves = chessHasAnyMoves(CH.turn);
+  if (!hasMoves) {
+    CH.gameOver=true;
+    if (inCheck) {
+      const winner = CH.turn==='w'?'Black':'White';
+      chessStatus(`♛ Checkmate — ${winner} wins!`);
+    } else {
+      chessStatus('½ Stalemate — draw!');
+    }
+  } else if (inCheck) {
+    chessStatus(`Check! ${CH.turn==='w'?'White':'Black'} to move`);
+  } else {
+    if (CH.mode==='friend') chessStatus(`${CH.turn==='w'?'White':'Black'}'s turn`);
+    else chessStatus(CH.turn==='w'?"Your turn":"Computer thinking…");
+  }
 }
 
-function chessGetMoves(r,f,filterCheck){
-  const p=CH.board[r][f]; if(!p)return[];
-  const[type,color]=[p[0],p[1]]; const opp=color==='w'?'b':'w'; const moves=[];
-  const add=(tr,tf)=>{if(tr>=0&&tr<8&&tf>=0&&tf<8){const t=CH.board[tr][tf];if(!t||t[1]===opp)moves.push([tr,tf]);}};
-  const slide=(dr,df)=>{let tr=r+dr,tf=f+df;while(tr>=0&&tr<8&&tf>=0&&tf<8){const t=CH.board[tr][tf];if(t){if(t[1]===opp)moves.push([tr,tf]);break;}moves.push([tr,tf]);tr+=dr;tf+=df;}};
-  if(type==='p'){const dir=color==='w'?-1:1;const start=color==='w'?6:1;if(!CH.board[r+dir]?.[f]){moves.push([r+dir,f]);if(r===start&&!CH.board[r+2*dir]?.[f])moves.push([r+2*dir,f]);}for(const df of[-1,1]){const tr=r+dir,tf=f+df;if(tr>=0&&tr<8&&tf>=0&&tf<8){if(CH.board[tr][tf]?.[1]===opp)moves.push([tr,tf]);if(CH.enPassant&&CH.enPassant[0]===tr&&CH.enPassant[1]===tf)moves.push([tr,tf]);}}}
-  else if(type==='n'){for(const[dr,df]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]])add(r+dr,f+df);}
-  else if(type==='b'){for(const[dr,df]of[[-1,-1],[-1,1],[1,-1],[1,1]])slide(dr,df);}
-  else if(type==='r'){for(const[dr,df]of[[-1,0],[1,0],[0,-1],[0,1]])slide(dr,df);}
-  else if(type==='q'){for(const[dr,df]of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]])slide(dr,df);}
-  else if(type==='k'){for(const[dr,df]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]])add(r+dr,f+df);const rank=color==='w'?7:0;if(r===rank&&f===4){if(color==='w'&&CH.castling.wK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp))moves.push([rank,6]);if(color==='w'&&CH.castling.wQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp))moves.push([rank,2]);if(color==='b'&&CH.castling.bK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp))moves.push([rank,6]);if(color==='b'&&CH.castling.bQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp))moves.push([rank,2]);}}
-  if(!filterCheck)return moves;
-  return moves.filter(([tr,tf])=>{const save=CH.board[tr][tf],saveEP=CH.enPassant;let epCapR=null,epCapSave=null;if(type==='p'&&f!==tf&&!CH.board[tr][tf]){epCapR=r;epCapSave=CH.board[r][tf];CH.board[r][tf]=null;}CH.board[tr][tf]=p;CH.board[r][f]=null;const safe=!chessInCheck(color);CH.board[r][f]=p;CH.board[tr][tf]=save;if(epCapR!==null)CH.board[epCapR][tf]=epCapSave;CH.enPassant=saveEP;return safe;});
+function chessGetMoves(r,f,filterCheck) {
+  const p = CH.board[r][f];
+  if (!p) return [];
+  const [type,color] = [p[0],p[1]];
+  const opp = color==='w'?'b':'w';
+  const moves = [];
+  const add = (tr,tf) => {
+    if(tr>=0&&tr<8&&tf>=0&&tf<8) {
+      const t=CH.board[tr][tf];
+      if(!t||t[1]===opp) moves.push([tr,tf]);
+    }
+  };
+  const slide = (dr,df) => {
+    let tr=r+dr,tf=f+df;
+    while(tr>=0&&tr<8&&tf>=0&&tf<8){
+      const t=CH.board[tr][tf];
+      if(t){if(t[1]===opp)moves.push([tr,tf]);break;}
+      moves.push([tr,tf]);tr+=dr;tf+=df;
+    }
+  };
+
+  if(type==='p'){
+    const dir=color==='w'?-1:1;
+    const start=color==='w'?6:1;
+    if(!CH.board[r+dir]?.[f]) {
+      moves.push([r+dir,f]);
+      if(r===start&&!CH.board[r+2*dir]?.[f]) moves.push([r+2*dir,f]);
+    }
+    for(const df of[-1,1]){
+      const tr=r+dir,tf=f+df;
+      if(tr>=0&&tr<8&&tf>=0&&tf<8){
+        if(CH.board[tr][tf]?.[1]===opp) moves.push([tr,tf]);
+        if(CH.enPassant&&CH.enPassant[0]===tr&&CH.enPassant[1]===tf) moves.push([tr,tf]);
+      }
+    }
+  } else if(type==='n'){
+    for(const[dr,df] of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) add(r+dr,f+df);
+  } else if(type==='b'){
+    for(const[dr,df] of[[-1,-1],[-1,1],[1,-1],[1,1]]) slide(dr,df);
+  } else if(type==='r'){
+    for(const[dr,df] of[[-1,0],[1,0],[0,-1],[0,1]]) slide(dr,df);
+  } else if(type==='q'){
+    for(const[dr,df] of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]]) slide(dr,df);
+  } else if(type==='k'){
+    for(const[dr,df] of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]) add(r+dr,f+df);
+    // castling
+    const rank=color==='w'?7:0;
+    if(r===rank&&f===4){
+      if(color==='w'&&CH.castling.wK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp)) moves.push([rank,6]);
+      if(color==='w'&&CH.castling.wQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp)) moves.push([rank,2]);
+      if(color==='b'&&CH.castling.bK&&!CH.board[rank][5]&&!CH.board[rank][6]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,5,opp)&&!chessSquareAttacked(rank,6,opp)) moves.push([rank,6]);
+      if(color==='b'&&CH.castling.bQ&&!CH.board[rank][3]&&!CH.board[rank][2]&&!CH.board[rank][1]&&!chessSquareAttacked(rank,4,opp)&&!chessSquareAttacked(rank,3,opp)) moves.push([rank,2]);
+    }
+  }
+
+  if(!filterCheck) return moves;
+  // filter moves that leave king in check
+  return moves.filter(([tr,tf])=>{
+    const save=CH.board[tr][tf], saveEP=CH.enPassant;
+    let epCapR=null,epCapSave=null;
+    if(type==='p'&&f!==tf&&!CH.board[tr][tf]){epCapR=r;epCapSave=CH.board[r][tf];CH.board[r][tf]=null;}
+    CH.board[tr][tf]=p; CH.board[r][f]=null;
+    const safe=!chessInCheck(color);
+    CH.board[r][f]=p; CH.board[tr][tf]=save;
+    if(epCapR!==null){CH.board[epCapR][tf]=epCapSave;}
+    CH.enPassant=saveEP;
+    return safe;
+  });
 }
 
-function chessSquareAttacked(r,f,byColor){for(let pr=0;pr<8;pr++)for(let pf=0;pf<8;pf++){const p=CH.board[pr][pf];if(p&&p[1]===byColor){const ms=chessGetMoves(pr,pf,false);if(ms.some(m=>m[0]===r&&m[1]===f))return true;}}return false;}
-function chessInCheck(color){let kr=-1,kf=-1;for(let r=0;r<8;r++)for(let f=0;f<8;f++)if(CH.board[r][f]===(color==='w'?'kw':'kb')){kr=r;kf=f;}return chessSquareAttacked(kr,kf,color==='w'?'b':'w');}
-function chessHasAnyMoves(color){for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(p&&p[1]===color&&chessGetMoves(r,f,true).length>0)return true;}return false;}
+function chessSquareAttacked(r,f,byColor) {
+  for(let pr=0;pr<8;pr++) for(let pf=0;pf<8;pf++){
+    const p=CH.board[pr][pf];
+    if(p&&p[1]===byColor){
+      const ms=chessGetMoves(pr,pf,false);
+      if(ms.some(m=>m[0]===r&&m[1]===f)) return true;
+    }
+  }
+  return false;
+}
 
-const PIECE_VAL={p:100,n:320,b:330,r:500,q:900,k:20000};
-const PST={p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]]};
+function chessInCheck(color) {
+  let kr=-1,kf=-1;
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++) if(CH.board[r][f]===(color==='w'?'kw':'kb')){kr=r;kf=f;}
+  return chessSquareAttacked(kr,kf,color==='w'?'b':'w');
+}
 
-function chessEval(){let s=0;for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(!p)continue;const t=p[0],c=p[1];const pv=PIECE_VAL[t]||0;const pr=c==='w'?r:7-r;const ps=(PST[t]?.[pr]?.[f])||0;s+=c==='w'?-(pv+ps):(pv+ps);}return s;}
-function chessMinimax(depth,alpha,beta,maximizing){if(depth===0)return chessEval();const color=maximizing?'b':'w';const moves=[];for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(p&&p[1]===color)chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));}if(!moves.length)return maximizing?-99999:99999;let best=maximizing?-Infinity:Infinity;for(const[r1,f1,r2,f2]of moves){const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];const saveCast={...CH.castling};let epR=null,epSave=null;if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}CH.board[r2][f2]=saveBoard[0]==='p'&&(r2===0||r2===7)?'q'+saveBoard[1]:saveBoard;CH.board[r1][f1]=null;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;const val=chessMinimax(depth-1,alpha,beta,!maximizing);CH.board[r1][f1]=saveBoard;CH.board[r2][f2]=save;if(epR!==null)CH.board[epR][f2]=epSave;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}CH.enPassant=saveEP;CH.castling={...saveCast};if(maximizing){best=Math.max(best,val);alpha=Math.max(alpha,val);}else{best=Math.min(best,val);beta=Math.min(beta,val);}if(beta<=alpha)break;}return best;}
-function chessAIMove(){if(CH.gameOver||CH.turn!=='b')return;const moves=[];for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=CH.board[r][f];if(p&&p[1]==='b')chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));}if(!moves.length)return;let best=-Infinity,bestMove=moves[0];for(const[r1,f1,r2,f2]of moves){const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];const saveCast={...CH.castling};let epR=null,epSave=null;if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}CH.board[r2][f2]=saveBoard[0]==='p'&&r2===0?'q'+saveBoard[1]:saveBoard;CH.board[r1][f1]=null;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;const val=chessMinimax(2,-Infinity,Infinity,false);CH.board[r1][f1]=saveBoard;CH.board[r2][f2]=save;if(epR!==null)CH.board[epR][f2]=epSave;if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}CH.enPassant=saveEP;CH.castling={...saveCast};if(val>best){best=val;bestMove=[r1,f1,r2,f2];}}chessApplyMove(...bestMove);chessDraw();}
+function chessHasAnyMoves(color) {
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const p=CH.board[r][f];
+    if(p&&p[1]===color&&chessGetMoves(r,f,true).length>0) return true;
+  }
+  return false;
+}
 
-/* ════════════════════════════════════════
-   SNAKE
-════════════════════════════════════════ */
+/* ── AI (minimax depth 3) ── */
+const PIECE_VAL = {p:100,n:320,b:330,r:500,q:900,k:20000};
+const PST = {
+  p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
+  n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
+  b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
+  r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
+  q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
+  k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]]
+};
+
+function chessEval() {
+  let score=0;
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const p=CH.board[r][f];
+    if(!p) continue;
+    const t=p[0],c=p[1];
+    const pv=PIECE_VAL[t]||0;
+    const pr=c==='w'?r:7-r;
+    const ps=(PST[t]?.[pr]?.[f])||0;
+    score += c==='w' ? -(pv+ps) : (pv+ps);
+  }
+  return score;
+}
+
+function chessMinimax(depth,alpha,beta,maximizing) {
+  if(depth===0) return chessEval();
+  const color=maximizing?'b':'w';
+  const moves=[];
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const p=CH.board[r][f];
+    if(p&&p[1]===color) chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));
+  }
+  if(!moves.length) return maximizing ? -99999 : 99999;
+  let best=maximizing?-Infinity:Infinity;
+  for(const[r1,f1,r2,f2] of moves){
+    const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];
+    const saveCast={...CH.castling};
+    let epR=null,epSave=null;
+    if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}
+    CH.board[r2][f2]=saveBoard[0]==='p'&&(r2===0||r2===7)?'q'+saveBoard[1]:saveBoard;
+    CH.board[r1][f1]=null;
+    // castling rook
+    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}
+    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}
+    CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;
+    const val=chessMinimax(depth-1,alpha,beta,!maximizing);
+    // restore
+    CH.board[r1][f1]=saveBoard; CH.board[r2][f2]=save;
+    if(epR!==null){CH.board[epR][f2]=epSave;}
+    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}
+    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}
+    CH.enPassant=saveEP; CH.castling={...saveCast};
+    if(maximizing){best=Math.max(best,val);alpha=Math.max(alpha,val);}
+    else{best=Math.min(best,val);beta=Math.min(beta,val);}
+    if(beta<=alpha) break;
+  }
+  return best;
+}
+
+function chessAIMove() {
+  if(CH.gameOver||CH.turn!=='b') return;
+  const moves=[];
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const p=CH.board[r][f];
+    if(p&&p[1]==='b') chessGetMoves(r,f,true).forEach(m=>moves.push([r,f,m[0],m[1]]));
+  }
+  if(!moves.length) return;
+  let best=-Infinity, bestMove=moves[0];
+  for(const[r1,f1,r2,f2] of moves){
+    const save=CH.board[r2][f2],saveEP=CH.enPassant,saveBoard=CH.board[r1][f1];
+    const saveCast={...CH.castling};
+    let epR=null,epSave=null;
+    if(saveBoard[0]==='p'&&f1!==f2&&!CH.board[r2][f2]){epR=r1;epSave=CH.board[r1][f2];CH.board[r1][f2]=null;}
+    CH.board[r2][f2]=saveBoard[0]==='p'&&r2===0?'q'+saveBoard[1]:saveBoard;
+    CH.board[r1][f1]=null;
+    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][5]=CH.board[r1][7];CH.board[r1][7]=null;}
+    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][3]=CH.board[r1][0];CH.board[r1][0]=null;}
+    CH.enPassant=saveBoard[0]==='p'&&Math.abs(r2-r1)===2?[r1+(r2-r1)/2,f1]:null;
+    const val=chessMinimax(2,-Infinity,Infinity,false);
+    CH.board[r1][f1]=saveBoard; CH.board[r2][f2]=save;
+    if(epR!==null){CH.board[epR][f2]=epSave;}
+    if(saveBoard[0]==='k'&&f2-f1===2){CH.board[r1][7]=CH.board[r1][5];CH.board[r1][5]=null;}
+    if(saveBoard[0]==='k'&&f1-f2===2){CH.board[r1][0]=CH.board[r1][3];CH.board[r1][3]=null;}
+    CH.enPassant=saveEP; CH.castling={...saveCast};
+    if(val>best){best=val;bestMove=[r1,f1,r2,f2];}
+  }
+  chessApplyMove(...bestMove);
+  chessDraw();
+}
+
+/* ── SNAKE ── */
 function loadSnake(arena) {
-  const CELL=20,COLS=25,ROWS=20;
-  arena.style.minHeight=(ROWS*CELL+120)+'px';
-  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="snakeScore">0</div><div class="g-hud-key">Score</div></div><div class="g-hud-item"><div class="g-hud-val" id="snakeBest">0</div><div class="g-hud-key">Best</div></div></div><canvas id="snakeCanvas" width="${COLS*CELL}" height="${ROWS*CELL}" style="border:1px solid rgba(201,169,110,.15);display:block;"></canvas><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys or WASD to move</p></div>`;
-  const canvas=document.getElementById('snakeCanvas'),ctx=canvas.getContext('2d');
+  const CELL=20, COLS=25, ROWS=20;
+  arena.style.minHeight = (ROWS*CELL+120)+'px';
+  arena.innerHTML = `
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="snakeScore">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="snakeBest">0</div><div class="g-hud-key">Best</div></div>
+      </div>
+      <canvas id="snakeCanvas" width="${COLS*CELL}" height="${ROWS*CELL}" style="border:1px solid rgba(201,169,110,.15);display:block;"></canvas>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys or WASD to move</p>
+    </div>`;
+
+  const canvas=document.getElementById('snakeCanvas');
+  const ctx=canvas.getContext('2d');
   let snake,dir,food,score,best=0,loop,alive;
-  function start(){snake=[{x:12,y:10},{x:11,y:10},{x:10,y:10}];dir={x:1,y:0};score=0;alive=true;spawnFood();clearInterval(loop);loop=setInterval(tick,120);const ov=document.getElementById('snakeOver');if(ov)ov.remove();}
-  function spawnFood(){do{food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}while(snake.some(s=>s.x===food.x&&s.y===food.y));}
-  function tick(){if(!alive)return;const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){alive=false;clearInterval(loop);gameOver();return;}snake.unshift(head);if(head.x===food.x&&head.y===food.y){score++;spawnFood();}else snake.pop();document.getElementById('snakeScore').textContent=score;if(score>best){best=score;document.getElementById('snakeBest').textContent=best;}draw();}
-  function draw(){ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*CELL,ROWS*CELL);ctx.fillStyle='#c9a96e';ctx.fillRect(food.x*CELL+2,food.y*CELL+2,CELL-4,CELL-4);snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#e8d5a3':'#8a6d3b';ctx.fillRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2);});}
-  function gameOver(){const ov=document.createElement('div');ov.id='snakeOver';ov.className='g-overlay';ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over</div><button class="g-btn" onclick="loadSnake(document.getElementById('gameArena'))">Play Again</button>`;canvas.parentElement.parentElement.appendChild(ov);}
-  document.addEventListener('keydown',function snakeKey(e){if(!document.getElementById('snakeCanvas')){document.removeEventListener('keydown',snakeKey);return;}if(['ArrowUp','w'].includes(e.key)&&dir.y!==1)dir={x:0,y:-1};if(['ArrowDown','s'].includes(e.key)&&dir.y!==-1)dir={x:0,y:1};if(['ArrowLeft','a'].includes(e.key)&&dir.x!==1)dir={x:-1,y:0};if(['ArrowRight','d'].includes(e.key)&&dir.x!==-1)dir={x:1,y:0};if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();});
+
+  function start(){
+    snake=[{x:12,y:10},{x:11,y:10},{x:10,y:10}];
+    dir={x:1,y:0};
+    score=0;
+    alive=true;
+    spawnFood();
+    clearInterval(loop);
+    loop=setInterval(tick,120);
+    const ov=document.getElementById('snakeOver');
+    if(ov)ov.remove();
+  }
+
+  function spawnFood(){
+    do{ food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)}; }
+    while(snake.some(s=>s.x===food.x&&s.y===food.y));
+  }
+
+  function tick(){
+    if(!alive)return;
+    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
+      alive=false; clearInterval(loop); gameOver(); return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x&&head.y===food.y){ score++; spawnFood(); }
+    else snake.pop();
+    document.getElementById('snakeScore').textContent=score;
+    if(score>best){best=score;document.getElementById('snakeBest').textContent=best;}
+    draw();
+  }
+
+  function draw(){
+    ctx.fillStyle='#0e0c09'; ctx.fillRect(0,0,COLS*CELL,ROWS*CELL);
+    // food
+    ctx.fillStyle='#c9a96e';
+    ctx.fillRect(food.x*CELL+2,food.y*CELL+2,CELL-4,CELL-4);
+    // snake
+    snake.forEach((s,i)=>{
+      ctx.fillStyle=i===0?'#e8d5a3':'#8a6d3b';
+      ctx.fillRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2);
+    });
+  }
+
+  function gameOver(){
+    const ov=document.createElement('div');
+    ov.id='snakeOver';
+    ov.className='g-overlay';
+    ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over</div><button class="g-btn" onclick="loadSnake(document.getElementById('gameArena'))">Play Again</button>`;
+    canvas.parentElement.parentElement.appendChild(ov);
+  }
+
+  document.addEventListener('keydown',function snakeKey(e){
+    if(!document.getElementById('snakeCanvas')){document.removeEventListener('keydown',snakeKey);return;}
+    if(['ArrowUp','w'].includes(e.key)&&dir.y!==1)  dir={x:0,y:-1};
+    if(['ArrowDown','s'].includes(e.key)&&dir.y!==-1)dir={x:0,y:1};
+    if(['ArrowLeft','a'].includes(e.key)&&dir.x!==1) dir={x:-1,y:0};
+    if(['ArrowRight','d'].includes(e.key)&&dir.x!==-1)dir={x:1,y:0};
+    if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+  });
+
   start();
 }
 
-/* ════════════════════════════════════════
-   TETRIS
-════════════════════════════════════════ */
+/* ── TETRIS ── */
 function loadTetris(arena) {
   const COLS=10,ROWS=20,SZ=28;
   arena.style.minHeight=(ROWS*SZ+100)+'px';
-  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="tetScore">0</div><div class="g-hud-key">Score</div></div><div class="g-hud-item"><div class="g-hud-val" id="tetLines">0</div><div class="g-hud-key">Lines</div></div><div class="g-hud-item"><div class="g-hud-val" id="tetLevel">1</div><div class="g-hud-key">Level</div></div></div><canvas id="tetCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.15);"></canvas><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">← → move &nbsp;↑ rotate &nbsp;↓ soft drop &nbsp;Space hard drop</p></div>`;
-  const canvas=document.getElementById('tetCanvas'),ctx=canvas.getContext('2d');
+  arena.innerHTML=`
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="tetScore">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tetLines">0</div><div class="g-hud-key">Lines</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tetLevel">1</div><div class="g-hud-key">Level</div></div>
+      </div>
+      <canvas id="tetCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.15);"></canvas>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">← → move &nbsp;↑ rotate &nbsp;↓ soft drop &nbsp;Space hard drop</p>
+    </div>`;
+
+  const canvas=document.getElementById('tetCanvas');
+  const ctx=canvas.getContext('2d');
   const COLORS=['','#c9a96e','#e8d5a3','#8a6d3b','#5a9e6f','#6e9ec9','#d97070','#b07ec9'];
-  const SHAPES=[null,[[1,1,1,1]],[[2,2],[2,2]],[[0,3,0],[3,3,3]],[[0,4,4],[4,4,0]],[[5,5,0],[0,5,5]],[[6,0,0],[6,6,6]],[[0,0,7],[7,7,7]]];
+  const SHAPES=[
+    null,
+    [[1,1,1,1]],
+    [[2,2],[2,2]],
+    [[0,3,0],[3,3,3]],
+    [[0,4,4],[4,4,0]],
+    [[5,5,0],[0,5,5]],
+    [[6,0,0],[6,6,6]],
+    [[0,0,7],[7,7,7]]
+  ];
+
   let board,piece,px,py,score,lines,level,loop,alive;
-  function newBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(0));}
-  function randPiece(){const t=Math.floor(Math.random()*7)+1;return SHAPES[t].map(r=>[...r]);}
-  function start(){board=newBoard();score=0;lines=0;level=1;alive=true;piece=randPiece();px=3;py=0;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},600);const ov=document.getElementById('tetOver');if(ov)ov.remove();draw();}
-  function rotate(p){return p[0].map((_,i)=>p.map(r=>r[i]).reverse());}
-  function fits(p,x,y){return p.every((row,dy)=>row.every((v,dx)=>!v||((y+dy)>=0&&(y+dy)<ROWS&&(x+dx)>=0&&(x+dx)<COLS&&!board[y+dy][x+dx])));}
-  function drop(){if(fits(piece,px,py+1)){py++;}else{piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v)board[py+dy][px+dx]=v;}));let cleared=0;for(let r=ROWS-1;r>=0;r--){if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}}if(cleared){lines+=cleared;score+=cleared*100*level;if(lines%10===0){level++;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},Math.max(100,600-level*50));}}document.getElementById('tetScore').textContent=score;document.getElementById('tetLines').textContent=lines;document.getElementById('tetLevel').textContent=level;piece=randPiece();px=3;py=0;if(!fits(piece,px,py)){alive=false;clearInterval(loop);tetGameOver();}}draw();}
-  function draw(){ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);board.forEach((row,y)=>row.forEach((v,x)=>{if(v){ctx.fillStyle=COLORS[v];ctx.fillRect(x*SZ+1,y*SZ+1,SZ-2,SZ-2);}}));if(piece){piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v){ctx.fillStyle=COLORS[v];ctx.fillRect((px+dx)*SZ+1,(py+dy)*SZ+1,SZ-2,SZ-2);}}))}ctx.strokeStyle='rgba(201,169,110,.04)';for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}}
-  function tetGameOver(){const ov=document.createElement('div');ov.id='tetOver';ov.className='g-overlay';ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over · ${lines} lines</div><button class="g-btn" onclick="loadTetris(document.getElementById('gameArena'))">Play Again</button>`;canvas.parentElement.parentElement.appendChild(ov);}
-  document.addEventListener('keydown',function tetKey(e){if(!document.getElementById('tetCanvas')){document.removeEventListener('keydown',tetKey);return;}if(!alive)return;if(e.key==='ArrowLeft'&&fits(piece,px-1,py))px--;else if(e.key==='ArrowRight'&&fits(piece,px+1,py))px++;else if(e.key==='ArrowDown'){drop();return;}else if(e.key==='ArrowUp'){const r=rotate(piece);if(fits(r,px,py))piece=r;}else if(e.key===' '){while(fits(piece,px,py+1))py++;drop();return;}else return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();draw();});
+
+  function newBoard(){ return Array.from({length:ROWS},()=>Array(COLS).fill(0)); }
+  function randPiece(){ const t=Math.floor(Math.random()*7)+1; return SHAPES[t].map(r=>[...r]); }
+
+  function start(){
+    board=newBoard(); score=0; lines=0; level=1; alive=true;
+    piece=randPiece(); px=3; py=0;
+    clearInterval(loop); loop=setInterval(()=>{if(alive)drop();},600);
+    const ov=document.getElementById('tetOver');if(ov)ov.remove();
+    draw();
+  }
+
+  function rotate(p){ return p[0].map((_,i)=>p.map(r=>r[i]).reverse()); }
+  function fits(p,x,y){ return p.every((row,dy)=>row.every((v,dx)=>!v||( (y+dy)>=0&&(y+dy)<ROWS&&(x+dx)>=0&&(x+dx)<COLS&&!board[y+dy][x+dx] ))); }
+
+  function drop(){
+    if(fits(piece,px,py+1)){py++;}
+    else{
+      piece.forEach((row,dy)=>row.forEach((v,dx)=>{if(v)board[py+dy][px+dx]=v;}));
+      let cleared=0;
+      for(let r=ROWS-1;r>=0;r--){
+        if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
+      }
+      if(cleared){lines+=cleared;score+=cleared*100*level;if(lines%10===0){level++;clearInterval(loop);loop=setInterval(()=>{if(alive)drop();},Math.max(100,600-level*50));}}
+      document.getElementById('tetScore').textContent=score;
+      document.getElementById('tetLines').textContent=lines;
+      document.getElementById('tetLevel').textContent=level;
+      piece=randPiece();px=3;py=0;
+      if(!fits(piece,px,py)){alive=false;clearInterval(loop);tetGameOver();}
+    }
+    draw();
+  }
+
+  function draw(){
+    ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);
+    board.forEach((row,y)=>row.forEach((v,x)=>{
+      if(v){ctx.fillStyle=COLORS[v];ctx.fillRect(x*SZ+1,y*SZ+1,SZ-2,SZ-2);}
+    }));
+    if(piece){
+      piece.forEach((row,dy)=>row.forEach((v,dx)=>{
+        if(v){ctx.fillStyle=COLORS[v];ctx.fillRect((px+dx)*SZ+1,(py+dy)*SZ+1,SZ-2,SZ-2);}
+      }));
+    }
+    // grid
+    ctx.strokeStyle='rgba(201,169,110,.04)';
+    for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}
+    for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}
+  }
+
+  function tetGameOver(){
+    const ov=document.createElement('div');ov.id='tetOver';ov.className='g-overlay';
+    ov.innerHTML=`<div class="g-score">${score}</div><div class="g-label">Game Over · ${lines} lines</div><button class="g-btn" onclick="loadTetris(document.getElementById('gameArena'))">Play Again</button>`;
+    canvas.parentElement.parentElement.appendChild(ov);
+  }
+
+  document.addEventListener('keydown',function tetKey(e){
+    if(!document.getElementById('tetCanvas')){document.removeEventListener('keydown',tetKey);return;}
+    if(!alive)return;
+    if(e.key==='ArrowLeft'&&fits(piece,px-1,py))px--;
+    else if(e.key==='ArrowRight'&&fits(piece,px+1,py))px++;
+    else if(e.key==='ArrowDown'){drop();return;}
+    else if(e.key==='ArrowUp'){const r=rotate(piece);if(fits(r,px,py))piece=r;}
+    else if(e.key===' '){while(fits(piece,px,py+1))py++;drop();return;}
+    else return;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
+    draw();
+  });
+
   start();
 }
 
-/* ════════════════════════════════════════
-   2048
-════════════════════════════════════════ */
+/* ── 2048 ── */
 function load2048(arena) {
   const SZ=4;
-  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="g2score">0</div><div class="g-hud-key">Score</div></div><div class="g-hud-item"><div class="g-hud-val" id="g2best">0</div><div class="g-hud-key">Best</div></div></div><div id="g2board" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;background:rgba(201,169,110,.08);padding:10px;"></div><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys to slide tiles</p></div>`;
+  arena.innerHTML=`
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="g2score">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="g2best">0</div><div class="g-hud-key">Best</div></div>
+      </div>
+      <div id="g2board" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;background:rgba(201,169,110,.08);padding:10px;"></div>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Arrow keys to slide tiles</p>
+    </div>`;
+
   const TILE_COLORS={0:'rgba(201,169,110,.05)',2:'#2a2420',4:'#332b23',8:'#8a6d3b',16:'#9d7a3e',32:'#b08844',64:'#c9a96e',128:'#d4b87a',256:'#dfc886',512:'#ead895',1024:'#f0e4a8',2048:'#c9a96e'};
   let board,score,best2=0;
-  function newBoard2(){return Array.from({length:SZ},()=>Array(SZ).fill(0));}
-  function addTile(){const empty=[];board.forEach((r,y)=>r.forEach((v,x)=>{if(!v)empty.push({x,y});}));if(!empty.length)return;const{x,y}=empty[Math.floor(Math.random()*empty.length)];board[y][x]=Math.random()<.9?2:4;}
-  function drawBoard(){const el=document.getElementById('g2board');if(!el)return;el.innerHTML=board.map(row=>row.map(v=>`<div style="width:80px;height:80px;background:${TILE_COLORS[Math.min(v,2048)]||'#c9a96e'};display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:${v>999?20:v>99?26:32}px;font-weight:300;color:${v>=8?'#0e0c09':'#c4b99a'};">${v||''}</div>`).join('')).join('');document.getElementById('g2score').textContent=score;if(score>best2){best2=score;document.getElementById('g2best').textContent=best2;}}
-  function slide(row){let r=row.filter(v=>v);let s=0;for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;s+=r[i];r.splice(i+1,1);i++;}}score+=s;while(r.length<SZ)r.push(0);return r;}
-  function move(dir){let moved=false;if(dir==='left')board=board.map(r=>{const s=slide(r);if(s.join()!==r.join())moved=true;return s;});if(dir==='right')board=board.map(r=>{const s=slide([...r].reverse()).reverse();if(s.join()!==r.join())moved=true;return s;});if(dir==='up'||dir==='down'){for(let x=0;x<SZ;x++){let col=board.map(r=>r[x]);const sc=dir==='up'?slide(col):slide([...col].reverse()).reverse();sc.forEach((v,y)=>{if(board[y][x]!==v)moved=true;board[y][x]=v;});}}if(moved){addTile();drawBoard();}}
+
+  function newBoard2(){ return Array.from({length:SZ},()=>Array(SZ).fill(0)); }
+  function addTile(){
+    const empty=[];
+    board.forEach((r,y)=>r.forEach((v,x)=>{if(!v)empty.push({x,y});}));
+    if(!empty.length)return;
+    const {x,y}=empty[Math.floor(Math.random()*empty.length)];
+    board[y][x]=Math.random()<0.9?2:4;
+  }
+
+  function drawBoard(){
+    const el=document.getElementById('g2board');if(!el)return;
+    el.innerHTML=board.map(row=>row.map(v=>`
+      <div style="width:80px;height:80px;background:${TILE_COLORS[Math.min(v,2048)]||'#c9a96e'};display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:${v>999?20:v>99?26:32}px;font-weight:300;color:${v>=8?'#0e0c09':'#c4b99a'};">${v||''}</div>`).join('')).join('');
+    document.getElementById('g2score').textContent=score;
+    if(score>best2){best2=score;document.getElementById('g2best').textContent=best2;}
+  }
+
+  function slide(row){
+    let r=row.filter(v=>v); let s=0;
+    for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;s+=r[i];r.splice(i+1,1);i++;}}
+    score+=s;
+    while(r.length<SZ)r.push(0);
+    return r;
+  }
+
+  function move(dir){
+    let moved=false;
+    const b=board.map(r=>[...r]);
+    if(dir==='left')  board=board.map(r=>{const s=slide(r);if(s.join()!==r.join())moved=true;return s;});
+    if(dir==='right') board=board.map(r=>{const s=slide([...r].reverse()).reverse();if(s.join()!==r.join())moved=true;return s;});
+    if(dir==='up'||dir==='down'){
+      for(let x=0;x<SZ;x++){
+        let col=board.map(r=>r[x]);
+        const sc=dir==='up'?slide(col):slide([...col].reverse()).reverse();
+        sc.forEach((v,y)=>{if(board[y][x]!==v)moved=true;board[y][x]=v;});
+      }
+    }
+    if(moved){addTile();drawBoard();}
+  }
+
   function start2(){board=newBoard2();score=0;addTile();addTile();drawBoard();}
-  document.addEventListener('keydown',function g2Key(e){if(!document.getElementById('g2board')){document.removeEventListener('keydown',g2Key);return;}const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};if(map[e.key]){e.preventDefault();move(map[e.key]);}});
+
+  document.addEventListener('keydown',function g2Key(e){
+    if(!document.getElementById('g2board')){document.removeEventListener('keydown',g2Key);return;}
+    const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
+    if(map[e.key]){e.preventDefault();move(map[e.key]);}
+  });
+
   start2();
 }
 
-/* ════════════════════════════════════════
-   MINESWEEPER
-════════════════════════════════════════ */
+/* ── MINESWEEPER ── */
 function loadMinesweeper(arena) {
   const COLS=16,ROWS=12,MINES=30;
-  arena.innerHTML=`<div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;"><div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;"><div class="g-hud-item"><div class="g-hud-val" id="msFlags">0</div><div class="g-hud-key">Flags</div></div><div class="g-hud-item"><div class="g-hud-val" id="msMines">${MINES}</div><div class="g-hud-key">Mines</div></div><div class="g-hud-item"><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))" style="padding:6px 18px;font-size:9px;">New Game</button></div></div><div id="msGrid" style="display:grid;grid-template-columns:repeat(${COLS},32px);gap:2px;"></div><p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Left click to reveal · Right click to flag</p></div>`;
+  arena.innerHTML=`
+    <div style="width:100%;padding:20px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="g-hud" style="position:relative;top:auto;margin-bottom:16px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="msFlags">0</div><div class="g-hud-key">Flags</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="msMines">${MINES}</div><div class="g-hud-key">Mines</div></div>
+        <div class="g-hud-item"><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))" style="padding:6px 18px;font-size:9px;">New Game</button></div>
+      </div>
+      <div id="msGrid" style="display:grid;grid-template-columns:repeat(${COLS},32px);gap:2px;"></div>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);margin-top:12px;text-transform:uppercase;">Left click to reveal · Right click to flag</p>
+    </div>`;
+
   let board,revealed,flagged,firstClick;
-  function initBoard(){board=Array.from({length:ROWS},()=>Array(COLS).fill(0));revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));flagged=Array.from({length:ROWS},()=>Array(COLS).fill(false));firstClick=true;}
-  function placeMines(skipR,skipC){let placed=0;while(placed<MINES){const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);if(board[r][c]!=-1&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){board[r][c]=-1;placed++;}}for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(board[r][c]===-1)continue;let n=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1)n++;}board[r][c]=n;}}
-  function reveal(r,c){if(r<0||r>=ROWS||c<0||c>=COLS||revealed[r][c]||flagged[r][c])return;revealed[r][c]=true;if(board[r][c]===0){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);}}
+
+  function initBoard(){
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+    revealed=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    flagged=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    firstClick=true;
+  }
+
+  function placeMines(skipR,skipC){
+    let placed=0;
+    while(placed<MINES){
+      const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);
+      if(board[r][c]!=-1&&!(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1)){board[r][c]=-1;placed++;}
+    }
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(board[r][c]===-1)continue;
+      let n=0;
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1)n++;}
+      board[r][c]=n;
+    }
+  }
+
+  function reveal(r,c){
+    if(r<0||r>=ROWS||c<0||c>=COLS||revealed[r][c]||flagged[r][c])return;
+    revealed[r][c]=true;
+    if(board[r][c]===0){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);}
+  }
+
   const NCOLORS=['','#6e9ec9','#5a9e6f','#d97070','#8a6d3b','#d97070','#6e9ec9','#c9a96e','#8a8070'];
-  function drawMS(){const el=document.getElementById('msGrid');if(!el)return;el.innerHTML='';let flags=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const cell=document.createElement('div');cell.style.cssText='width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;user-select:none;font-family:Josefin Sans,sans-serif;font-weight:400;';if(flagged[r][c]){flags++;cell.textContent='🚩';cell.style.background='rgba(217,112,112,.15)';}else if(!revealed[r][c]){cell.style.background='rgba(201,169,110,.1)';cell.style.border='1px solid rgba(201,169,110,.15)';}else if(board[r][c]===-1){cell.textContent='💣';cell.style.background='rgba(217,112,112,.2)';}else{cell.style.background='rgba(14,12,9,.5)';cell.style.color=NCOLORS[board[r][c]]||'transparent';cell.style.fontSize='12px';cell.style.letterSpacing='.1em';if(board[r][c])cell.textContent=board[r][c];}const rr=r,cc=c;cell.onclick=()=>{if(flagged[rr][cc])return;if(firstClick){placeMines(rr,cc);firstClick=false;}if(board[rr][cc]===-1){revealAll();drawMS();showMSOver(false);return;}reveal(rr,cc);drawMS();checkMSWin();};cell.oncontextmenu=(e)=>{e.preventDefault();if(!revealed[rr][cc])flagged[rr][cc]=!flagged[rr][cc];drawMS();};el.appendChild(cell);}document.getElementById('msFlags').textContent=flags;}
+
+  function drawMS(){
+    const el=document.getElementById('msGrid');if(!el)return;
+    el.innerHTML='';
+    let flags=0;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');
+      cell.style.cssText='width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;user-select:none;font-family:Josefin Sans,sans-serif;font-weight:400;';
+      if(flagged[r][c]){flags++;cell.textContent='🚩';cell.style.background='rgba(217,112,112,.15)';}
+      else if(!revealed[r][c]){cell.style.background='rgba(201,169,110,.1)';cell.style.border='1px solid rgba(201,169,110,.15)';}
+      else if(board[r][c]===-1){cell.textContent='💣';cell.style.background='rgba(217,112,112,.2)';}
+      else{cell.style.background='rgba(14,12,9,.5)';cell.style.color=NCOLORS[board[r][c]]||'transparent';cell.style.fontSize='12px';cell.style.letterSpacing='.1em';if(board[r][c])cell.textContent=board[r][c];}
+      const rr=r,cc=c;
+      cell.onclick=()=>{
+        if(flagged[rr][cc])return;
+        if(firstClick){placeMines(rr,cc);firstClick=false;}
+        if(board[rr][cc]===-1){revealAll();drawMS();showMSOver(false);return;}
+        reveal(rr,cc);
+        drawMS();
+        checkMSWin();
+      };
+      cell.oncontextmenu=(e)=>{e.preventDefault();if(!revealed[rr][cc])flagged[rr][cc]=!flagged[rr][cc];drawMS();};
+      el.appendChild(cell);
+    }
+    document.getElementById('msFlags').textContent=flags;
+  }
+
   function revealAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)revealed[r][c]=true;}
-  function checkMSWin(){const won=board.flat().every((v,i)=>v===-1||revealed[Math.floor(i/COLS)][i%COLS]);if(won)showMSOver(true);}
-  function showMSOver(won){const ov=document.createElement('div');ov.className='g-overlay';ov.innerHTML=`<div class="g-score" style="font-size:36px;">${won?'You Won!':'💣 Boom'}</div><div class="g-label">${won?'All mines flagged!':'Better luck next time'}</div><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))">Play Again</button>`;document.getElementById('msGrid').parentElement.parentElement.appendChild(ov);}
+
+  function checkMSWin(){
+    const won=board.flat().every((v,i)=>v===-1||revealed[Math.floor(i/COLS)][i%COLS]);
+    if(won)showMSOver(true);
+  }
+
+  function showMSOver(won){
+    const ov=document.createElement('div');ov.className='g-overlay';
+    ov.innerHTML=`<div class="g-score" style="font-size:36px;">${won?'You Won!':'💣 Boom'}</div><div class="g-label">${won?'All mines flagged!':'Better luck next time'}</div><button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))">Play Again</button>`;
+    document.getElementById('msGrid').parentElement.parentElement.appendChild(ov);
+  }
+
   initBoard();drawMS();
 }
 
-/* ════════════════════════════════════════
-   WORDLE
-════════════════════════════════════════ */
+/* ── WORDLE ── */
 function loadWordle(arena) {
-  const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT'];
+  const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT','FLAIR'];
   const target=WORDS[Math.floor(Math.random()*WORDS.length)];
   let guesses=[],current='',gameOver2=false;
-  arena.innerHTML=`<div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;"><p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p><div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div><div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div><div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:
+
+  arena.innerHTML=`
+    <div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p>
+      <div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div>
+      <div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div>
+      <div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:20px;text-transform:uppercase;"></div>
+    </div>`;
+
+  const ROWS_W=6,COLS_W=5;
+  let grid=Array.from({length:ROWS_W},()=>Array(COLS_W).fill({letter:'',state:'empty'}));
+
+  function drawWGrid(){
+    const el=document.getElementById('wGrid');if(!el)return;
+    el.innerHTML='';
+    for(let r=0;r<ROWS_W;r++){
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:repeat(5,52px);gap:6px;';
+      for(let c=0;c<COLS_W;c++){
+        const cell=document.createElement('div');
+        const {letter,state}=grid[r][c];
+        const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#252119',empty:'rgba(201,169,110,.08)',active:'rgba(201,169,110,.12)'}[state]||'rgba(201,169,110,.08)';
+        cell.style.cssText=`width:52px;height:52px;border:1px solid rgba(201,169,110,${state==='empty'?'.15':'.4'});background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Josefin Sans',sans-serif;font-size:20px;font-weight:400;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;`;
+        cell.textContent=letter;
+        row.appendChild(cell);
+      }
+      el.appendChild(row);
+    }
+  }
+
+  function drawKeys(){
+    const el=document.getElementById('wKeys');if(!el)return;
+    const rows=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['ENTER','Z','X','C','V','B','N','M','⌫']];
+    const states={};
+    guesses.forEach(g=>{[...g].forEach((l,i)=>{
+      const t=target[i]===l?'correct':target.includes(l)?'present':'absent';
+      if(!states[l]||states[l]==='absent'||(states[l]==='present'&&t==='correct'))states[l]=t;
+    });});
+    el.innerHTML='';
+    rows.forEach(row=>{
+      const rowEl=document.createElement('div');rowEl.style.cssText='display:flex;gap:5px;';
+      row.forEach(k=>{
+        const btn=document.createElement('button');
+        const st=states[k]||'empty';
+        const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#1a1713',empty:'rgba(201,169,110,.1)'}[st];
+        btn.style.cssText=`background:${bg};border:1px solid rgba(201,169,110,.2);color:var(--cream);font-family:'Josefin Sans',sans-serif;font-size:${k.length>1?9:13}px;letter-spacing:.05em;padding:${k.length>1?'14px 6px':'14px 10px'};cursor:pointer;min-width:${k.length>1?52:36}px;text-transform:uppercase;`;
+        btn.textContent=k;
+        btn.onclick=()=>handleKey(k);
+        rowEl.appendChild(btn);
+      });
+      el.appendChild(rowEl);
+    });
+  }
+
+  function handleKey(k){
+    if(gameOver2)return;
+    const row=guesses.length;
+    if(k==='⌫'||k==='Backspace'){if(current.length>0){current=current.slice(0,-1);grid[row][current.length]={letter:'',state:'active'};if(current.length<COLS_W)grid[row][current.length]={letter:'',state:'active'};}}
+    else if(k==='ENTER'){
+      if(current.length<COLS_W){document.getElementById('wMsg').textContent='Not enough letters';return;}
+      const guess=current;
+      const result=Array(COLS_W).fill('absent');
+      const tArr=[...target],gArr=[...guess];
+      gArr.forEach((l,i)=>{if(l===tArr[i]){result[i]='correct';tArr[i]=null;gArr[i]=null;}});
+      gArr.forEach((l,i)=>{if(l&&tArr.includes(l)){result[i]='present';tArr[tArr.indexOf(l)]=null;}});
+      result.forEach((s,i)=>{grid[row][i]={letter:guess[i],state:s};});
+      guesses.push(guess);current='';
+      if(guess===target){document.getElementById('wMsg').textContent='🎉 Correct!';gameOver2=true;}
+      else if(guesses.length===ROWS_W){document.getElementById('wMsg').textContent='Answer: '+target;gameOver2=true;}
+    }
+    else if(/^[A-Z]$/i.test(k)&&current.length<COLS_W){
+      current+=k.toUpperCase();
+      grid[guesses.length][current.length-1]={letter:k.toUpperCase(),state:'active'};
+    }
+    drawWGrid();drawKeys();
+  }
+
+  document.addEventListener('keydown',function wKey(e){
+    if(!document.getElementById('wGrid')){document.removeEventListener('keydown',wKey);return;}
+    if(e.key==='Enter')handleKey('ENTER');
+    else if(e.key==='Backspace')handleKey('⌫');
+    else if(/^[a-zA-Z]$/.test(e.key))handleKey(e.key.toUpperCase());
+  });
+
+  for(let r=0;r<ROWS_W;r++)for(let c=0;c<COLS_W;c++)grid[r][c]={letter:'',state:'empty'};
+  drawWGrid();drawKeys();
+}
+
+
+/* ════════════════════════════════════════
+   CHAMELEON GAME
+════════════════════════════════════════ */
+const CH_TOPICS = [
+  { topic: 'Things at the Beach',   words: ['Surfboard','Sunscreen','Sandcastle','Seashell','Lifeguard','Umbrella','Swimsuit','Seaweed','Crab','Volleyball','Towel','Sunglasses','Jellyfish','Starfish','Ice Cream','Waves'] },
+  { topic: 'Things in a Kitchen',   words: ['Spatula','Blender','Microwave','Cutting Board','Fridge','Oven','Whisk','Colander','Ladle','Toaster','Kettle','Saucepan','Chopping Knife','Grater','Spice Rack','Dishwasher'] },
+  { topic: 'Famous Scientists',      words: ['Newton','Einstein','Darwin','Curie','Tesla','Hawking','Faraday','Bohr','Pasteur','Mendel','Turing','Feynman','Sagan','Heisenberg','Oppenheimer','Lovelace'] },
+  { topic: 'Sports',                 words: ['Football','Tennis','Swimming','Badminton','Cricket','Basketball','Volleyball','Rugby','Cycling','Archery','Fencing','Gymnastics','Boxing','Sailing','Polo','Squash'] },
+  { topic: 'Things in School',       words: ['Whiteboard','Projector','Textbook','Ruler','Calculator','Eraser','Compass','Stapler','Locker','Timetable','Pencil Case','Lab Coat','Register','Detention','Report Card','Assembly'] },
+  { topic: 'Animals',                words: ['Elephant','Penguin','Octopus','Giraffe','Crocodile','Flamingo','Chameleon','Platypus','Narwhal','Axolotl','Pangolin','Tardigrade','Mantis','Capybara','Meerkat','Quokka'] },
+  { topic: 'Things in Singapore',    words: ['Hawker Centre','MRT','HDB','Merlion','Singlish','Laksa','Durian','National Day','ERP','Chilli Crab','Kopitiam','SAF','Polytechnic','NEA','Town Council','Sentosa'] },
+  { topic: 'Emotions',               words: ['Joy','Anger','Sadness','Fear','Disgust','Surprise','Anticipation','Trust','Envy','Pride','Shame','Guilt','Awe','Boredom','Anxiety','Nostalgia'] },
+  { topic: 'Superheroes',            words: ['Superman','Batman','Spiderman','Ironman','Thor','Hulk','Wonder Woman','Flash','Captain America','Black Panther','Wolverine','Aquaman','Doctor Strange','Ant-Man','Hawkeye','Vision'] },
+  { topic: 'Musical Instruments',    words: ['Piano','Violin','Trumpet','Drums','Guitar','Cello','Flute','Saxophone','Trombone','Harp','Clarinet','Oboe','Bassoon','Xylophone','Accordion','Ukulele'] },
+];
+
+let chRoomCode = null;
+let chPollingInterval = null;
+let chMyRole = null;
+let chIsHost = false;
+let chHasSubmittedClue = false;
+let chHasVoted = false;
+
+function chMsg(msg, color='var(--gold)') {
+  const el = document.getElementById('ch-msg');
+  if (el) { el.textContent = msg; el.style.color = color; }
+}
+
+function stopChameleonPolling() {
+  if (chPollingInterval) { clearInterval(chPollingInterval); chPollingInterval = null; }
+}
+
+function initChameleon() {
+  document.getElementById('ch-lobby').style.display = 'block';
+  document.getElementById('ch-room').style.display = 'none';
+  chMsg('');
+}
+
+function chGenCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  return Array.from({length:4}, ()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+async function chCreateRoom() {
+  if (!currentUser) { chMsg('You must be signed in.', '#d97070'); return; }
+  chMsg('Creating room…');
+  let code, tries = 0;
+  while (tries < 10) {
+    code = chGenCode();
+    const { data } = await db.from('chameleon_rooms').select('code').eq('code', code).single();
+    if (!data) break;
+    tries++;
+  }
+  const { error } = await db.from('chameleon_rooms').insert({
+    code, host_id: currentUser.id, status: 'waiting'
+  });
+  if (error) { chMsg('Could not create room: ' + error.message, '#d97070'); return; }
+  await db.from('chameleon_players').insert({
+    room_code: code, user_id: currentUser.id, display_name: currentUserName || currentUser.email
+  });
+  chRoomCode = code;
+  chIsHost = true;
+  chEnterRoom();
+}
+
+async function chJoinRoom() {
+  if (!currentUser) { chMsg('You must be signed in.', '#d97070'); return; }
+  const code = document.getElementById('chJoinCode').value.trim().toUpperCase();
+  if (code.length !== 4) { chMsg('Enter a 4-letter room code.', '#d97070'); return; }
+  chMsg('Joining…');
+  const { data: room } = await db.from('chameleon_rooms').select('*').eq('code', code).single();
+  if (!room) { chMsg('Room not found.', '#d97070'); return; }
+  if (room.status === 'playing') { chMsg('Game already in progress.', '#d97070'); return; }
+  // upsert player
+  await db.from('chameleon_players').upsert({
+    room_code: code, user_id: currentUser.id, display_name: currentUserName || currentUser.email
+  }, { onConflict: 'room_code,user_id' });
+  chRoomCode = code;
+  chIsHost = room.host_id === currentUser.id;
+  chEnterRoom();
+}
+
+function chEnterRoom() {
+  document.getElementById('ch-lobby').style.display = 'none';
+  document.getElementById('ch-room').style.display = 'block';
+  document.getElementById('ch-room-code').textContent = chRoomCode;
+  document.getElementById('ch-game-area').style.display = 'none';
+  document.getElementById('ch-host-controls').style.display = chIsHost ? 'block' : 'none';
+  chMsg('');
+  chPollRoom();
+  chPollingInterval = setInterval(chPollRoom, 2000);
+}
+
+async function chPollRoom() {
+  if (!chRoomCode) return;
+  const { data: room } = await db.from('chameleon_rooms').select('*').eq('code', chRoomCode).single();
+  if (!room) return;
+  const { data: players } = await db.from('chameleon_players').select('*').eq('room_code', chRoomCode);
+  if (!players) return;
+
+  // Update players display
+  const pEl = document.getElementById('ch-players');
+  if (pEl) {
+    pEl.innerHTML = players.map(p => `
+      <div style="background:var(--dark-3);border:1px solid rgba(201,169,110,${p.user_id===room.host_id?'.4':'.12'});padding:10px 16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${p.user_id===room.host_id?'var(--gold)':'var(--cream)'};">
+        ${p.display_name}${p.user_id===room.host_id?' ♛':''}
+      </div>`).join('');
+  }
+
+  // Update host button
+  if (chIsHost) {
+    const btn = document.getElementById('ch-start-btn');
+    const btnSpan = btn?.querySelector('span');
+    if (players.length >= 3) {
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+      if (btnSpan) btnSpan.textContent = `Start Game (${players.length} players)`;
+    } else {
+      btn.disabled = true; btn.style.opacity = '.5'; btn.style.cursor = 'not-allowed';
+      if (btnSpan) btnSpan.textContent = `Waiting for 3+ players… (${players.length}/3)`;
+    }
+  }
+
+  const statusEl = document.getElementById('ch-room-status');
+  if (statusEl) statusEl.textContent = room.status === 'waiting' ? `${players.length} player${players.length!==1?'s':''} in lobby` : 'Game in progress';
+
+  // If game started and we haven't shown the game area yet
+  if (room.status === 'playing') {
+    document.getElementById('ch-host-controls').style.display = 'none';
+    const gameArea = document.getElementById('ch-game-area');
+    if (gameArea.style.display === 'none') {
+      gameArea.style.display = 'block';
+      chShowRoleReveal(room, players);
+    }
+    // Check if all clues submitted → show voting
+    chUpdateCluesList(room, players);
+  }
+
+  if (room.status === 'voting') {
+    chShowVoting(room, players);
+  }
+
+  if (room.status === 'results') {
+    chShowResults(room, players);
+  }
+}
+
+async function chStartGame() {
+  if (!chIsHost || !chRoomCode) return;
+  const { data: players } = await db.from('chameleon_players').select('*').eq('room_code', chRoomCode);
+  if (!players || players.length < 3) { toast('Need at least 3 players!'); return; }
+
+  // Pick topic and secret word
+  const topicObj = CH_TOPICS[Math.floor(Math.random() * CH_TOPICS.length)];
+  const secretWord = topicObj.words[Math.floor(Math.random() * topicObj.words.length)];
+  // Pick chameleon
+  const chameleonPlayer = players[Math.floor(Math.random() * players.length)];
+
+  await db.from('chameleon_rooms').update({
+    status: 'playing',
+    topic: topicObj.topic,
+    secret_word: secretWord,
+    chameleon_id: chameleonPlayer.user_id,
+    votes: {}
+  }).eq('code', chRoomCode);
+  // reset clues
+  await db.from('chameleon_players').update({ is_ready: false }).eq('room_code', chRoomCode);
+  chHasSubmittedClue = false;
+  chHasVoted = false;
+}
+
+function chShowRoleReveal(room, players) {
+  const isChameleon = room.chameleon_id === currentUser.id;
+  chMyRole = isChameleon ? 'chameleon' : 'agent';
+  document.getElementById('ch-role-reveal').style.display = 'block';
+  document.getElementById('ch-board-area').style.display = 'none';
+  const roleEl = document.getElementById('ch-role-text');
+  const wordEl = document.getElementById('ch-word-reveal');
+  if (isChameleon) {
+    roleEl.textContent = '🦎 You are the Chameleon!';
+    roleEl.style.color = '#d97070';
+    wordEl.innerHTML = `<span style="color:var(--text-muted);">You do NOT know the secret word. Blend in!</span>`;
+  } else {
+    roleEl.textContent = '🕵 You are an Agent';
+    roleEl.style.color = '#5a9e6f';
+    wordEl.innerHTML = `Secret word: <span style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;">${room.secret_word}</span>`;
+  }
+}
+
+function chShowBoard() {
+  document.getElementById('ch-role-reveal').style.display = 'none';
+  document.getElementById('ch-board-area').style.display = 'block';
+  chRenderBoard();
+}
+
+async function chRenderBoard() {
+  const { data: room } = await db.from('chameleon_rooms').select('*').eq('code', chRoomCode).single();
+  if (!room) return;
+  const topicObj = CH_TOPICS.find(t => t.topic === room.topic) || CH_TOPICS[0];
+  document.getElementById('ch-topic-display').textContent = room.topic;
+  const secretDisplay = document.getElementById('ch-secret-display');
+  if (chMyRole === 'agent') {
+    secretDisplay.innerHTML = `<div class="f-label" style="margin-bottom:4px;">Secret Word</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);">${room.secret_word}</div>`;
+  } else {
+    secretDisplay.innerHTML = `<div style="font-size:11px;letter-spacing:.15em;color:#d97070;text-transform:uppercase;">🦎 Chameleon — figure it out!</div>`;
+  }
+  const grid = document.getElementById('ch-word-grid');
+  grid.innerHTML = topicObj.words.map(w => `
+    <div style="background:var(--dark-3);border:1px solid rgba(201,169,110,${chMyRole==='agent'&&w===room.secret_word?'.6':'.1'});padding:12px 8px;text-align:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${chMyRole==='agent'&&w===room.secret_word?'var(--gold)':'var(--cream)'};${chMyRole==='agent'&&w===room.secret_word?'box-shadow:0 0 0 1px rgba(201,169,110,.3);':''}">
+      ${w}
+    </div>`).join('');
+}
+
+async function chSubmitClue() {
+  if (chHasSubmittedClue) { toast('You already submitted a clue.'); return; }
+  const clue = document.getElementById('ch-clue-input').value.trim();
+  if (!clue) { toast('Enter a clue word.'); return; }
+  if (clue.includes(' ')) { toast('One word only!'); return; }
+  // store clue in player display_name field hack — actually store in a notes field
+  // We'll store clues as JSON in the votes field for simplicity
+  const { data: room } = await db.from('chameleon_rooms').select('votes').eq('code', chRoomCode).single();
+  const votes = room?.votes || {};
+  const clues = votes.clues || {};
+  clues[currentUser.id] = { name: currentUserName || currentUser.email, clue };
+  votes.clues = clues;
+  await db.from('chameleon_rooms').update({ votes }).eq('code', chRoomCode);
+  // mark player ready
+  await db.from('chameleon_players').update({ is_ready: true }).eq('room_code', chRoomCode).eq('user_id', currentUser.id);
+  chHasSubmittedClue = true;
+  document.getElementById('ch-clue-input').value = '';
+  document.getElementById('ch-clue-area').innerHTML = `<div style="font-size:11px;letter-spacing:.15em;color:#5a9e6f;text-transform:uppercase;">✓ Clue submitted: "${clue}"</div>`;
+  toast('Clue submitted!');
+}
+
+async function chUpdateCluesList(room, players) {
+  const clues = room.votes?.clues || {};
+  const clueCount = Object.keys(clues).length;
+  const cluesEl = document.getElementById('ch-clues-list');
+  if (!cluesEl) return;
+
+  if (clueCount > 0) {
+    cluesEl.innerHTML = `<div class="section-head" style="margin-bottom:10px;"><h2 class="section-title">Clues Given (${clueCount}/${players.length})</h2><div class="section-line"></div></div>` +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
+      Object.values(clues).map(c =>
+        `<div style="background:var(--dark-3);border:1px solid rgba(201,169,110,.15);padding:10px 16px;">
+          <div style="font-size:9px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">${c.name}</div>
+          <div style="font-size:14px;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;">${c.clue}</div>
+        </div>`).join('') + '</div>';
+  }
+
+  // All clues in → show vote button for host
+  if (clueCount >= players.length && chIsHost && room.status === 'playing') {
+    const voteArea = document.getElementById('ch-vote-area');
+    if (voteArea && voteArea.style.display === 'none') {
+      await db.from('chameleon_rooms').update({ status: 'voting' }).eq('code', chRoomCode);
+    }
+  }
+}
+
+async function chShowVoting(room, players) {
+  if (chHasVoted) return;
+  const voteArea = document.getElementById('ch-vote-area');
+  const boardArea = document.getElementById('ch-board-area');
+  if (!voteArea || !boardArea) return;
+  boardArea.style.display = 'block';
+  voteArea.style.display = 'block';
+
+  const clues = room.votes?.clues || {};
+  const cluesEl = document.getElementById('ch-clues-list');
+  if (cluesEl && Object.keys(clues).length > 0) {
+    cluesEl.innerHTML = `<div class="section-head" style="margin-bottom:10px;"><h2 class="section-title">All Clues</h2><div class="section-line"></div></div>` +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">' +
+      Object.values(clues).map(c =>
+        `<div style="background:var(--dark-3);border:1px solid rgba(201,169,110,.15);padding:10px 16px;">
+          <div style="font-size:9px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">${c.name}</div>
+          <div style="font-size:14px;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;">${c.clue}</div>
+        </div>`).join('') + '</div>';
+  }
+
+  const voteBtns = document.getElementById('ch-vote-btns');
+  if (voteBtns && voteBtns.innerHTML === '') {
+    voteBtns.innerHTML = players
+      .filter(p => p.user_id !== currentUser.id)
+      .map(p => `<button class="btn-gold" onclick="chVote('${p.user_id}','${p.display_name}')" style="font-size:9px;padding:10px 20px;"><span>${p.display_name}</span></button>`).join('');
+  }
+}
+
+async function chVote(targetId, targetName) {
+  if (chHasVoted) { toast('Already voted!'); return; }
+  const { data: room } = await db.from('chameleon_rooms').select('votes').eq('code', chRoomCode).single();
+  const votes = room?.votes || {};
+  const voteCounts = votes.voteCounts || {};
+  voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+  votes.voteCounts = votes.voteCounts || {};
+  votes.voteCounts[targetId] = (votes.voteCounts[targetId] || 0) + 1;
+  await db.from('chameleon_rooms').update({ votes }).eq('code', chRoomCode);
+  await db.from('chameleon_players').update({ is_ready: true }).eq('room_code', chRoomCode).eq('user_id', currentUser.id);
+  chHasVoted = true;
+  toast('Voted for ' + targetName);
+  document.getElementById('ch-vote-btns').innerHTML = `<div style="font-size:11px;letter-spacing:.15em;color:#5a9e6f;text-transform:uppercase;">✓ Voted for ${targetName}</div>`;
+
+  // Check if all voted
+  const { data: players } = await db.from('chameleon_players').select('*').eq('room_code', chRoomCode);
+  if (chIsHost && players) {
+    const readyCount = players.filter(p => p.is_ready).length;
+    if (readyCount >= players.length) {
+      await db.from('chameleon_rooms').update({ status: 'results' }).eq('code', chRoomCode);
+    }
+  }
+}
+
+async function chShowResults(room, players) {
+  const resultsEl = document.getElementById('ch-results');
+  const boardArea = document.getElementById('ch-board-area');
+  if (!resultsEl || resultsEl.style.display === 'block') return;
+  if (boardArea) boardArea.style.display = 'block';
+  resultsEl.style.display = 'block';
+
+  const voteCounts = room.votes?.voteCounts || {};
+  let maxVotes = 0, accusedId = null;
+  Object.entries(voteCounts).forEach(([id, v]) => { if (v > maxVotes) { maxVotes = v; accusedId = id; } });
+  const accusedPlayer = players.find(p => p.user_id === accusedId);
+  const chameleonPlayer = players.find(p => p.user_id === room.chameleon_id);
+  const caughtCorrectly = accusedId === room.chameleon_id;
+
+  const resultText = document.getElementById('ch-result-text');
+  const resultSub = document.getElementById('ch-result-sub');
+  if (caughtCorrectly) {
+    resultText.innerHTML = `🎉 The Chameleon was caught!`;
+    resultText.style.color = '#5a9e6f';
+    resultSub.textContent = `${accusedPlayer?.display_name || 'Unknown'} was the Chameleon (${maxVotes} vote${maxVotes!==1?'s':''})`;
+  } else {
+    resultText.innerHTML = `🦎 The Chameleon escaped!`;
+    resultText.style.color = '#d97070';
+    resultSub.textContent = `${accusedPlayer?.display_name || 'Unknown'} was accused but the real Chameleon was ${chameleonPlayer?.display_name || 'Unknown'}`;
+  }
+
+  // Show secret word reveal
+  const finalEl = document.getElementById('ch-final-result');
+  finalEl.textContent = `Secret word was: ${room.secret_word}`;
+
+  // If current user is the chameleon and they were caught, let them guess
+  if (room.chameleon_id === currentUser.id && caughtCorrectly) {
+    document.getElementById('ch-guess-area').style.display = 'block';
+  }
+}
+
+async function chGuessWord() {
+  const guess = document.getElementById('ch-guess-input').value.trim().toUpperCase();
+  const { data: room } = await db.from('chameleon_rooms').select('secret_word').eq('code', chRoomCode).single();
+  const finalEl = document.getElementById('ch-final-result');
+  if (guess === room.secret_word.toUpperCase()) {
+    finalEl.textContent = '🦎 Chameleon guessed correctly — Chameleon wins!';
+    finalEl.style.color = '#d97070';
+  } else {
+    finalEl.textContent = `Wrong! The word was "${room.secret_word}". Agents win!`;
+    finalEl.style.color = '#5a9e6f';
+  }
+  document.getElementById('ch-guess-area').style.display = 'none';
+}
+
+async function chNewRound() {
+  if (!chIsHost) { toast('Only the host can start a new round.'); return; }
+  chHasSubmittedClue = false;
+  chHasVoted = false;
+  document.getElementById('ch-results').style.display = 'none';
+  document.getElementById('ch-clues-list').innerHTML = '';
+  document.getElementById('ch-vote-area').style.display = 'none';
+  document.getElementById('ch-vote-btns').innerHTML = '';
+  document.getElementById('ch-board-area').style.display = 'none';
+  document.getElementById('ch-game-area').style.display = 'none';
+  await db.from('chameleon_players').update({ is_ready: false }).eq('room_code', chRoomCode);
+  await chStartGame();
+}
+
+async function leaveChameleonRoom() {
+  stopChameleonPolling();
+  if (chRoomCode && currentUser) {
+    await db.from('chameleon_players').delete().eq('room_code', chRoomCode).eq('user_id', currentUser.id);
+    // if host leaves, delete room
+    if (chIsHost) await db.from('chameleon_rooms').delete().eq('code', chRoomCode);
+  }
+  chRoomCode = null; chIsHost = false; chMyRole = null;
+  chHasSubmittedClue = false; chHasVoted = false;
+}
+
+/* ════════════════════════════════════════
+   NAME PICKER
+════════════════════════════════════════ */
+// Full class list — edit these to match your actual class
+const CLASS_NAMES = [
+  'Aiden Tan','Alyssa Lim','Benjamin Ng','Chloe Wong','Daniel Lee',
+  'Elise Toh','Ethan Koh','Fiona Goh','Gabriel Ong','Hannah Lim',
+  'Isaac Chan','Jasmine Yeo','Joshua Tan','Karen Ng','Leon Sim',
+  'Megan Chua','Nathan Lim','Nicole Tan','Oliver Goh','Priya Nair',
+  'Qi Xuan Chen','Rachel Lee','Samuel Teo','Tricia Ong','Umar Faruq',
+  'Vanessa Lim','Wei Ting Ng','Xavier Tan','Yolanda Koh','Zack Lim',
+  'Amirah Binte Said','Bryan Toh','Clara Seah','Dylan Chew','Eunice Tan',
+  'Fadhil Aziz','Grace Lim','Hamzah Yusof'
+].sort();
+
+let currentUserName = null;
+
+async function goToNamePicker() {
+  goto('namepicker');
+  await loadNameGrid();
+}
+
+async function loadNameGrid() {
+  const grid = document.getElementById('nameGrid');
+  const sub  = document.getElementById('namePickerSub');
+  grid.innerHTML = '<div class="empty-state"><p class="empty-label">Loading names…</p></div>';
+
+  // fetch all already-claimed names
+  const { data: claimed } = await db.from('names').select('display_name, user_id');
+  const claimedMap = {};
+  (claimed||[]).forEach(r => claimedMap[r.display_name] = r.user_id);
+
+  // check if this user already has a name (e.g. came back)
+  const myName = Object.keys(claimedMap).find(n => claimedMap[n] === currentUser?.id);
+  if (myName) {
+    currentUserName = myName;
+    goto('dashboard');
+    return;
+  }
+
+  grid.innerHTML = CLASS_NAMES.map(name => {
+    const isTaken = !!claimedMap[name];
+    return `<button class="name-btn ${isTaken?'taken':''}" onclick="${isTaken?'':`pickName('${name.replace(/'/,"\'")}')`}" ${isTaken?'disabled':''}>
+      <span>${name}</span>
+    </button>`;
+  }).join('');
+
+  sub.textContent = `${Object.keys(claimedMap).length} of ${CLASS_NAMES.length} names taken`;
+}
+
+async function pickName(name) {
+  if (!currentUser) return;
+  const sub = document.getElementById('namePickerSub');
+  sub.textContent = 'Claiming name…';
+
+  // double-check it's not taken (race condition guard)
+  const { data: existing } = await db.from('names').select('id').eq('display_name', name).single();
+  if (existing) {
+    sub.textContent = 'That name was just taken! Please choose another.';
+    await loadNameGrid();
+    return;
+  }
+
+  const { error } = await db.from('names').insert({ display_name: name, user_id: currentUser.id });
+  if (error) {
+    sub.textContent = 'Could not claim name. Try again.';
+    await loadNameGrid();
+    return;
+  }
+
+  currentUserName = name;
+  toast('Welcome, ' + name + '!');
+  goto('dashboard');
+}
+
+/* ════════════════════════════════════════
+   INIT — check if already logged in
+════════════════════════════════════════ */
+(async()=>{
+  const { data:{ session } } = await db.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    // check if they already claimed a name
+    const { data: claimed } = await db.from('names').select('display_name').eq('user_id', currentUser.id).single();
+    if (claimed?.display_name) {
+      currentUserName = claimed.display_name;
+      goto('dashboard');
+    } else {
+      goToNamePicker();
+    }
+  }
+  db.auth.onAuthStateChange((_event, session)=>{
+    currentUser = session?.user || null;
+    if (!currentUser) { currentUserName = null; goto('login'); }
+  });
+})();
+</script>
+</body>
+</html>
