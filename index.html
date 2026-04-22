@@ -442,7 +442,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
       <p class="page-subtitle" id="dashDateLine">—</p>
     </div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">33</div><div class="stat-note">Full class enrolled</div></div>
+      <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">38</div><div class="stat-note">Full class enrolled</div></div>
       <div class="stat-card"><div class="stat-label">Days to Exam</div><div class="stat-value" id="daysLeft">—</div><div class="stat-note">End-of-year finals</div></div>
       <div class="stat-card"><div class="stat-label">Homework Entries</div><div class="stat-value" id="hwCount">0</div><div class="stat-note">Logged this term</div></div>
       <div class="stat-card"><div class="stat-label">Upcoming Events</div><div class="stat-value" id="evCount">0</div><div class="stat-note">On the pinboard</div></div>
@@ -725,6 +725,11 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div class="game-title">Chameleon</div>
         <div class="game-desc">Multiplayer — create a room and play live with classmates</div>
       </div>
+      <div class="game-card" id="gc-td" onclick="loadGame('td')">
+        <span class="game-icon">🏰</span>
+        <div class="game-title">Tower Defence</div>
+        <div class="game-desc">Build towers, earn loot, survive 20 waves</div>
+      </div>
       <div class="game-card" id="gc-wordle" onclick="loadGame('wordle')">
         <span class="game-icon">🔤</span>
         <div class="game-title">Wordle</div>
@@ -833,8 +838,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
         <div id="ch-board-area" style="display:none;margin-bottom:28px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
             <div>
-              <div class="f-label" style="margin-bottom:4px;">Topic</div>
-              <div id="ch-topic-display" style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);"></div>
+              <div id="ch-topic-display" style="display:none;" style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);"></div>
             </div>
             <div id="ch-secret-display" style="text-align:right;"></div>
           </div>
@@ -1295,6 +1299,7 @@ function loadGame(id) {
   else if(id==='g2048')   load2048(arena);
   else if(id==='minesweeper') loadMinesweeper(arena);
   else if(id==='wordle')  loadWordle(arena);
+  else if(id==='td')      loadTD(arena);
 }
 
 /* ── CHESS — fully built-in, no external sites ── */
@@ -2116,21 +2121,516 @@ function loadWordle(arena) {
 }
 
 
+
+/* ════════════════════════════════════════
+   TOWER DEFENCE
+════════════════════════════════════════ */
+function loadTD(arena) {
+  arena.style.minHeight = '700px';
+  arena.innerHTML = `
+    <div style="width:100%;display:flex;flex-direction:column;align-items:center;padding:16px;gap:8px;">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:4px;">
+        <div class="g-hud-item"><div class="g-hud-val" id="tdGold">150</div><div class="g-hud-key">Gold</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tdLives">20</div><div class="g-hud-key">Lives</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tdWave">0</div><div class="g-hud-key">Wave</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tdScore">0</div><div class="g-hud-key">Score</div></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="tdTowerBtns"></div>
+      <canvas id="tdCanvas" width="640" height="400" style="border:1px solid rgba(201,169,110,.2);cursor:crosshair;max-width:100%;"></canvas>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;">
+        <button class="g-btn" id="tdStartBtn" onclick="tdStartWave()" style="font-size:9px;padding:10px 24px;">Start Wave 1</button>
+        <button class="g-btn" onclick="tdSellTower()" style="font-size:9px;padding:10px 16px;border-color:#d97070;color:#d97070;">Sell Selected</button>
+        <button class="g-btn" onclick="tdUpgradeTower()" style="font-size:9px;padding:10px 16px;border-color:#5a9e6f;color:#5a9e6f;">Upgrade (75g)</button>
+      </div>
+      <div id="tdMsg" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);min-height:18px;text-align:center;"></div>
+    </div>`;
+
+  // ── TD State ──
+  const W=640, H=400, CELL=40;
+  const COLS=W/CELL, ROWS=H/CELL;
+
+  // Path waypoints (grid coords)
+  const PATH_WP = [
+    {x:0,y:2},{x:3,y:2},{x:3,y:5},{x:7,y:5},{x:7,y:1},{x:11,y:1},{x:11,y:7},{x:15,y:7}
+  ];
+
+  // Convert waypoints to pixel centres
+  function wpPx(wp){ return {x:wp.x*CELL+CELL/2, y:wp.y*CELL+CELL/2}; }
+
+  // Compute full path as set of occupied cells
+  function buildPathCells() {
+    const cells = new Set();
+    for (let s=0;s<PATH_WP.length-1;s++) {
+      const a=PATH_WP[s], b=PATH_WP[s+1];
+      if (a.x===b.x) { const mn=Math.min(a.y,b.y),mx=Math.max(a.y,b.y); for(let y=mn;y<=mx;y++) cells.add(`${a.x},${y}`); }
+      else           { const mn=Math.min(a.x,b.x),mx=Math.max(a.x,b.x); for(let x=mn;x<=mx;x++) cells.add(`${x},${a.y}`); }
+    }
+    return cells;
+  }
+  const PATH_CELLS = buildPathCells();
+
+  // Tower types
+  const TOWER_TYPES = {
+    arrow:   { name:'Arrow',   cost:50,  dmg:18,  range:120, rate:60,  color:'#c9a96e', desc:'Fast, cheap, single target' },
+    cannon:  { name:'Cannon',  cost:100, dmg:60,  range:100, rate:120, color:'#d97070', desc:'Splash damage (r=30)' },
+    frost:   { name:'Frost',   cost:75,  dmg:10,  range:110, rate:80,  color:'#6e9ec9', desc:'Slows enemies by 50%' },
+    sniper:  { name:'Sniper',  cost:125, dmg:120, range:200, rate:200, color:'#b07ec9', desc:'Long range, high damage' },
+    mortar:  { name:'Mortar',  cost:150, dmg:80,  range:150, rate:180, color:'#5a9e6f', desc:'Big splash (r=50), ignores armour' },
+  };
+
+  // Enemy types per wave
+  function waveEnemyList(wave) {
+    const list = [];
+    const count = 8 + wave * 3;
+    for (let i=0;i<count;i++) {
+      let type = 'grunt';
+      const r = Math.random();
+      if (wave >= 3 && r < 0.15) type = 'armoured';
+      if (wave >= 5 && r < 0.1)  type = 'fast';
+      if (wave >= 8 && r < 0.08) type = 'giant';
+      if (wave >= 12 && r < 0.06) type = 'boss';
+      list.push({ type, delay: i * (Math.max(20, 80 - wave*2)) });
+    }
+    return list;
+  }
+
+  const ENEMY_STATS = {
+    grunt:    { hp: 60,  spd: 1.2, reward: 8,  armor: 0,   color: '#d97070', size: 10, label:'G' },
+    armoured: { hp: 120, spd: 0.9, reward: 15, armor: 0.4, color: '#8a8070', size: 12, label:'A' },
+    fast:     { hp: 40,  spd: 2.4, reward: 12, armor: 0,   color: '#e8d5a3', size: 8,  label:'F' },
+    giant:    { hp: 400, spd: 0.6, reward: 30, armor: 0.2, color: '#c9a96e', size: 16, label:'G!' },
+    boss:     { hp: 900, spd: 0.7, reward: 80, armor: 0.5, color: '#b07ec9', size: 20, label:'B' },
+  };
+
+  // Loot drop table
+  const LOOT_TABLE = [
+    { name:'Gold Bag',    weight:40, effect: s => s.gold += 60 + Math.floor(Math.random()*40),      desc:'+60-100 gold' },
+    { name:'Frost Rune',  weight:20, effect: s => { s.globalSlow = (s.globalSlow||0) + 0.1; },      desc:'All enemies 10% slower' },
+    { name:'Power Rune',  weight:15, effect: s => { s.dmgBonus = (s.dmgBonus||1) * 1.15; },         desc:'All towers +15% damage' },
+    { name:'Shield',      weight:15, effect: s => s.lives = Math.min(s.lives + 3, 30),              desc:'+3 lives' },
+    { name:'Range Rune',  weight:10, effect: s => { s.rangeBonus = (s.rangeBonus||1) * 1.12; },     desc:'All towers +12% range' },
+  ];
+
+  function rollLoot(state) {
+    const total = LOOT_TABLE.reduce((a,l)=>a+l.weight,0);
+    let r = Math.random()*total;
+    for (const loot of LOOT_TABLE) { r -= loot.weight; if (r<=0) return loot; }
+    return LOOT_TABLE[0];
+  }
+
+  // State
+  let state = {
+    gold: 150, lives: 20, wave: 0, score: 0,
+    towers: [], enemies: [], projectiles: [], particles: [],
+    selectedType: 'arrow', selectedTower: null,
+    waveRunning: false, waveQueue: [], spawnTimer: 0, spawnIdx: 0,
+    dmgBonus: 1, rangeBonus: 1, globalSlow: 0,
+    lootDrops: [], frame: 0, gameOver: false, victory: false
+  };
+
+  const canvas = document.getElementById('tdCanvas');
+  const ctx = canvas.getContext('2d');
+  let raf = null;
+
+  // Build tower buttons
+  function buildTowerBtns() {
+    const el = document.getElementById('tdTowerBtns');
+    el.innerHTML = Object.entries(TOWER_TYPES).map(([k,t])=>
+      `<button class="g-btn" id="tdbtn-${k}" onclick="tdSelectType('${k}')" style="font-size:9px;padding:8px 14px;border-color:${t.color};color:${t.color};">${t.name} (${t.cost}g)</button>`
+    ).join('');
+  }
+
+  window.tdSelectType = function(type) {
+    state.selectedType = type;
+    state.selectedTower = null;
+    Object.keys(TOWER_TYPES).forEach(k => {
+      const b = document.getElementById('tdbtn-'+k);
+      if (b) b.style.background = k===type ? 'rgba(201,169,110,.15)' : 'transparent';
+    });
+    tdMsg(TOWER_TYPES[type].name+': '+TOWER_TYPES[type].desc+' — click empty cell to place');
+  };
+
+  window.tdSellTower = function() {
+    if (!state.selectedTower) { tdMsg('Click a tower first to select it.'); return; }
+    const t = state.selectedTower;
+    const refund = Math.floor(TOWER_TYPES[t.type].cost * 0.6 * (1 + (t.level-1)*0.3));
+    state.gold += refund;
+    state.towers = state.towers.filter(x=>x!==t);
+    state.selectedTower = null;
+    tdMsg('Tower sold for '+refund+' gold.');
+    updateHUD();
+  };
+
+  window.tdUpgradeTower = function() {
+    if (!state.selectedTower) { tdMsg('Click a tower first to select it.'); return; }
+    const t = state.selectedTower;
+    const cost = 75 + (t.level-1)*50;
+    if (state.gold < cost) { tdMsg('Need '+cost+' gold to upgrade!'); return; }
+    state.gold -= cost;
+    t.level++;
+    t.dmg   = Math.round(TOWER_TYPES[t.type].dmg * (1 + (t.level-1)*0.5) * state.dmgBonus);
+    t.range = Math.round(TOWER_TYPES[t.type].range * (1 + (t.level-1)*0.2) * state.rangeBonus);
+    tdMsg(`Tower upgraded to level ${t.level}!`);
+    updateHUD();
+  };
+
+  window.tdStartWave = function() {
+    if (state.waveRunning) return;
+    if (state.gameOver || state.victory) return;
+    state.wave++;
+    document.getElementById('tdWave').textContent = state.wave;
+    state.waveRunning = true;
+    state.waveQueue = waveEnemyList(state.wave);
+    state.spawnIdx = 0; state.spawnTimer = 0;
+    document.getElementById('tdStartBtn').disabled = true;
+    document.getElementById('tdStartBtn').style.opacity = '.5';
+    tdMsg('Wave '+state.wave+' incoming!');
+    // Drop loot every 3 waves
+    if (state.wave > 1 && state.wave % 3 === 0) {
+      const loot = rollLoot(state);
+      loot.effect(state);
+      // Show loot drop particle
+      state.lootDrops.push({ msg:'🎁 '+loot.name+': '+loot.desc, timer: 180 });
+      updateHUD();
+    }
+    // Recalculate tower stats with bonuses
+    state.towers.forEach(t => {
+      t.dmg   = Math.round(TOWER_TYPES[t.type].dmg   * (1+(t.level-1)*0.5) * state.dmgBonus);
+      t.range = Math.round(TOWER_TYPES[t.type].range  * (1+(t.level-1)*0.2) * state.rangeBonus);
+    });
+  };
+
+  function tdMsg(m) {
+    const el = document.getElementById('tdMsg');
+    if (el) el.textContent = m;
+  }
+
+  function updateHUD() {
+    document.getElementById('tdGold').textContent  = state.gold;
+    document.getElementById('tdLives').textContent = state.lives;
+    document.getElementById('tdWave').textContent  = state.wave;
+    document.getElementById('tdScore').textContent = state.score;
+  }
+
+  // Canvas click — place tower or select
+  canvas.onclick = function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scale = canvas.width / rect.width;
+    const mx = (e.clientX-rect.left)*scale;
+    const my = (e.clientY-rect.top)*scale;
+    const gx = Math.floor(mx/CELL), gy = Math.floor(my/CELL);
+    const key = `${gx},${gy}`;
+
+    // Click existing tower → select it
+    const hit = state.towers.find(t=>t.gx===gx&&t.gy===gy);
+    if (hit) {
+      state.selectedTower = hit;
+      tdMsg(`${TOWER_TYPES[hit.type].name} Lv${hit.level} — DMG:${hit.dmg} RNG:${hit.range}`);
+      return;
+    }
+
+    // Path cell — can't build
+    if (PATH_CELLS.has(key)) { tdMsg("Can't build on the path!"); return; }
+
+    // Place tower
+    const tt = TOWER_TYPES[state.selectedType];
+    if (state.gold < tt.cost) { tdMsg('Not enough gold! Need '+tt.cost+'g'); return; }
+    state.gold -= tt.cost;
+    state.towers.push({
+      type: state.selectedType, gx, gy, level: 1,
+      dmg:   Math.round(tt.dmg   * state.dmgBonus),
+      range: Math.round(tt.range * state.rangeBonus),
+      rate: tt.rate, cooldown: 0, color: tt.color,
+      x: gx*CELL+CELL/2, y: gy*CELL+CELL/2
+    });
+    state.selectedTower = null;
+    updateHUD();
+    tdMsg('');
+  };
+
+  // Spawn enemies
+  function spawnTick() {
+    if (!state.waveRunning || state.spawnIdx >= state.waveQueue.length) return;
+    state.spawnTimer++;
+    const next = state.waveQueue[state.spawnIdx];
+    if (state.spawnTimer >= next.delay) {
+      const es = ENEMY_STATS[next.type];
+      const spd = es.spd * (1 - Math.min(0.7, state.globalSlow));
+      state.enemies.push({
+        type: next.type, hp: es.hp * (1+state.wave*0.08),
+        maxHp: es.hp * (1+state.wave*0.08),
+        spd, baseSpd: spd, slow: 0, slowTimer: 0,
+        armor: es.armor, reward: es.reward, color: es.color,
+        size: es.size, label: es.label,
+        wp: 0, x: wpPx(PATH_WP[0]).x, y: wpPx(PATH_WP[0]).y, done: false
+      });
+      state.spawnIdx++;
+      state.spawnTimer = 0;
+    }
+  }
+
+  // Move enemies along path
+  function moveEnemies() {
+    state.enemies.forEach(e => {
+      if (e.done) return;
+      if (e.slowTimer > 0) { e.slowTimer--; if (e.slowTimer===0) e.spd=e.baseSpd; }
+      const target = wpPx(PATH_WP[e.wp+1]);
+      if (!target) { e.done=true; state.lives=Math.max(0,state.lives-1); updateHUD(); return; }
+      const dx=target.x-e.x, dy=target.y-e.y, dist=Math.sqrt(dx*dx+dy*dy);
+      if (dist < e.spd) { e.x=target.x; e.y=target.y; e.wp++; }
+      else { e.x+=dx/dist*e.spd; e.y+=dy/dist*e.spd; }
+    });
+    state.enemies = state.enemies.filter(e=>!e.done);
+  }
+
+  // Towers shoot
+  function towerShoot() {
+    state.towers.forEach(t => {
+      if (t.cooldown > 0) { t.cooldown--; return; }
+      // Find nearest enemy in range
+      let target=null, bestDist=Infinity;
+      state.enemies.forEach(e=>{
+        const d=Math.hypot(e.x-t.x,e.y-t.y);
+        if(d<=t.range&&d<bestDist){bestDist=d;target=e;}
+      });
+      if (!target) return;
+      t.cooldown = t.rate;
+      // Projectile
+      state.projectiles.push({
+        x:t.x, y:t.y, tx:target, type:t.type,
+        dmg:t.dmg, spd:6, color:t.color
+      });
+    });
+  }
+
+  // Move projectiles & hit
+  function moveProjectiles() {
+    const alive = [];
+    state.projectiles.forEach(p => {
+      if (!p.tx || p.tx.done || p.tx.hp<=0) return; // target died
+      const dx=p.tx.x-p.x, dy=p.tx.y-p.y, dist=Math.sqrt(dx*dx+dy*dy);
+      if (dist < p.spd+4) {
+        // hit
+        const splash = p.type==='cannon'?30:p.type==='mortar'?50:0;
+        if (splash>0) {
+          state.enemies.forEach(e=>{
+            if(Math.hypot(e.x-p.tx.x,e.y-p.tx.y)<=splash){
+              const dmg = p.type==='mortar'?p.dmg:(p.dmg*(1-e.armor));
+              e.hp -= dmg;
+              spawnParticle(e.x,e.y,p.color);
+            }
+          });
+        } else {
+          const dmg = p.dmg*(p.tx.armor&&p.type!=='mortar'?(1-p.tx.armor):1);
+          p.tx.hp -= dmg;
+          if (p.type==='frost') { p.tx.spd=p.tx.baseSpd*0.5; p.tx.slowTimer=120; }
+          spawnParticle(p.tx.x,p.tx.y,p.color);
+        }
+        // kill check
+        state.enemies.forEach(e=>{
+          if(e.hp<=0&&!e.dead){e.dead=true;state.gold+=e.reward;state.score+=e.reward*2;updateHUD();}
+        });
+      } else {
+        p.x+=dx/dist*p.spd; p.y+=dy/dist*p.spd;
+        alive.push(p);
+      }
+    });
+    state.projectiles = alive;
+    state.enemies = state.enemies.filter(e=>!e.dead);
+  }
+
+  function spawnParticle(x,y,color) {
+    for(let i=0;i<4;i++) state.particles.push({x,y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:20,color});
+  }
+
+  function updateParticles() {
+    state.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life--;});
+    state.particles=state.particles.filter(p=>p.life>0);
+  }
+
+  // Draw
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    // Background grid
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const key=`${c},${r}`;
+      ctx.fillStyle = PATH_CELLS.has(key)?'#2a2015':'#0e0c09';
+      ctx.fillRect(c*CELL,r*CELL,CELL,CELL);
+      ctx.strokeStyle='rgba(201,169,110,.05)';
+      ctx.strokeRect(c*CELL,r*CELL,CELL,CELL);
+    }
+    // Path arrows
+    ctx.strokeStyle='rgba(201,169,110,.2)'; ctx.lineWidth=3;
+    ctx.beginPath();
+    PATH_WP.forEach((wp,i)=>{ const p=wpPx(wp); i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); });
+    ctx.stroke(); ctx.lineWidth=1;
+
+    // Towers
+    state.towers.forEach(t=>{
+      const sel = state.selectedTower===t;
+      if(sel){ ctx.fillStyle='rgba(201,169,110,.1)'; ctx.fillRect(t.gx*CELL,t.gy*CELL,CELL,CELL); }
+      // range ring if selected
+      if(sel){ ctx.strokeStyle='rgba(201,169,110,.25)'; ctx.beginPath(); ctx.arc(t.x,t.y,t.range,0,Math.PI*2); ctx.stroke(); }
+      // tower body
+      ctx.fillStyle=t.color;
+      ctx.fillRect(t.x-12,t.y-12,24,24);
+      ctx.fillStyle='#0e0c09';
+      ctx.font='bold 10px Josefin Sans';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(t.type[0].toUpperCase(),t.x,t.y);
+      // level pip
+      if(t.level>1){
+        ctx.fillStyle='#fff';
+        ctx.font='8px Josefin Sans';
+        ctx.fillText('L'+t.level,t.x,t.y+16);
+      }
+    });
+
+    // Enemies
+    state.enemies.forEach(e=>{
+      // HP bar
+      const bw=e.size*2+4;
+      ctx.fillStyle='#333'; ctx.fillRect(e.x-bw/2,e.y-e.size-8,bw,5);
+      ctx.fillStyle=e.slowTimer>0?'#6e9ec9':e.color;
+      ctx.fillRect(e.x-bw/2,e.y-e.size-8,bw*(e.hp/e.maxHp),5);
+      // body
+      ctx.fillStyle=e.slowTimer>0?'#6e9ec9':e.color;
+      ctx.beginPath(); ctx.arc(e.x,e.y,e.size,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#0e0c09'; ctx.font=`bold ${e.size}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(e.label,e.x,e.y);
+    });
+
+    // Projectiles
+    state.projectiles.forEach(p=>{
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.type==='mortar'?6:3,0,Math.PI*2); ctx.fill();
+    });
+
+    // Particles
+    state.particles.forEach(p=>{
+      ctx.globalAlpha=p.life/20;
+      ctx.fillStyle=p.color;
+      ctx.fillRect(p.x-2,p.y-2,4,4);
+    });
+    ctx.globalAlpha=1;
+
+    // Loot drops
+    state.lootDrops.forEach((ld,i)=>{
+      ctx.fillStyle='rgba(201,169,110,.9)';
+      ctx.font='12px Josefin Sans';
+      ctx.textAlign='center';
+      ctx.fillText(ld.msg, W/2, 30+i*20);
+      ld.timer--;
+    });
+    state.lootDrops = state.lootDrops.filter(ld=>ld.timer>0);
+
+    // Game over / victory
+    if (state.gameOver) {
+      ctx.fillStyle='rgba(14,12,9,.85)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#d97070'; ctx.font='bold 36px Cormorant Garamond,serif';
+      ctx.textAlign='center'; ctx.fillText('GAME OVER',W/2,H/2-20);
+      ctx.fillStyle='#c4b99a'; ctx.font='14px Josefin Sans';
+      ctx.fillText('Score: '+state.score,W/2,H/2+20);
+      ctx.fillText('Survived '+state.wave+' waves',W/2,H/2+42);
+    }
+    if (state.victory) {
+      ctx.fillStyle='rgba(14,12,9,.85)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#c9a96e'; ctx.font='bold 36px Cormorant Garamond,serif';
+      ctx.textAlign='center'; ctx.fillText('VICTORY!',W/2,H/2-20);
+      ctx.fillStyle='#c4b99a'; ctx.font='14px Josefin Sans';
+      ctx.fillText('All 20 waves cleared! Score: '+state.score,W/2,H/2+20);
+    }
+  }
+
+  // Check wave end
+  function checkWaveEnd() {
+    if (!state.waveRunning) return;
+    if (state.spawnIdx >= state.waveQueue.length && state.enemies.length===0 && state.projectiles.length===0) {
+      state.waveRunning = false;
+      const bonus = state.wave * 20;
+      state.gold += bonus;
+      state.score += bonus;
+      updateHUD();
+      if (state.wave >= 20) {
+        state.victory = true;
+        tdMsg('🏆 All waves complete! You win!');
+      } else {
+        document.getElementById('tdStartBtn').disabled = false;
+        document.getElementById('tdStartBtn').style.opacity = '1';
+        document.getElementById('tdStartBtn').querySelector('span')
+          ? (document.getElementById('tdStartBtn').textContent='Start Wave '+(state.wave+1))
+          : null;
+        document.getElementById('tdStartBtn').textContent = 'Start Wave '+(state.wave+1);
+        tdMsg('Wave '+state.wave+' cleared! +'+bonus+' gold bonus. Ready for wave '+(state.wave+1));
+      }
+    }
+  }
+
+  // Check game over
+  function checkGameOver() {
+    if (state.lives <= 0 && !state.gameOver) {
+      state.gameOver = true;
+      state.waveRunning = false;
+      tdMsg('Game Over — you ran out of lives!');
+    }
+  }
+
+  // Main loop
+  function gameLoop() {
+    if (!document.getElementById('tdCanvas')) { cancelAnimationFrame(raf); return; }
+    state.frame++;
+    if (!state.gameOver && !state.victory) {
+      spawnTick();
+      moveEnemies();
+      towerShoot();
+      moveProjectiles();
+      updateParticles();
+      checkWaveEnd();
+      checkGameOver();
+    }
+    draw();
+    raf = requestAnimationFrame(gameLoop);
+  }
+
+  buildTowerBtns();
+  tdSelectType('arrow');
+  updateHUD();
+  tdMsg('Select a tower type, then click an empty cell to place it. Start Wave 1 when ready!');
+  gameLoop();
+}
+
 /* ════════════════════════════════════════
    CHAMELEON GAME
 ════════════════════════════════════════ */
-const CH_TOPICS = [
-  { topic: 'Things at the Beach',   words: ['Surfboard','Sunscreen','Sandcastle','Seashell','Lifeguard','Umbrella','Swimsuit','Seaweed','Crab','Volleyball','Towel','Sunglasses','Jellyfish','Starfish','Ice Cream','Waves'] },
-  { topic: 'Things in a Kitchen',   words: ['Spatula','Blender','Microwave','Cutting Board','Fridge','Oven','Whisk','Colander','Ladle','Toaster','Kettle','Saucepan','Chopping Knife','Grater','Spice Rack','Dishwasher'] },
-  { topic: 'Famous Scientists',      words: ['Newton','Einstein','Darwin','Curie','Tesla','Hawking','Faraday','Bohr','Pasteur','Mendel','Turing','Feynman','Sagan','Heisenberg','Oppenheimer','Lovelace'] },
-  { topic: 'Sports',                 words: ['Football','Tennis','Swimming','Badminton','Cricket','Basketball','Volleyball','Rugby','Cycling','Archery','Fencing','Gymnastics','Boxing','Sailing','Polo','Squash'] },
-  { topic: 'Things in School',       words: ['Whiteboard','Projector','Textbook','Ruler','Calculator','Eraser','Compass','Stapler','Locker','Timetable','Pencil Case','Lab Coat','Register','Detention','Report Card','Assembly'] },
-  { topic: 'Animals',                words: ['Elephant','Penguin','Octopus','Giraffe','Crocodile','Flamingo','Chameleon','Platypus','Narwhal','Axolotl','Pangolin','Tardigrade','Mantis','Capybara','Meerkat','Quokka'] },
-  { topic: 'Things in Singapore',    words: ['Hawker Centre','MRT','HDB','Merlion','Singlish','Laksa','Durian','National Day','ERP','Chilli Crab','Kopitiam','SAF','Polytechnic','NEA','Town Council','Sentosa'] },
-  { topic: 'Emotions',               words: ['Joy','Anger','Sadness','Fear','Disgust','Surprise','Anticipation','Trust','Envy','Pride','Shame','Guilt','Awe','Boredom','Anxiety','Nostalgia'] },
-  { topic: 'Superheroes',            words: ['Superman','Batman','Spiderman','Ironman','Thor','Hulk','Wonder Woman','Flash','Captain America','Black Panther','Wolverine','Aquaman','Doctor Strange','Ant-Man','Hawkeye','Vision'] },
-  { topic: 'Musical Instruments',    words: ['Piano','Violin','Trumpet','Drums','Guitar','Cello','Flute','Saxophone','Trombone','Harp','Clarinet','Oboe','Bassoon','Xylophone','Accordion','Ukulele'] },
+// No topics — just 16 random words drawn from a big pool each round
+const CH_WORD_POOL = [
+  'Surfboard','Sunscreen','Sandcastle','Seashell','Lifeguard','Umbrella','Swimsuit','Seaweed',
+  'Crab','Volleyball','Towel','Sunglasses','Jellyfish','Starfish','Ice Cream','Waves',
+  'Spatula','Blender','Microwave','Fridge','Oven','Whisk','Ladle','Toaster','Kettle','Saucepan','Grater','Dishwasher',
+  'Newton','Einstein','Darwin','Curie','Tesla','Hawking','Faraday','Turing','Feynman','Lovelace',
+  'Football','Tennis','Swimming','Badminton','Cricket','Basketball','Volleyball','Rugby','Cycling','Archery',
+  'Whiteboard','Projector','Textbook','Ruler','Calculator','Eraser','Compass','Stapler','Locker','Timetable',
+  'Elephant','Penguin','Octopus','Giraffe','Crocodile','Flamingo','Chameleon','Platypus','Narwhal','Axolotl',
+  'Hawker Centre','MRT','HDB','Merlion','Singlish','Laksa','Durian','National Day','Chilli Crab','Kopitiam',
+  'Joy','Anger','Sadness','Fear','Disgust','Surprise','Envy','Pride','Shame','Guilt','Awe','Boredom','Anxiety',
+  'Superman','Batman','Spiderman','Ironman','Thor','Hulk','Flash','Wolverine','Aquaman','Doctor Strange',
+  'Piano','Violin','Trumpet','Drums','Guitar','Cello','Flute','Saxophone','Trombone','Harp','Clarinet','Ukulele',
+  'Volcano','Glacier','Tornado','Tsunami','Eclipse','Meteor','Aurora','Earthquake','Monsoon','Blizzard',
+  'Sushi','Pizza','Tacos','Ramen','Pho','Croissant','Baklava','Dim Sum','Paella','Kebab','Risotto','Curry',
+  'Telescope','Microscope','Compass','Abacus','Thermometer','Barometer','Sextant','Periscope','Geiger Counter','Oscilloscope',
+  'Avalanche','Quicksand','Mirage','Whirlpool','Stalactite','Geyser','Lagoon','Tundra','Savanna','Fjord',
 ];
+
+function chPickWords() {
+  const pool = [...CH_WORD_POOL];
+  const picked = [];
+  while (picked.length < 16 && pool.length > 0) {
+    const i = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(i, 1)[0]);
+  }
+  return picked;
+}
 
 let chRoomCode = null;
 let chPollingInterval = null;
@@ -2267,15 +2767,15 @@ async function chStartGame() {
   const { data: players } = await db.from('chameleon_players').select('*').eq('room_code', chRoomCode);
   if (!players || players.length < 3) { toast('Need at least 3 players!'); return; }
 
-  // Pick topic and secret word
-  const topicObj = CH_TOPICS[Math.floor(Math.random() * CH_TOPICS.length)];
-  const secretWord = topicObj.words[Math.floor(Math.random() * topicObj.words.length)];
+  // Pick 16 random words, pick secret word from them
+  const roundWords = chPickWords();
+  const secretWord = roundWords[Math.floor(Math.random() * roundWords.length)];
   // Pick chameleon
   const chameleonPlayer = players[Math.floor(Math.random() * players.length)];
 
   await db.from('chameleon_rooms').update({
     status: 'playing',
-    topic: topicObj.topic,
+    topic: JSON.stringify(roundWords),
     secret_word: secretWord,
     chameleon_id: chameleonPlayer.user_id,
     votes: {}
@@ -2313,8 +2813,9 @@ function chShowBoard() {
 async function chRenderBoard() {
   const { data: room } = await db.from('chameleon_rooms').select('*').eq('code', chRoomCode).single();
   if (!room) return;
-  const topicObj = CH_TOPICS.find(t => t.topic === room.topic) || CH_TOPICS[0];
-  document.getElementById('ch-topic-display').textContent = room.topic;
+  let roundWords;
+  try { roundWords = JSON.parse(room.topic); } catch { roundWords = chPickWords(); }
+  document.getElementById('ch-topic-display').textContent = '';
   const secretDisplay = document.getElementById('ch-secret-display');
   if (chMyRole === 'agent') {
     secretDisplay.innerHTML = `<div class="f-label" style="margin-bottom:4px;">Secret Word</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);">${room.secret_word}</div>`;
@@ -2322,7 +2823,7 @@ async function chRenderBoard() {
     secretDisplay.innerHTML = `<div style="font-size:11px;letter-spacing:.15em;color:#d97070;text-transform:uppercase;">🦎 Chameleon — figure it out!</div>`;
   }
   const grid = document.getElementById('ch-word-grid');
-  grid.innerHTML = topicObj.words.map(w => `
+  grid.innerHTML = roundWords.map(w => `
     <div style="background:var(--dark-3);border:1px solid rgba(201,169,110,${chMyRole==='agent'&&w===room.secret_word?'.6':'.1'});padding:12px 8px;text-align:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${chMyRole==='agent'&&w===room.secret_word?'var(--gold)':'var(--cream)'};${chMyRole==='agent'&&w===room.secret_word?'box-shadow:0 0 0 1px rgba(201,169,110,.3);':''}">
       ${w}
     </div>`).join('');
@@ -2478,14 +2979,27 @@ async function chGuessWord() {
 
 async function chNewRound() {
   if (!chIsHost) { toast('Only the host can start a new round.'); return; }
+  // full UI reset
   chHasSubmittedClue = false;
   chHasVoted = false;
+  chMyRole = null;
   document.getElementById('ch-results').style.display = 'none';
   document.getElementById('ch-clues-list').innerHTML = '';
   document.getElementById('ch-vote-area').style.display = 'none';
   document.getElementById('ch-vote-btns').innerHTML = '';
   document.getElementById('ch-board-area').style.display = 'none';
   document.getElementById('ch-game-area').style.display = 'none';
+  document.getElementById('ch-role-reveal').style.display = 'none';
+  document.getElementById('ch-guess-area').style.display = 'none';
+  document.getElementById('ch-final-result').textContent = '';
+  document.getElementById('ch-guess-input') && (document.getElementById('ch-guess-input').value = '');
+  // restore clue input area
+  document.getElementById('ch-clue-area').innerHTML = `
+    <div class="f-label" style="margin-bottom:12px;">Your Clue Word</div>
+    <div style="display:flex;gap:8px;">
+      <input class="f-input" id="ch-clue-input" placeholder="One word only…" maxlength="20">
+      <button class="btn-gold" onclick="chSubmitClue()"><span>Submit</span></button>
+    </div>`;
   await db.from('chameleon_players').update({ is_ready: false }).eq('room_code', chRoomCode);
   await chStartGame();
 }
@@ -2506,7 +3020,14 @@ async function leaveChameleonRoom() {
 ════════════════════════════════════════ */
 // Full class list — edit these to match your actual class
 const CLASS_NAMES = [
-  'lifei','guanghan','dimitris','ean','ethan loo','yuanbin','daniel','jack','max','lucas goh','lucas zhao','lucas ng','kayden','joshua','ethan low','marshall','tristan','rayner','bright','sze kai','yu wen','javier tan','javier lim','zixuan','timothy','junhang','jingzhe','chenglin','mazhiyuan','boyan','jason','trevan','evan',
+  'Aiden Tan','Alyssa Lim','Benjamin Ng','Chloe Wong','Daniel Lee',
+  'Elise Toh','Ethan Koh','Fiona Goh','Gabriel Ong','Hannah Lim',
+  'Isaac Chan','Jasmine Yeo','Joshua Tan','Karen Ng','Leon Sim',
+  'Megan Chua','Nathan Lim','Nicole Tan','Oliver Goh','Priya Nair',
+  'Qi Xuan Chen','Rachel Lee','Samuel Teo','Tricia Ong','Umar Faruq',
+  'Vanessa Lim','Wei Ting Ng','Xavier Tan','Yolanda Koh','Zack Lim',
+  'Amirah Binte Said','Bryan Toh','Clara Seah','Dylan Chew','Eunice Tan',
+  'Fadhil Aziz','Grace Lim','Hamzah Yusof'
 ].sort();
 
 let currentUserName = null;
