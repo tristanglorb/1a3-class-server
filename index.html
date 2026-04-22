@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -302,8 +301,6 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .rarity-legendary { color:#c9a96e; text-shadow:0 0 8px rgba(201,169,110,.4); }
 .rarity-mythical  { color:#ff6b6b; text-shadow:0 0 8px rgba(255,100,100,.4); }
 .rarity-marshall  { color:#fff; text-shadow:0 0 10px gold,0 0 20px gold,0 0 40px orange; animation:marshallGlow 1.5s ease-in-out infinite; }
-.continue-btn { width:100%; background:var(--gold); border:none; color:var(--dark); font-family:'Josefin Sans',sans-serif; font-size:11px; letter-spacing:.3em; text-transform:uppercase; padding:14px; cursor:pointer; transition:opacity .3s; margin-top:4px; }
-.continue-btn:hover { opacity:.85; }
 
 /* ── LEADERBOARD ── */
 .lb-overlay { position:fixed; inset:0; background:rgba(14,12,9,.92); z-index:500; display:flex; align-items:center; justify-content:center; animation:chestFadeIn .3s ease; }
@@ -319,16 +316,15 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 .lb-name { flex:1; font-size:11px; letter-spacing:.12em; color:var(--cream); text-transform:uppercase; }
 .lb-score { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; color:var(--gold); }
 .lb-wave { font-size:9px; letter-spacing:.2em; color:var(--text-muted); margin-left:6px; }
-.lb-trophy { font-size:11px; margin-left:4px; }
 
 /* ── SPEED BTNS ── */
 .speed-btn { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-muted); border:1px solid rgba(201,169,110,.15); background:none; padding:6px 14px; cursor:pointer; font-family:'Josefin Sans',sans-serif; transition:color .2s,border-color .2s,background .2s; }
 .speed-btn.active { color:var(--dark); background:var(--gold); border-color:var(--gold); }
 .speed-btn:hover:not(.active) { color:var(--gold); border-color:rgba(201,169,110,.4); }
 
-/* ── INVENTORY ── */
-.inv-grid { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-.inv-item { padding:5px 12px; font-size:9px; letter-spacing:.15em; text-transform:uppercase; border:1px solid rgba(201,169,110,.15); }
+/* ── Enemy legend ── */
+.enemy-legend { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; justify-content:center; }
+.enemy-chip { padding:3px 10px; font-size:9px; letter-spacing:.1em; border:1px solid rgba(201,169,110,.12); color:var(--text-muted); text-transform:uppercase; }
 
 /* ── Animations ── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
@@ -337,7 +333,6 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 @keyframes chestShake { 0%,100%{transform:rotate(0) scale(1.1)} 20%{transform:rotate(-10deg) scale(1.15)} 40%{transform:rotate(10deg) scale(1.15)} 60%{transform:rotate(-7deg) scale(1.12)} 80%{transform:rotate(7deg) scale(1.12)} }
 @keyframes rewardReveal { from{opacity:0;transform:scale(.7) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
 @keyframes marshallGlow { 0%,100%{text-shadow:0 0 10px gold,0 0 20px gold,0 0 40px orange} 50%{text-shadow:0 0 20px gold,0 0 40px orange,0 0 80px red,0 0 120px hotpink} }
-@keyframes sparkle { 0%{opacity:1;transform:scale(0) rotate(0)} 100%{opacity:0;transform:scale(1) rotate(180deg)} }
 
 /* ── Responsive ── */
 @media (max-width:768px) {
@@ -683,7 +678,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
       <div class="game-card" id="gc-2048" onclick="loadGame('g2048')"><span class="game-icon">🔢</span><div class="game-title">2048</div><div class="game-desc">Slide and merge tiles to reach 2048</div></div>
       <div class="game-card" id="gc-minesweeper" onclick="loadGame('minesweeper')"><span class="game-icon">💣</span><div class="game-title">Minesweeper</div><div class="game-desc">Clear the board without hitting a mine</div></div>
       <div class="game-card" id="gc-chameleon" onclick="goto('chameleon')" style="border-left:2px solid rgba(201,169,110,.3);"><span class="game-icon">🦎</span><div class="game-title">Chameleon</div><div class="game-desc">Multiplayer — create a room and play live with classmates</div></div>
-      <div class="game-card" id="gc-td" onclick="loadGame('td')"><span class="game-icon">🏰</span><div class="game-title">Tower Defence</div><div class="game-desc">Build towers, earn loot, chests every wave</div></div>
+      <div class="game-card" id="gc-td" onclick="loadGame('td')"><span class="game-icon">🏰</span><div class="game-title">Tower Defence</div><div class="game-desc">10 enemy types · rare tower unlocks · boss every 5 waves</div></div>
       <div class="game-card" id="gc-wordle" onclick="loadGame('wordle')"><span class="game-icon">🔤</span><div class="game-title">Wordle</div><div class="game-desc">Guess the 5-letter word in 6 tries</div></div>
     </div>
     <div class="section-head"><h2 class="section-title" id="gameArenaTitle">Select a game above</h2><div class="section-line"></div></div>
@@ -1059,214 +1054,192 @@ function loadMinesweeper(arena){const COLS=16,ROWS=12,MINES=30;arena.innerHTML=`
 function loadWordle(arena){const WORDS=['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT'];const target=WORDS[Math.floor(Math.random()*WORDS.length)];let guesses=[],current='',gameOver2=false;arena.innerHTML=`<div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;"><p style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Guess the 5-letter word in 6 tries</p><div id="wGrid" style="display:grid;grid-template-rows:repeat(6,52px);gap:6px;"></div><div id="wKeys" style="display:flex;flex-direction:column;gap:6px;align-items:center;margin-top:8px;"></div><div id="wMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:20px;text-transform:uppercase;"></div></div>`;const ROWS_W=6,COLS_W=5;let grid=Array.from({length:ROWS_W},()=>Array(COLS_W).fill({letter:'',state:'empty'}));function drawWGrid(){const el=document.getElementById('wGrid');if(!el)return;el.innerHTML='';for(let r=0;r<ROWS_W;r++){const row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:repeat(5,52px);gap:6px;';for(let c=0;c<COLS_W;c++){const cell=document.createElement('div');const{letter,state}=grid[r][c];const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#252119',empty:'rgba(201,169,110,.08)',active:'rgba(201,169,110,.12)'}[state]||'rgba(201,169,110,.08)';cell.style.cssText=`width:52px;height:52px;border:1px solid rgba(201,169,110,${state==='empty'?'.15':'.4'});background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Josefin Sans',sans-serif;font-size:20px;font-weight:400;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;`;cell.textContent=letter;row.appendChild(cell);}el.appendChild(row);}}function drawKeys(){const el=document.getElementById('wKeys');if(!el)return;const rows=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['ENTER','Z','X','C','V','B','N','M','⌫']];const states={};guesses.forEach(g=>{[...g].forEach((l,i)=>{const t=target[i]===l?'correct':target.includes(l)?'present':'absent';if(!states[l]||states[l]==='absent'||(states[l]==='present'&&t==='correct'))states[l]=t;});});el.innerHTML='';rows.forEach(row=>{const rowEl=document.createElement('div');rowEl.style.cssText='display:flex;gap:5px;';row.forEach(k=>{const btn=document.createElement('button');const st=states[k]||'empty';const bg={correct:'#5a9e6f',present:'#8a6d3b',absent:'#1a1713',empty:'rgba(201,169,110,.1)'}[st];btn.style.cssText=`background:${bg};border:1px solid rgba(201,169,110,.2);color:var(--cream);font-family:'Josefin Sans',sans-serif;font-size:${k.length>1?9:13}px;letter-spacing:.05em;padding:${k.length>1?'14px 6px':'14px 10px'};cursor:pointer;min-width:${k.length>1?52:36}px;text-transform:uppercase;`;btn.textContent=k;btn.onclick=()=>handleKey(k);rowEl.appendChild(btn);});el.appendChild(rowEl);});}function handleKey(k){if(gameOver2)return;const row=guesses.length;if(k==='⌫'||k==='Backspace'){if(current.length>0){current=current.slice(0,-1);grid[row][current.length]={letter:'',state:'active'};if(current.length<COLS_W)grid[row][current.length]={letter:'',state:'active'};}}else if(k==='ENTER'){if(current.length<COLS_W){document.getElementById('wMsg').textContent='Not enough letters';return;}const guess=current;const result=Array(COLS_W).fill('absent');const tArr=[...target],gArr=[...guess];gArr.forEach((l,i)=>{if(l===tArr[i]){result[i]='correct';tArr[i]=null;gArr[i]=null;}});gArr.forEach((l,i)=>{if(l&&tArr.includes(l)){result[i]='present';tArr[tArr.indexOf(l)]=null;}});result.forEach((s,i)=>{grid[row][i]={letter:guess[i],state:s};});guesses.push(guess);current='';if(guess===target){document.getElementById('wMsg').textContent='🎉 Correct!';gameOver2=true;}else if(guesses.length===ROWS_W){document.getElementById('wMsg').textContent='Answer: '+target;gameOver2=true;}}else if(/^[A-Z]$/i.test(k)&&current.length<COLS_W){current+=k.toUpperCase();grid[guesses.length][current.length-1]={letter:k.toUpperCase(),state:'active'};}drawWGrid();drawKeys();}document.addEventListener('keydown',function wKey(e){if(!document.getElementById('wGrid')){document.removeEventListener('keydown',wKey);return;}if(e.key==='Enter')handleKey('ENTER');else if(e.key==='Backspace')handleKey('⌫');else if(/^[a-zA-Z]$/.test(e.key))handleKey(e.key.toUpperCase());});for(let r=0;r<ROWS_W;r++)for(let c=0;c<COLS_W;c++)grid[r][c]={letter:'',state:'empty'};drawWGrid();drawKeys();}
 
 /* ══════════════════════════════════════════════════════
-   TOWER DEFENCE — UPGRADED with Chests, Leaderboard, Speed
+   TOWER DEFENCE v2 — Rich enemy types, rare tower unlocks, scaling difficulty
 ══════════════════════════════════════════════════════ */
 
-// ── CHEST RARITY TABLE ──
+// ── RARITY TABLE (rarer at higher end) ──
 const TD_RARITIES = [
-  { id:'common',    label:'Common',    icon:'📦', color:'#9a9286', weight:60,   border:'rgba(154,146,134,.4)' },
-  { id:'uncommon',  label:'Uncommon',  icon:'🟢', color:'#5a9e6f', weight:20,   border:'rgba(90,158,111,.4)' },
-  { id:'rare',      label:'Rare',      icon:'🔷', color:'#6e9ec9', weight:10,   border:'rgba(110,158,201,.4)' },
-  { id:'epic',      label:'Epic',      icon:'💜', color:'#b07ec9', weight:6,    border:'rgba(176,126,201,.4)' },
-  { id:'legendary', label:'Legendary', icon:'🌟', color:'#c9a96e', weight:2.5,  border:'rgba(201,169,110,.6)' },
-  { id:'mythical',  label:'Mythical',  icon:'🔥', color:'#ff6b6b', weight:0.5,  border:'rgba(255,107,107,.5)' },
-  { id:'marshall',  label:'Marshall',  icon:'👑', color:'#fff',    weight:1,    border:'rgba(255,215,0,.7)' },
+  { id:'common',    label:'Common',    icon:'📦', color:'#9a9286', weight:55,  border:'rgba(154,146,134,.4)' },
+  { id:'uncommon',  label:'Uncommon',  icon:'🟢', color:'#5a9e6f', weight:25,  border:'rgba(90,158,111,.4)' },
+  { id:'rare',      label:'Rare',      icon:'🔷', color:'#6e9ec9', weight:12,  border:'rgba(110,158,201,.4)' },
+  { id:'epic',      label:'Epic',      icon:'💜', color:'#b07ec9', weight:5,   border:'rgba(176,126,201,.4)' },
+  { id:'legendary', label:'Legendary', icon:'🌟', color:'#c9a96e', weight:2,   border:'rgba(201,169,110,.6)' },
+  { id:'mythical',  label:'Mythical',  icon:'🔥', color:'#ff6b6b', weight:0.7, border:'rgba(255,107,107,.5)' },
+  { id:'marshall',  label:'Marshall',  icon:'👑', color:'#fff',    weight:0.3, border:'rgba(255,215,0,.7)' },
 ];
 
-// Rewards per rarity
+// Chest rewards = new tower unlocks or gold/lives
 const TD_CHEST_REWARDS = {
-  common:    [
-    { name:'Gold Rush',     desc:'+80 gold',                    effect:s=>{s.gold+=80;} },
-    { name:'Repair Kit',    desc:'+2 lives',                    effect:s=>{s.lives=Math.min(s.lives+2,30);} },
-    { name:'Sharpening',    desc:'All towers +10% damage',       effect:s=>{s.dmgBonus*=1.1;s.towers.forEach(t=>{t.dmg=Math.round(t.dmg*1.1);});} },
+  common:[
+    {name:'Gold Cache',   desc:'+100 gold',             icon:'💰',effect:s=>{s.gold+=100;}},
+    {name:'Repair Crew',  desc:'+3 lives',              icon:'❤️',effect:s=>{s.lives=Math.min(s.lives+3,30);}},
   ],
-  uncommon:  [
-    { name:'Speed Crystal', desc:'All towers +15% fire rate',   effect:s=>{s.towers.forEach(t=>{t.rate=Math.max(20,Math.round(t.rate*0.85));});} },
-    { name:'Vault Cache',   desc:'+150 gold',                   effect:s=>{s.gold+=150;} },
-    { name:'Frost Rune',    desc:'All enemies 15% slower',      effect:s=>{s.globalSlow=Math.min(0.7,s.globalSlow+0.15);} },
+  uncommon:[
+    {name:'Poison Tower', desc:'Unlock Poison Tower — applies DoT to enemies',icon:'☠️',effect:s=>{s.unlockedTowers.add('poison');},tower:true},
+    {name:'Vault Cache',  desc:'+200 gold',             icon:'💰',effect:s=>{s.gold+=200;}},
+    {name:'Medic Post',   desc:'+5 lives',              icon:'💊',effect:s=>{s.lives=Math.min(s.lives+5,30);}},
   ],
-  rare:      [
-    { name:'Power Core',    desc:'All towers +25% damage',      effect:s=>{s.dmgBonus*=1.25;s.towers.forEach(t=>{t.dmg=Math.round(t.dmg*1.25);});} },
-    { name:'Range Lens',    desc:'All towers +20% range',       effect:s=>{s.rangeBonus*=1.2;s.towers.forEach(t=>{t.range=Math.round(t.range*1.2);});} },
-    { name:'Gold Hoard',    desc:'+250 gold + 3 lives',         effect:s=>{s.gold+=250;s.lives=Math.min(s.lives+3,30);} },
+  rare:[
+    {name:'Tesla Tower',  desc:'Unlock Tesla Tower — chain lightning hits 4 enemies',icon:'⚡',effect:s=>{s.unlockedTowers.add('tesla');},tower:true},
+    {name:'Gold Hoard',   desc:'+350 gold',             icon:'💰',effect:s=>{s.gold+=350;}},
+    {name:'Flame Tower',  desc:'Unlock Flame Tower — cone AOE fire damage',icon:'🔥',effect:s=>{s.unlockedTowers.add('flame');},tower:true},
   ],
-  epic:      [
-    { name:'Overclock',     desc:'All towers +40% dmg & rate',  effect:s=>{s.dmgBonus*=1.4;s.towers.forEach(t=>{t.dmg=Math.round(t.dmg*1.4);t.rate=Math.max(15,Math.round(t.rate*0.7));});} },
-    { name:'Permafrost',    desc:'All enemies 40% slower forever', effect:s=>{s.globalSlow=Math.min(0.8,s.globalSlow+0.4);} },
-    { name:'Dragon Hoard',  desc:'+400 gold',                   effect:s=>{s.gold+=400;} },
+  epic:[
+    {name:'Vortex Tower', desc:'Unlock Vortex Tower — pulls enemies in + massive AOE',icon:'🌀',effect:s=>{s.unlockedTowers.add('vortex');},tower:true},
+    {name:'Dragon Hoard', desc:'+500 gold + 5 lives',  icon:'🐉',effect:s=>{s.gold+=500;s.lives=Math.min(s.lives+5,30);}},
+    {name:'Nuke Strike',  desc:'All enemies lose 60% HP instantly',icon:'💥',effect:s=>{s.enemies.forEach(e=>e.hp-=e.maxHp*0.6);}},
   ],
-  legendary: [
-    { name:'Arcane Surge',  desc:'All stats ×1.5 for all towers', effect:s=>{s.dmgBonus*=1.5;s.rangeBonus*=1.3;s.towers.forEach(t=>{t.dmg=Math.round(t.dmg*1.5);t.range=Math.round(t.range*1.3);t.rate=Math.max(10,Math.round(t.rate*0.75));});} },
-    { name:'Phoenix Heart', desc:'+10 lives + 500 gold',        effect:s=>{s.lives=Math.min(s.lives+10,30);s.gold+=500;} },
-    { name:'Time Warp',     desc:'Skip wave cooldown + 300g',   effect:s=>{s.gold+=300;} },
+  legendary:[
+    {name:'Railgun Tower',desc:'Unlock Railgun Tower — pierces all enemies in a line',icon:'🔱',effect:s=>{s.unlockedTowers.add('railgun');},tower:true},
+    {name:'Phoenix Heart',desc:'+10 lives + 600 gold', icon:'🦅',effect:s=>{s.lives=Math.min(s.lives+10,30);s.gold+=600;}},
   ],
-  mythical:  [
-    { name:'Obliteration',  desc:'All enemies on screen die instantly', effect:s=>{s.enemies=[];s.gold+=300;} },
-    { name:'God Mode',      desc:'All towers ×2 damage + double range', effect:s=>{s.dmgBonus*=2;s.rangeBonus*=2;s.towers.forEach(t=>{t.dmg*=2;t.range=Math.round(t.range*2);});} },
-    { name:'Eternal Vault', desc:'+1000 gold',                  effect:s=>{s.gold+=1000;} },
+  mythical:[
+    {name:'Obliteration', desc:'All enemies on screen die instantly',icon:'☄️',effect:s=>{s.enemies.forEach(e=>{e.hp=0;e.dead=true;});s.gold+=400;}},
+    {name:'Eternal Vault', desc:'+1200 gold',           icon:'🏛️',effect:s=>{s.gold+=1200;}},
+    {name:'Singularity',  desc:'Unlock Singularity Tower — one-shots anything, 40 charges',icon:'🌌',effect:s=>{s.unlockedTowers.add('singularity');},tower:true},
   ],
-  marshall:  [
-    { name:'The Marshall',  desc:'Unlock the Marshall Tower — infinite range, god-tier AOE, destroys everything', effect:s=>{s.unlockedMarshall=true;} },
+  marshall:[
+    {name:'The Marshall', desc:'Unlock The Marshall Tower — infinite range, total annihilation',icon:'👑',effect:s=>{s.unlockedTowers.add('marshall');},tower:true},
   ],
 };
 
-function tdRollChestRarity() {
-  const total = TD_RARITIES.reduce((a,r)=>a+r.weight, 0);
-  let roll = Math.random() * total;
-  for (const r of TD_RARITIES) { roll -= r.weight; if (roll <= 0) return r; }
+// ALL tower definitions
+const TOWER_TYPES = {
+  arrow:   {name:'Arrow',  cost:50, dmg:12, range:100,rate:70, color:'#c9a96e',desc:'Basic ranged. Fast & cheap.',       splash:0,  locked:false},
+  cannon:  {name:'Cannon', cost:120,dmg:45, range:90, rate:140,color:'#d97070',desc:'Splash r=28. Slow fire.',           splash:28, locked:false},
+  frost:   {name:'Frost',  cost:90, dmg:6,  range:100,rate:90, color:'#6e9ec9',desc:'Slows enemies 40%.',               splash:0,  locked:false},
+  sniper:  {name:'Sniper', cost:150,dmg:90, range:200,rate:240,color:'#b07ec9',desc:'Extreme range, high single dmg.',   splash:0,  locked:false},
+  mortar:  {name:'Mortar', cost:180,dmg:55, range:140,rate:200,color:'#5a9e6f',desc:'Big splash r=50. Ignores armour.',  splash:50, locked:false},
+  poison:  {name:'Poison', cost:100,dmg:4,  range:100,rate:60, color:'#7ec97e',desc:'DoT — 15 ticks. Great vs regen.',  splash:0,  locked:true, poison:true},
+  tesla:   {name:'Tesla',  cost:200,dmg:30, range:110,rate:100,color:'#e8e070',desc:'Chain lightning — hits 4 targets.',splash:0,  locked:true, chain:4},
+  flame:   {name:'Flame',  cost:160,dmg:20, range:80, rate:40, color:'#ff8c42',desc:'Cone AOE, burns fast.',             splash:40, locked:true, cone:true},
+  vortex:  {name:'Vortex', cost:300,dmg:25, range:130,rate:160,color:'#b07ec9',desc:'Pulls enemies + AOE r=80.',         splash:80, locked:true, pull:true},
+  railgun: {name:'Railgun',cost:400,dmg:200,range:999,rate:300,color:'#ffffff',desc:'Pierces full screen in a line.',    splash:0,  locked:true, pierce:true},
+  singularity:{name:'Singularity',cost:0,dmg:9999,range:160,rate:500,color:'#ff6bff',desc:'One-shots anything. 40 shots only.',splash:35,locked:true,ammo:40},
+  marshall:{name:'Marshall',cost:0,dmg:9999,range:9999,rate:15,color:'#FFD700',desc:'GOD TIER — infinite range, total destruction.',splash:200,locked:true,marshall:true},
+};
+
+function tdRollChestRarity(){
+  const total=TD_RARITIES.reduce((a,r)=>a+r.weight,0);
+  let roll=Math.random()*total;
+  for(const r of TD_RARITIES){roll-=r.weight;if(roll<=0)return r;}
   return TD_RARITIES[0];
 }
-
-function tdRollReward(rarityId) {
-  const pool = TD_CHEST_REWARDS[rarityId];
-  return pool[Math.floor(Math.random() * pool.length)];
+function tdRollReward(rarityId){
+  const pool=TD_CHEST_REWARDS[rarityId];
+  return pool[Math.floor(Math.random()*pool.length)];
 }
 
-// ── LEADERBOARD ──
-async function tdSaveScore(name, score, wave) {
-  try {
-    await db.from('td_leaderboard').insert({ player_name: name, score, wave });
-  } catch(e) { console.log('LB save failed', e); }
+async function tdSaveScore(name,score,wave){
+  try{await db.from('td_leaderboard').insert({player_name:name,score,wave});}catch(e){console.log('LB save fail',e);}
 }
-async function tdShowLeaderboard() {
-  let entries = [];
-  try {
-    const { data } = await db.from('td_leaderboard').select('*').order('score', { ascending: false }).limit(15);
-    entries = data || [];
-  } catch(e) { entries = []; }
-
-  const ov = document.createElement('div');
-  ov.className = 'lb-overlay';
-  ov.id = 'tdLBOverlay';
-  ov.innerHTML = `
-    <div class="lb-modal">
-      <button class="lb-close" onclick="document.getElementById('tdLBOverlay').remove()">✕</button>
-      <div style="text-align:center;margin-bottom:28px;">
-        <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Tower Defence</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">Leaderboard</div>
-      </div>
-      ${entries.length === 0
-        ? '<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No scores yet — be the first!</div>'
-        : entries.map((e,i)=>{
-            const rank = i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':'';
-            const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-            return `<div class="lb-row">
-              <div class="lb-rank ${rank}">${i+1}</div>
-              <div class="lb-name">${e.player_name||'Anonymous'} ${medal}</div>
-              <div><span class="lb-score">${(e.score||0).toLocaleString()}</span><span class="lb-wave">W${e.wave||0}</span></div>
-            </div>`;
-          }).join('')
-      }
+async function tdShowLeaderboard(){
+  let entries=[];
+  try{
+    const{data,error}=await db.from('td_leaderboard').select('*').order('score',{ascending:false}).limit(15);
+    if(!error&&data)entries=data;
+  }catch(e){}
+  const ov=document.createElement('div');
+  ov.className='lb-overlay';ov.id='tdLBOverlay';
+  ov.innerHTML=`<div class="lb-modal"><button class="lb-close" onclick="document.getElementById('tdLBOverlay').remove()">✕</button>
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Tower Defence</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">Leaderboard</div>
+    </div>
+    ${entries.length===0
+      ?'<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No scores yet — be the first!</div>'
+      :entries.map((e,i)=>{
+        const rank=i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':'';
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return`<div class="lb-row"><div class="lb-rank ${rank}">${i+1}</div><div class="lb-name">${e.player_name||'Anonymous'} ${medal}</div><div><span class="lb-score">${(e.score||0).toLocaleString()}</span><span class="lb-wave"> W${e.wave||0}</span></div></div>`;
+      }).join('')
+    }
     </div>`;
   document.body.appendChild(ov);
 }
 
-// ── CHEST MODAL ──
-function tdShowChestModal(waveNum, state, onClose) {
-  const rarity = tdRollChestRarity();
-  const reward = tdRollReward(rarity.id);
-  let opened = false;
-
-  const ov = document.createElement('div');
-  ov.className = 'chest-overlay';
-  ov.id = 'tdChestOverlay';
-
-  ov.innerHTML = `
-    <div class="chest-modal">
-      <div class="chest-header">Wave ${waveNum} Complete</div>
-      <div class="chest-wave-title" style="color:${rarity.color};">Chest Unlocked</div>
-      <div class="chest-icon-wrap" id="chestIconWrap" onclick="tdOpenChest()">${rarity.icon}</div>
-      <div id="chestRewardArea" style="display:none;"></div>
-      <button class="chest-open-btn" id="chestOpenBtn" onclick="tdOpenChest()">Open Chest</button>
-      <button class="chest-skip-btn" id="chestSkipBtn" onclick="tdCloseChest()">Skip →</button>
-    </div>`;
-
+function tdShowChestModal(waveNum,state,onClose){
+  const rarity=tdRollChestRarity();
+  const reward=tdRollReward(rarity.id);
+  const ov=document.createElement('div');
+  ov.className='chest-overlay';ov.id='tdChestOverlay';
+  ov.innerHTML=`<div class="chest-modal">
+    <div class="chest-header">Wave ${waveNum} Complete</div>
+    <div class="chest-wave-title" style="color:${rarity.color};">${rarity.label} Chest</div>
+    <div class="chest-icon-wrap" id="chestIconWrap" onclick="tdOpenChest()">${rarity.icon}</div>
+    <div id="chestRewardArea" style="display:none;"></div>
+    <button class="chest-open-btn" id="chestOpenBtn" onclick="tdOpenChest()">Open Chest</button>
+    <button class="chest-skip-btn" id="chestSkipBtn" onclick="tdCloseChest()">Skip →</button>
+  </div>`;
   document.body.appendChild(ov);
-
-  window._tdChestData = { rarity, reward, state, onClose, opened };
-
-  window.tdOpenChest = function() {
-    if (window._tdChestData.opened) return;
-    window._tdChestData.opened = true;
-
-    const iconWrap = document.getElementById('chestIconWrap');
-    if (iconWrap) { iconWrap.classList.add('shaking'); }
-
+  let opened=false;
+  window._tdChestData={rarity,reward,state,onClose,opened};
+  window.tdOpenChest=function(){
+    if(window._tdChestData.opened)return;
+    window._tdChestData.opened=true;
+    const iw=document.getElementById('chestIconWrap');
+    if(iw)iw.classList.add('shaking');
     setTimeout(()=>{
-      const { rarity, reward, state } = window._tdChestData;
-      // Apply reward
+      const{rarity,reward,state}=window._tdChestData;
       reward.effect(state);
-
-      const rewardArea = document.getElementById('chestRewardArea');
-      const openBtn    = document.getElementById('chestOpenBtn');
-      const skipBtn    = document.getElementById('chestSkipBtn');
-      if (iconWrap) iconWrap.style.animation = 'none';
-
-      if (rewardArea) {
-        rewardArea.style.display = 'block';
-        rewardArea.innerHTML = `
-          <div class="reward-reveal" style="border-color:${rarity.border};">
-            <div class="reward-rarity-label rarity-${rarity.id}">${rarity.label}</div>
-            <div class="reward-icon">${rarity.icon}</div>
-            <div class="reward-name rarity-${rarity.id}">${reward.name}</div>
-            <div class="reward-desc">${reward.desc}</div>
-            ${rarity.id==='marshall'?'<div style="margin-top:12px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:gold;">Marshall Tower added to your arsenal!</div>':''}
-          </div>`;
-      }
-      if (openBtn) openBtn.style.display = 'none';
-      if (skipBtn) { skipBtn.textContent = 'Continue →'; }
-
-      // Update HUD if state references exist
-      const goldEl = document.getElementById('tdGold');
-      const livesEl = document.getElementById('tdLives');
-      if (goldEl) goldEl.textContent = state.gold;
-      if (livesEl) livesEl.textContent = state.lives;
-
-      // If Marshall unlocked, rebuild tower buttons
-      if (state.unlockedMarshall) { const el = document.getElementById('tdTowerBtns'); if (el) window.tdRebuildTowerBtns && window.tdRebuildTowerBtns(state); }
-    }, 600);
+      state.enemies=state.enemies.filter(e=>e.hp>0&&!e.dead);
+      const ra=document.getElementById('chestRewardArea');
+      const ob=document.getElementById('chestOpenBtn');
+      const sb=document.getElementById('chestSkipBtn');
+      if(iw)iw.style.animation='none';
+      if(ra){ra.style.display='block';ra.innerHTML=`<div class="reward-reveal" style="border-color:${rarity.border};">
+        <div class="reward-rarity-label rarity-${rarity.id}">${rarity.label}</div>
+        <div class="reward-icon">${reward.icon||rarity.icon}</div>
+        <div class="reward-name rarity-${rarity.id}">${reward.name}</div>
+        <div class="reward-desc">${reward.desc}</div>
+        ${reward.tower?`<div style="margin-top:10px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${rarity.color};">New tower unlocked!</div>`:''}
+      </div>`;}
+      if(ob)ob.style.display='none';
+      if(sb)sb.textContent='Continue →';
+      const ge=document.getElementById('tdGold'),le=document.getElementById('tdLives');
+      if(ge)ge.textContent=state.gold;if(le)le.textContent=state.lives;
+      if(reward.tower)window.tdRebuildTowerBtns&&window.tdRebuildTowerBtns(state);
+    },600);
   };
-
-  window.tdCloseChest = function() {
-    const overlay = document.getElementById('tdChestOverlay');
-    if (overlay) overlay.remove();
-    if (window._tdChestData?.onClose) window._tdChestData.onClose();
-    window._tdChestData = null;
+  window.tdCloseChest=function(){
+    const ov=document.getElementById('tdChestOverlay');
+    if(ov)ov.remove();
+    if(window._tdChestData?.onClose)window._tdChestData.onClose();
+    window._tdChestData=null;
   };
 }
 
-/* ── MAIN TD FUNCTION ── */
-function loadTD(arena) {
-  arena.style.minHeight = '720px';
-  arena.innerHTML = `
-    <div style="width:100%;display:flex;flex-direction:column;align-items:center;padding:16px;gap:8px;">
-      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:2px;">
-        <div class="g-hud-item"><div class="g-hud-val" id="tdGold">150</div><div class="g-hud-key">Gold</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="tdLives">20</div><div class="g-hud-key">Lives</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="tdWave">0</div><div class="g-hud-key">Wave</div></div>
-        <div class="g-hud-item"><div class="g-hud-val" id="tdScore">0</div><div class="g-hud-key">Score</div></div>
-        <div class="g-hud-item" style="pointer-events:all;">
-          <button class="g-btn" onclick="tdShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Board</button>
-        </div>
+/* ── MAIN TOWER DEFENCE ── */
+function loadTD(arena){
+  arena.style.minHeight='740px';
+  arena.innerHTML=`<div style="width:100%;display:flex;flex-direction:column;align-items:center;padding:16px;gap:8px;">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:2px;">
+      <div class="g-hud-item"><div class="g-hud-val" id="tdGold">150</div><div class="g-hud-key">Gold</div></div>
+      <div class="g-hud-item"><div class="g-hud-val" id="tdLives">20</div><div class="g-hud-key">Lives</div></div>
+      <div class="g-hud-item"><div class="g-hud-val" id="tdWave">0</div><div class="g-hud-key">Wave</div></div>
+      <div class="g-hud-item"><div class="g-hud-val" id="tdScore">0</div><div class="g-hud-key">Score</div></div>
+      <div style="pointer-events:all;">
+        <button class="g-btn" onclick="tdShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Board</button>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="tdTowerBtns"></div>
-      <canvas id="tdCanvas" width="640" height="400" style="border:1px solid rgba(201,169,110,.2);cursor:crosshair;max-width:100%;"></canvas>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;">
-        <button class="g-btn" id="tdStartBtn" onclick="tdStartWave()" style="font-size:9px;padding:10px 24px;">Start Wave 1</button>
-        <button class="g-btn" onclick="tdSellTower()" style="font-size:9px;padding:10px 16px;border-color:#d97070;color:#d97070;">Sell Selected</button>
-        <button class="g-btn" onclick="tdUpgradeTower()" style="font-size:9px;padding:10px 16px;border-color:#5a9e6f;color:#5a9e6f;">Upgrade (75g)</button>
-        <div style="display:flex;gap:4px;align-items:center;margin-left:8px;">
-          <span style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-right:4px;">Speed</span>
-          <button class="speed-btn active" id="spd1" onclick="tdSetSpeed(1)">1×</button>
-          <button class="speed-btn" id="spd2" onclick="tdSetSpeed(2)">2×</button>
-          <button class="speed-btn" id="spd4" onclick="tdSetSpeed(4)">4×</button>
-          <button class="speed-btn" id="spd10" onclick="tdSetSpeed(10)">10×</button>
-        </div>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;" id="tdTowerBtns"></div>
+    <canvas id="tdCanvas" width="640" height="400" style="border:1px solid rgba(201,169,110,.2);cursor:crosshair;max-width:100%;"></canvas>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;">
+      <button class="g-btn" id="tdStartBtn" onclick="tdStartWave()" style="font-size:9px;padding:10px 24px;">Start Wave 1</button>
+      <button class="g-btn" onclick="tdSellTower()" style="font-size:9px;padding:10px 14px;border-color:#d97070;color:#d97070;">Sell</button>
+      <button class="g-btn" onclick="tdUpgradeTower()" style="font-size:9px;padding:10px 14px;border-color:#5a9e6f;color:#5a9e6f;">Upgrade 75g</button>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <span style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-right:2px;">Speed</span>
+        <button class="speed-btn active" id="spd1" onclick="tdSetSpeed(1)">1×</button>
+        <button class="speed-btn" id="spd2" onclick="tdSetSpeed(2)">2×</button>
+        <button class="speed-btn" id="spd4" onclick="tdSetSpeed(4)">4×</button>
+        <button class="speed-btn" id="spd10" onclick="tdSetSpeed(10)">10×</button>
       </div>
-      <div id="tdMsg" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);min-height:18px;text-align:center;"></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:2px;max-width:640px;" id="tdInventory"></div>
-    </div>`;
-
+    </div>
+    <div id="tdMsg" style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);min-height:18px;text-align:center;"></div>
+    <div id="tdSelectedInfo" style="font-size:10px;letter-spacing:.1em;color:var(--gold);min-height:16px;text-align:center;"></div>
+ <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:2px;max-width:640px;" id="tdInventory"></div>
+    </div>`;  
   const W=640, H=400, CELL=40;
   const COLS=W/CELL, ROWS=H/CELL;
 
@@ -1926,4 +1899,5 @@ async function pickName(name) {
 </script>
 </body>
 </html>
+
 
