@@ -371,7 +371,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 <div id="page-dashboard" class="page-view">
   <nav class="topbar">
     <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
-    <div class="topbar-nav"><span class="nav-link active" onclick="goto('dashboard')">Dashboard</span><span class="nav-link" onclick="goto('notes')">Notes</span><span class="nav-link" onclick="goto('homework')">Homework</span><span class="nav-link" onclick="goto('events')">Events</span><span class="nav-link" onclick="goto('games')">Games</span><span class="nav-link" onclick="goto('chameleon')">Chameleon</span></div>
+    <div class="topbar-nav"><span class="nav-link active" onclick="goto('dashboard')">Dashboard</span><span class="nav-link" onclick="goto('notes')">Notes</span><span class="nav-link" onclick="goto('homework')">Homework</span><span class="nav-link" onclick="goto('events')">Events</span><span class="nav-link" onclick="goto('games')">Restricted Logs</span><span class="nav-link" onclick="goto('chameleon')">Code ( restricted )</span></div>
     <div class="topbar-right"><div class="badge">1A3</div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>
   </nav>
   <div class="page-body" style="max-width:1200px;">
@@ -418,14 +418,14 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 <div id="page-games" class="page-view">
   <nav class="topbar">
     <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
-    <div class="topbar-nav"><span class="nav-link" onclick="goto('dashboard')">Dashboard</span><span class="nav-link" onclick="goto('notes')">Notes</span><span class="nav-link" onclick="goto('homework')">Homework</span><span class="nav-link" onclick="goto('events')">Events</span><span class="nav-link active">Restricted Coding Logs</span></div>
-    <div class="topbar-right"><div class="badge">Restricted Coding Logs</div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>
+    <div class="topbar-nav"><span class="nav-link" onclick="goto('dashboard')">Dashboard</span><span class="nav-link" onclick="goto('notes')">Notes</span><span class="nav-link" onclick="goto('homework')">Homework</span><span class="nav-link" onclick="goto('events')">Events</span><span class="nav-link active">Games</span></div>
+    <div class="topbar-right"><div class="badge">Games</div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>
   </nav>
   <!-- CODE LOCK OVERLAY (shown until unlocked) -->
   <div id="gameLockOverlay" class="game-lock-overlay" style="display:none;">
     <div class="game-lock-inner">
       <div class="lock-icon">🔒</div>
-      <div class="lock-title">Restricted Coding content</div>
+      <div class="lock-title">Games</div>
       <div class="lock-sub">Enter the passcode to continue</div>
       <div class="lock-dots" id="lockDots">
         <div class="lock-dot" id="ld0"></div><div class="lock-dot" id="ld1"></div><div class="lock-dot" id="ld2"></div><div class="lock-dot" id="ld3"></div>
@@ -918,10 +918,10 @@ function loadTD(arena) {
   // ── ENEMY STATS (buffed HP, faster) ──
   const ENEMY_STATS = {
     grunt:    { hp:70,  spd:1.4, reward:15,  armor:0,   color:'#d97070', size:10, label:'G'  },
-    armoured: { hp:190,  spd:1.0, reward:25,  armor:0.45,color:'#8a8070', size:12, label:'A'  },
-    fast:     { hp:80,   spd:2.8, reward:14,  armor:0,   color:'#e8d5a3', size:8,  label:'F'  },
-    giant:    { hp:800,  spd:0.65,reward:40,  armor:0.25,color:'#c9a96e', size:16, label:'GI' },
-    boss:     { hp:2000, spd:0.6,reward:200, armor:0.55,color:'#b07ec9', size:20, label:'B'  },
+    armoured: { hp:340,  spd:1.0, reward:25,  armor:0.45,color:'#8a8070', size:12, label:'A'  },
+    fast:     { hp:200,   spd:4, reward:14,  armor:0,   color:'#e8d5a3', size:8,  label:'F'  },
+    giant:    { hp:4000,  spd:0.65,reward:40,  armor:0.25,color:'#c9a96e', size:16, label:'GI' },
+    boss:     { hp:10500, spd:0.6,reward:200, armor:0.55,color:'#b07ec9', size:20, label:'B'  },
   };
 
   // Enemy mix per wave
