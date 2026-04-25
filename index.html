@@ -377,10 +377,7 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
   <div class="page-body" style="max-width:1200px;">
     <div class="page-header"><div class="divider-line"><div class="divider-gem"></div></div><h1 class="page-title" id="dashWelcome">Welcome back,<br><em>1A3.</em></h1><p class="page-subtitle" id="dashDateLine">—</p></div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">38</div><div class="stat-note">Full class enrolled</div></div>
-      <div class="stat-card"><div class="stat-label">Days to Exam</div><div class="stat-value" id="daysLeft">—</div><div class="stat-note">End-of-year finals</div></div>
-      <div class="stat-card"><div class="stat-label">Homework Entries</div><div class="stat-value" id="hwCount">0</div><div class="stat-note">Logged this term</div></div>
-      <div class="stat-card"><div class="stat-label">Upcoming Events</div><div class="stat-value" id="evCount">0</div><div class="stat-note">On the pinboard</div></div>
+      <div class="stat-card"><div class="stat-label">Class Members</div><div class="stat-value">33</div><div class="stat-note">Full class enrolled</div></div>
     </div>
     <section style="margin-bottom:52px;"><div class="section-head"><h2 class="section-title">Announcements</h2><div class="section-line"></div></div><div class="announce-grid"><div class="ann-card"><div class="ann-tag">Important</div><h3 class="ann-heading">Mathematics Test — Chapter 9 &amp; 10</h3><p class="ann-body">The upcoming math test will cover integration and differentiation applications. Please review past-year practice sets. Formula sheets will not be provided.</p><div class="ann-date">Posted 18 Apr 2026</div></div><div class="ann-card"><div class="ann-tag">Reminder</div><h3 class="ann-heading">Project Submission Deadline</h3><p class="ann-body">All group project reports for Chemistry are due by 25 April. Ensure your names and class index numbers are on the cover page. Late submissions will be penalised.</p><div class="ann-date">Posted 17 Apr 2026</div></div><div class="ann-card"><div class="ann-tag">General</div><h3 class="ann-heading">Study Group — Library Room B</h3><p class="ann-body">Informal study sessions every Thursday at 4 pm in Library Room B. Open to all 1A3 members. Bring your own materials — the room seats up to 20.</p><div class="ann-date">Posted 15 Apr 2026</div></div></div></section>
     <section class="schedule-wrap"><div class="section-head"><h2 class="section-title">Today's Schedule</h2><div class="section-line"></div></div><table class="schedule-table"><thead><tr><th>Time</th><th>Subject</th><th>Teacher</th><th>Room</th><th>Status</th></tr></thead><tbody><tr><td class="time-cell">07:30 – 08:30</td><td>English Language</td><td>Ms Tan</td><td class="room-cell">B2-04</td><td><span class="status-pill status-done">Done</span></td></tr><tr><td class="time-cell">08:30 – 09:30</td><td>Mathematics</td><td>Mr Lim</td><td class="room-cell">B2-04</td><td><span class="status-pill status-done">Done</span></td></tr><tr><td class="time-cell">09:45 – 10:45</td><td>Chemistry</td><td>Mrs Wong</td><td class="room-cell">Lab 3</td><td><span class="status-pill status-now">Now</span></td></tr><tr><td class="time-cell">10:45 – 11:45</td><td>Physics</td><td>Mr Raj</td><td class="room-cell">B2-04</td><td><span class="status-pill status-next">Next</span></td></tr><tr><td class="time-cell">12:30 – 13:30</td><td>History</td><td>Ms Lee</td><td class="room-cell">B3-01</td><td><span class="status-pill status-next">Upcoming</span></td></tr><tr><td class="time-cell">13:30 – 14:30</td><td>Physical Education</td><td>Mr Chong</td><td class="room-cell">Sports Hall</td><td><span class="status-pill status-next">Upcoming</span></td></tr></tbody></table></section>
@@ -421,14 +418,14 @@ html, body { min-height:100%; font-family:'Josefin Sans',sans-serif; background:
 <div id="page-games" class="page-view">
   <nav class="topbar">
     <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
-    <div class="topbar-nav"><span class="nav-link" onclick="goto('dashboard')">Dashboard</span><span class="nav-link" onclick="goto('notes')">Notes</span><span class="nav-link" onclick="goto('homework')">Homework</span><span class="nav-link" onclick="goto('events')">Events</span><span class="nav-link active">Games</span></div>
-    <div class="topbar-right"><div class="badge">Games</div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>
+    <div class="topbar-nav"><span class="nav-link" onclick="goto('dashboard')">Dashboard</span><span class="nav-link" onclick="goto('notes')">Notes</span><span class="nav-link" onclick="goto('homework')">Homework</span><span class="nav-link" onclick="goto('events')">Events</span><span class="nav-link active">Restricted Coding Logs</span></div>
+    <div class="topbar-right"><div class="badge">Restricted Coding Logs</div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>
   </nav>
   <!-- CODE LOCK OVERLAY (shown until unlocked) -->
   <div id="gameLockOverlay" class="game-lock-overlay" style="display:none;">
     <div class="game-lock-inner">
       <div class="lock-icon">🔒</div>
-      <div class="lock-title">Games Room</div>
+      <div class="lock-title">Restricted Coding content</div>
       <div class="lock-sub">Enter the passcode to continue</div>
       <div class="lock-dots" id="lockDots">
         <div class="lock-dot" id="ld0"></div><div class="lock-dot" id="ld1"></div><div class="lock-dot" id="ld2"></div><div class="lock-dot" id="ld3"></div>
@@ -920,11 +917,11 @@ function loadTD(arena) {
 
   // ── ENEMY STATS (buffed HP, faster) ──
   const ENEMY_STATS = {
-    grunt:    { hp:120,  spd:1.4, reward:10,  armor:0,   color:'#d97070', size:10, label:'G'  },
-    armoured: { hp:280,  spd:1.0, reward:18,  armor:0.45,color:'#8a8070', size:12, label:'A'  },
+    grunt:    { hp:70,  spd:1.4, reward:15,  armor:0,   color:'#d97070', size:10, label:'G'  },
+    armoured: { hp:190,  spd:1.0, reward:25,  armor:0.45,color:'#8a8070', size:12, label:'A'  },
     fast:     { hp:80,   spd:2.8, reward:14,  armor:0,   color:'#e8d5a3', size:8,  label:'F'  },
     giant:    { hp:800,  spd:0.65,reward:40,  armor:0.25,color:'#c9a96e', size:16, label:'GI' },
-    boss:     { hp:2000, spd:0.75,reward:100, armor:0.55,color:'#b07ec9', size:20, label:'B'  },
+    boss:     { hp:2000, spd:0.6,reward:200, armor:0.55,color:'#b07ec9', size:20, label:'B'  },
   };
 
   // Enemy mix per wave
