@@ -1375,13 +1375,13 @@
 
       // ── FIX: The epic barSpeed/barSize missing comma was the original JS crash ──
       const RARITY_META = {
-  common:    { label: 'Common',    color: '#9a9286', border: 'rgba(154,146,134,.4)', weight: 40, barSpeed: 0.18, barSize: 0.55, tension: 1.4 },
-  uncommon:  { label: 'Uncommon',  color: '#5a9e6f', border: 'rgba(90,158,111,.5)',  weight: 25, barSpeed: 0.28, barSize: 0.48, tension: 1.6 },
-  rare:      { label: 'Rare',      color: '#6e9ec9', border: 'rgba(110,158,201,.5)', weight: 15, barSpeed: 0.40, barSize: 0.42, tension: 1.8 },
-  epic:      { label: 'Epic',      color: '#b07ec9', border: 'rgba(176,126,201,.5)', weight: 10, barSpeed: 0.55, barSize: 0.36, tension: 2.0 },
-  legendary: { label: 'Legendary', color: '#c9a96e', border: 'rgba(201,169,110,.7)', weight: 6,  barSpeed: 0.70, barSize: 0.30, tension: 2.2 },
-  mythical:  { label: 'Mythical',  color: '#ff6b6b', border: 'rgba(255,107,107,.6)', weight: 3,  barSpeed: 0.85, barSize: 0.26, tension: 2.5 },
-  celestial: { label: 'Celestial', color: '#ffd700', border: 'rgba(255,215,0,.8)',   weight: 1,  barSpeed: 1.00, barSize: 0.28, tension: 3.0 },
+  common:    { label: 'Common',    color: '#9a9286', border: 'rgba(154,146,134,.4)', weight: 40, barSpeed: 0.01, barSize: 0.55, tension: 1.4 },
+  uncommon:  { label: 'Uncommon',  color: '#5a9e6f', border: 'rgba(90,158,111,.5)',  weight: 25, barSpeed: 0.04, barSize: 0.48, tension: 1.6 },
+  rare:      { label: 'Rare',      color: '#6e9ec9', border: 'rgba(110,158,201,.5)', weight: 15, barSpeed: 0.08, barSize: 0.42, tension: 1.8 },
+  epic:      { label: 'Epic',      color: '#b07ec9', border: 'rgba(176,126,201,.5)', weight: 10, barSpeed: 0.1, barSize: 0.36, tension: 2.0 },
+  legendary: { label: 'Legendary', color: '#c9a96e', border: 'rgba(201,169,110,.7)', weight: 6,  barSpeed: 0.15, barSize: 0.30, tension: 2.2 },
+  mythical:  { label: 'Mythical',  color: '#ff6b6b', border: 'rgba(255,107,107,.6)', weight: 3,  barSpeed: 0.19, barSize: 0.26, tension: 2.5 },
+  celestial: { label: 'Celestial', color: '#ffd700', border: 'rgba(255,215,0,.8)',   weight: 1,  barSpeed: 0.24, barSize: 0.28, tension: 3.0 },
 };
 
 
@@ -1412,7 +1412,7 @@
       // Admin: larger catch zone
       function getPlayerZoneSize() { return isAdmin ? 0.32 : 0.22; }
       // Admin: catch progress fills faster
-      function getCatchRate(overlapRatio) { return isAdmin ? 0.007 * (overlapRatio + 0.8) : 0.005 * (overlapRatio + 0.5); }
+      function getCatchRate(overlapRatio) { return isAdmin ? 0.005 * (overlapRatio + 0.6) : 0.003 * (overlapRatio + 0.3); }
 
       let fishState   = 'idle';
       let currentFish = null;
@@ -1506,7 +1506,7 @@
         ctx.fillStyle = rm.color; ctx.fillText(rm.label.toUpperCase() + ' — ' + fish.name, W / 2, 16);
         ctx.fillStyle = 'rgba(201,169,110,.5)'; ctx.font = '10px Josefin Sans';
         ctx.fillText(fish.weightKg.toFixed(3) + ' kg  ·  ' + fish.emoji + (isAdmin ? '  ⚡ Admin bonus active' : ''), W / 2, 36);
-        const barX = W / 2 - 140, barW = 280, barH = 36, barY = H / 2 - 18;
+        const barX = W / 2 - 200, barW = 400, barH = 44, barY = H / 2 - 22;
         ctx.fillStyle = 'rgba(201,169,110,.06)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
         ctx.fillStyle = 'rgba(14,12,9,.8)';       ctx.fillRect(barX, barY, barW, barH);
         ctx.strokeStyle = 'rgba(201,169,110,.15)'; ctx.lineWidth = 1; ctx.strokeRect(barX, barY, barW, barH);
@@ -1576,7 +1576,7 @@
   minigame.catchProgress += getCatchRate(overlapRatio) * rateBoost;
   minigame.tension -= 0.008;
 } else {
-  minigame.catchProgress -= 0.008;
+  minigame.catchProgress -= 0.004;
   minigame.tension += holding ? 0.014 : 0.004;
 }
           minigame.catchProgress = Math.max(0, Math.min(1, minigame.catchProgress));
