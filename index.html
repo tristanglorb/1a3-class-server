@@ -1792,7 +1792,6 @@
 
     // Admin: undo last move
     function chessUndo() {
-      function chessUndo() {
       if (!isAdmin || !window.CH || !CH.history?.length) { chessStatus('Nothing to undo!'); return; }
       const snap = CH.history.pop();
       CH.board    = snap.board.map(r => [...r]);
