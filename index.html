@@ -444,6 +444,21 @@
           <div class="ann-card"><div class="ann-tag">General</div><h3 class="ann-heading">Study Group — Library Room B</h3><p class="ann-body">Informal study sessions every Thursday at 4 pm in Library Room B. Open to all 1A3 members. Bring your own materials — the room seats up to 20.</p><div class="ann-date">Posted 15 Apr 2026</div></div>
         </div>
       </section>
+      <section class="schedule-wrap" style="margin-bottom:52px;">
+  <div class="section-head"><h2 class="section-title">Today's Schedule</h2><div class="section-line"></div></div>
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Subject</th>
+        <th>Teacher</th>
+        <th>Room</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="scheduleBody"></tbody>
+  </table>
+</section>
       <tbody id="scheduleBody"></tbody>
     </div>
   </div>
@@ -1432,12 +1447,14 @@ function renderTimetable() {
       }).join('');
     }
 
-    async function adminKickPlayer(id) {
-      if (!confirm(`Release name "${name}"? They will need to re-select their name.`)) return;
-      await db.from('names').delete().eq('id', id);
-      toast(`Name "${name}" released.`);
-      await loadAdminSessions();
-    }
+  async function adminKickPlayer(id) {
+  const row = document.querySelector(`[onclick="adminKickPlayer('${id}')"]`);
+  const nameText = row?.closest('.admin-player-card')?.querySelector('.admin-player-name')?.textContent?.trim() || id;
+  if (!confirm(`Release name "${nameText}"? They will need to re-select.`)) return;
+  await db.from('names').delete().eq('id', id);
+  toast(`Name released.`);
+  await loadAdminSessions();
+}
 
     async function postAdminAnnouncement() {
   if (!isAdmin) { toast('Not authorised.'); return; }
