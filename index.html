@@ -1024,7 +1024,26 @@
     const prefix = isAdmin ? '⚡ ' : '';
     document.getElementById('dashWelcome').innerHTML = `Welcome back,<br><em>${prefix}${first}.</em>`;
   }
-  renderTimetable(); // ← add this line
+
+  const { data } = await db.from('events')
+    .select('*')
+    .eq('priority', 'critical')
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+  if (data && data.length > 0) {
+    document.getElementById('dashAnnouncements').innerHTML = data.map(e => `
+      <div class="ann-card" style="border-top:2px solid var(--admin);">
+        <div class="ann-tag" style="color:var(--admin);">${e.category || '⚡ Admin Notice'}</div>
+        <h3 class="ann-heading">${e.title}</h3>
+        <p class="ann-body">${e.body || ''}</p>
+        <div class="ann-date" style="color:var(--admin);">
+          ${e.author} · ${new Date(e.created_at).toLocaleDateString('en-SG', { day:'numeric', month:'short', year:'numeric' })}
+        </div>
+      </div>`).join('');
+  }
+
+  renderTimetable();
 }
     /* ══════════════════════════════════════
    TIMETABLE DATA & RENDERER
@@ -1455,17 +1474,28 @@ function renderTimetable() {
   toast(`Name released.`);
   await loadAdminSessions();
 }
-
-    async function postAdminAnnouncement() {
+async function postAdminAnnouncement() {
   if (!isAdmin) { toast('Not authorised.'); return; }
   const title = document.getElementById('adminAnnTitle').value.trim();
   const tag   = document.getElementById('adminAnnTag').value;
   const body  = document.getElementById('adminAnnBody').value.trim();
   if (!title || !body) { toast('Please fill in the title and message.'); return; }
 
-  // Clear ALL existing announcements first
-  const grid = document.getElementById('dashAnnouncements');
-  grid.innerHTML = '';
+  const { error } = await db.from('events').insert({
+    title,
+    category: tag,
+    body,
+    priority: 'critical',
+    author: '⚡ ' + currentUserName,
+    user_id: currentUser.id,
+    event_date: null
+  });
+
+  if (error) { toast('Error posting: ' + error.message); return; }
+  document.getElementById('adminAnnTitle').value = '';
+  document.getElementById('adminAnnBody').value  = '';
+  toast('Announcement posted!');
+}
 
   // Add the new admin announcement
   const card = document.createElement('div');
@@ -1615,7 +1645,7 @@ function renderTimetable() {
             <div class="g-hud-item"><div class="g-hud-val" id="fishBest">—</div><div class="g-hud-key">Best</div></div>
             <button class="g-btn" onclick="fishShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Board</button>
           </div>
-          <canvas id="fishCanvas" width="600" height="380" style="border:1px solid rgba(201,169,110,.15);max-width:100%;cursor:pointer;"></canvas>
+          <canvas id="fishCanvas" width="740" height="420" style="border:1px solid rgba(201,169,110,.15);max-width:100%;cursor:pointer;"></canvas>
           <div id="fishStatus" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-top:14px;text-align:center;min-height:20px;"></div>
           <button class="g-btn" id="fishBtn" onclick="fishAction()" style="margin-top:14px;font-size:10px;padding:12px 36px;">🎣 Cast Line</button>
           <div id="fishCatchLog" style="margin-top:20px;width:100%;max-width:600px;"></div>
@@ -1738,9 +1768,13 @@ function renderTimetable() {
           if (minigame.power === 'freezeBar' && minigame.freezeTimer > 0) {
   minigame.freezeTimer--;
 } else {
-  minigame.fishVel += (Math.random() - 0.5) * 0.015 * minigame.randomness;
-  minigame.fishVel = Math.max(-minigame.maxSpeed, Math.min(minigame.maxSpeed, minigame.fishVel));
-  minigame.fishPos += minigame.fishVel;
+  // Wider oscillation: use a sine-based drift with random bumps
+minigame.fishT = (minigame.fishT || 0) + 0.022;
+const targetPos = 0.5 + Math.sin(minigame.fishT) * 0.42 + Math.sin(minigame.fishT * 2.3) * 0.15;
+const diff = targetPos - (minigame.fishPos + minigame.fishZoneSize / 2);
+minigame.fishVel += diff * 0.04 + (Math.random() - 0.5) * 0.012;
+minigame.fishVel = Math.max(-minigame.maxSpeed * 1.6, Math.min(minigame.maxSpeed * 1.6, minigame.fishVel));
+minigame.fishPos += minigame.fishVel;
 }
           const fzW = minigame.fishZoneSize;
           if (minigame.fishPos < 0)        { minigame.fishPos = 0;          minigame.fishVel *= -1; }
