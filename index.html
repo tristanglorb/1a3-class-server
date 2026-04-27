@@ -1375,14 +1375,15 @@
 
       // ── FIX: The epic barSpeed/barSize missing comma was the original JS crash ──
       const RARITY_META = {
-        common:    { ..., weight: 40, barSpeed: 0.18, barSize: 0.55, tension: 1.4 },
-        uncommon:  { ..., weight: 25, barSpeed: 0.28, barSize: 0.48, tension: 1.6 },
-        rare:      { ..., weight: 15, barSpeed: 0.40, barSize: 0.42, tension: 1.8 },
-        epic:      { ..., weight: 10, barSpeed: 0.55, barSize: 0.36, tension: 2.0 },
-        legendary: { ..., weight: 6,  barSpeed: 0.70, barSize: 0.30, tension: 2.2 },
-        mythical:  { ..., weight: 3,  barSpeed: 0.85, barSize: 0.26, tension: 2.5 },
-        celestial: { ..., weight: 1,  barSpeed: 1.00, barSize: 0.28, tension: 3.0 },
-      };
+  common:    { label: 'Common',    color: '#9a9286', border: 'rgba(154,146,134,.4)', weight: 40, barSpeed: 0.18, barSize: 0.55, tension: 1.4 },
+  uncommon:  { label: 'Uncommon',  color: '#5a9e6f', border: 'rgba(90,158,111,.5)',  weight: 25, barSpeed: 0.28, barSize: 0.48, tension: 1.6 },
+  rare:      { label: 'Rare',      color: '#6e9ec9', border: 'rgba(110,158,201,.5)', weight: 15, barSpeed: 0.40, barSize: 0.42, tension: 1.8 },
+  epic:      { label: 'Epic',      color: '#b07ec9', border: 'rgba(176,126,201,.5)', weight: 10, barSpeed: 0.55, barSize: 0.36, tension: 2.0 },
+  legendary: { label: 'Legendary', color: '#c9a96e', border: 'rgba(201,169,110,.7)', weight: 6,  barSpeed: 0.70, barSize: 0.30, tension: 2.2 },
+  mythical:  { label: 'Mythical',  color: '#ff6b6b', border: 'rgba(255,107,107,.6)', weight: 3,  barSpeed: 0.85, barSize: 0.26, tension: 2.5 },
+  celestial: { label: 'Celestial', color: '#ffd700', border: 'rgba(255,215,0,.8)',   weight: 1,  barSpeed: 1.00, barSize: 0.28, tension: 3.0 },
+};
+
 
       // Admin: boost rarity weights so rarer fish appear more
       function getWeightTable() {
@@ -1631,7 +1632,6 @@
           }, reelWindow);
         }, waitMs);
       }
-// REPLACE WITH:
 function startMinigame() {
   if (fishState !== 'bite_wait') return;
   clearTimeout(biteTimer);
