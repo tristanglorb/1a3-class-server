@@ -1479,7 +1479,6 @@ async function postAdminAnnouncement() {
   const tag   = document.getElementById('adminAnnTag').value;
   const body  = document.getElementById('adminAnnBody').value.trim();
   if (!title || !body) { toast('Please fill in the title and message.'); return; }
-
   const { error } = await db.from('events').insert({
     title,
     category: tag,
@@ -1489,13 +1488,11 @@ async function postAdminAnnouncement() {
     user_id: currentUser.id,
     event_date: null
   });
-
   if (error) { toast('Error posting: ' + error.message); return; }
   document.getElementById('adminAnnTitle').value = '';
   document.getElementById('adminAnnBody').value  = '';
   toast('Announcement posted!');
 }
-
   
 
     /* ══════════════════════════════════════════════════════════
