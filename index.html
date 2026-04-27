@@ -1467,11 +1467,10 @@ function renderTimetable() {
     }
 
   async function adminKickPlayer(id) {
-  const row = document.querySelector(`[onclick="adminKickPlayer('${id}')"]`);
-  const nameText = row?.closest('.admin-player-card')?.querySelector('.admin-player-name')?.textContent?.trim() || id;
-  if (!confirm(`Release name "${nameText}"? They will need to re-select.`)) return;
-  await db.from('names').delete().eq('id', id);
-  toast(`Name released.`);
+  if (!confirm(`Release this name? They will need to re-select.`)) return;
+  const { error } = await db.from('names').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message); return; }
+  toast('Name released.');
   await loadAdminSessions();
 }
 async function postAdminAnnouncement() {
@@ -1497,24 +1496,7 @@ async function postAdminAnnouncement() {
   toast('Announcement posted!');
 }
 
-  // Add the new admin announcement
-  const card = document.createElement('div');
-  card.className = 'ann-card';
-  card.style.borderTop = '2px solid var(--admin)';
-  card.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <div class="ann-tag" style="color:var(--admin);">${tag}</div>
-      <button class="btn-del" onclick="this.closest('.ann-card').remove()" style="margin-top:2px;">✕ Remove</button>
-    </div>
-    <h3 class="ann-heading">${title}</h3>
-    <p class="ann-body">${body}</p>
-    <div class="ann-date" style="color:var(--admin);">Posted by ⚡ ${currentUserName} · ${new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}</div>`;
-  grid.appendChild(card);
-
-  document.getElementById('adminAnnTitle').value = '';
-  document.getElementById('adminAnnBody').value  = '';
-  toast('Announcement posted — previous announcements cleared.');
-}
+  
 
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
