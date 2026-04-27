@@ -1792,7 +1792,8 @@
 
     // Admin: undo last move
     function chessUndo() {
-      if (!isAdmin || !CH.history?.length) { chessStatus('Nothing to undo!'); return; }
+      function chessUndo() {
+      if (!isAdmin || !window.CH || !CH.history?.length) { chessStatus('Nothing to undo!'); return; }
       const snap = CH.history.pop();
       CH.board    = snap.board.map(r => [...r]);
       CH.turn     = snap.turn;
@@ -2227,6 +2228,7 @@
       const WORDS = ['APPLE','BRAIN','CHESS','DANCE','EAGLE','FLAME','GRACE','HAPPY','IVORY','JEWEL','KNOCK','LEMON','MAGIC','NURSE','OCEAN','PIANO','QUEEN','RIVER','SOLAR','TIGER','ULTRA','VIVID','WHALE','XENON','YIELD','ZEBRA','BLAZE','CRISP','DRIFT','EMBER','FROST','GLARE','HINGE','IDEAL','JOUST','KNAVE','LUNAR','METAL','NOVEL','ORBIT','PROSE','QUIRK','REALM','SPIKE','TROVE','UNITE','VAPOR','WRIST','EXPEL','YACHT','ADORE','BADGE','CANDY','DEPOT','ELOPE','FLAIR','GIANT','HUMID','INDEX','JOINT','KARMA','LODGE','MIXED','NOBLE','OPTIC','PLAZA','QUOTA','REIGN','SPADE','TOTEM','UNFED','VIOLA','WITTY','EXTRA','YOUNG','ABIDE','BLAND','CLIFF','DAILY','ENACT'];
       const target = WORDS[Math.floor(Math.random() * WORDS.length)];
       const ROWS_W = isAdmin ? 7 : 6; // Admin: 7 guesses
+      const COLS_W = 5;
       let guesses = [], current = '', gameOver2 = false, hintUsed = false;
       arena.innerHTML = `<div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
         ${isAdmin ? `<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ Admin: 7 guesses · 1 free hint available</div>` : ''}
@@ -2386,7 +2388,6 @@ async function leaveChameleonRoom(){stopChameleonPolling();if(chRoomCode&&curren
 
 /* ── NAME PICKER ── */
 const CLASS_NAMES=['lifei','guanghan','dimitris','ean','ethan loo','yuanbin','daniel','jack','jason','javier lim','boyan','kayden','joshua','ethan low','lucas goh','mazhiyuan','marshall','lucas ng','tristan','rayner','bright','pm tan','sze kai','trevan','javier tan','timothy','chenglin','zixuan','evan','jingzhe','junhang','lucas zhao'].sort();
-let currentUserName=null;
 async function goToNamePicker(){goto('namepicker');await loadNameGrid();}
 async function loadNameGrid(){const grid=document.getElementById('nameGrid');const sub=document.getElementById('namePickerSub');grid.innerHTML='<div class="empty-state"><p class="empty-label">Loading names…</p></div>';const{data:claimed}=await db.from('names').select('display_name,user_id');const claimedMap={};(claimed||[]).forEach(r=>claimedMap[r.display_name]=r.user_id);const myName=Object.keys(claimedMap).find(n=>claimedMap[n]===currentUser?.id);if(myName){currentUserName=myName;goto('dashboard');return;}grid.innerHTML=CLASS_NAMES.map(name=>{const isTaken=!!claimedMap[name];return`<button class="name-btn ${isTaken?'taken':''}" onclick="${isTaken?'':`pickName('${name.replace(/'/,"\\'")}')`}" ${isTaken?'disabled':''}><span>${name}</span></button>`;}).join('');sub.textContent=`${Object.keys(claimedMap).length} of ${CLASS_NAMES.length} names taken`;}
 async function pickName(name){if(!currentUser)return;const sub=document.getElementById('namePickerSub');sub.textContent='Claiming name…';const{data:existing}=await db.from('names').select('id').eq('display_name',name).single();if(existing){sub.textContent='That name was just taken! Please choose another.';await loadNameGrid();return;}const{error}=await db.from('names').insert({display_name:name,user_id:currentUser.id});if(error){sub.textContent='Could not claim name. Try again.';await loadNameGrid();return;}currentUserName=name;toast('Welcome, '+name+'!');goto('dashboard');}
