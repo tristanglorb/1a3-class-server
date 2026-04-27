@@ -444,30 +444,7 @@
           <div class="ann-card"><div class="ann-tag">General</div><h3 class="ann-heading">Study Group — Library Room B</h3><p class="ann-body">Informal study sessions every Thursday at 4 pm in Library Room B. Open to all 1A3 members. Bring your own materials — the room seats up to 20.</p><div class="ann-date">Posted 15 Apr 2026</div></div>
         </div>
       </section>
-      <section class="schedule-wrap">
-        <div class="section-head"><h2 class="section-title">Today's Schedule</h2><div class="section-line"></div></div>
-        <table class="schedule-table"><thead><tr><th>Time</th><th>Subject</th><th>Teacher</th><th>Room</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td class="time-cell">07:30 – 08:30</td><td>English Language</td><td>Ms Tan</td><td class="room-cell">B2-04</td><td><span class="status-pill status-done">Done</span></td></tr>
-          <tr><td class="time-cell">08:30 – 09:30</td><td>Mathematics</td><td>Mr Lim</td><td class="room-cell">B2-04</td><td><span class="status-pill status-done">Done</span></td></tr>
-          <tr><td class="time-cell">09:45 – 10:45</td><td>Chemistry</td><td>Mrs Wong</td><td class="room-cell">Lab 3</td><td><span class="status-pill status-now">Now</span></td></tr>
-          <tr><td class="time-cell">10:45 – 11:45</td><td>Physics</td><td>Mr Raj</td><td class="room-cell">B2-04</td><td><span class="status-pill status-next">Next</span></td></tr>
-          <tr><td class="time-cell">12:30 – 13:30</td><td>History</td><td>Ms Lee</td><td class="room-cell">B3-01</td><td><span class="status-pill status-next">Upcoming</span></td></tr>
-          <tr><td class="time-cell">13:30 – 14:30</td><td>Physical Education</td><td>Mr Chong</td><td class="room-cell">Sports Hall</td><td><span class="status-pill status-next">Upcoming</span></td></tr>
-        </tbody></table>
-      </section>
-      <section>
-        <div class="section-head"><h2 class="section-title">Quick Links</h2><div class="section-line"></div></div>
-        <div class="links-grid">
-          <div class="link-card" onclick="goto('notes')"><div class="link-icon"><span></span></div><div class="link-title">Class Notes</div><div class="link-desc">Shared files from all subjects</div></div>
-          <div class="link-card" onclick="goto('homework')"><div class="link-icon"><span></span></div><div class="link-title">Homework</div><div class="link-desc">Daily homework log</div></div>
-          <div class="link-card" onclick="goto('events')"><div class="link-icon"><span></span></div><div class="link-title">Important Events</div><div class="link-desc">Key dates &amp; pinboard</div></div>
-          <div class="link-card" onclick="goto('games')"><div class="link-icon"><span></span></div><div class="link-title">Secret Logs</div><div class="link-desc">Restricted access area</div></div>
-          <div class="link-card" onclick="goto('chameleon')"><div class="link-icon"><span></span></div><div class="link-title">Chameleon</div><div class="link-desc">Live party game — create or join a room</div></div>
-          <div class="link-card"><div class="link-icon"><span></span></div><div class="link-title">Members</div><div class="link-desc">Full class contact list</div></div>
-          <div class="link-card"><div class="link-icon"><span></span></div><div class="link-title">Forum</div><div class="link-desc">Class discussion board</div></div>
-        </div>
-      </section>
+      <tbody id="scheduleBody"></tbody>
     </div>
   </div>
 
@@ -1025,14 +1002,194 @@
        DASHBOARD
     ══════════════════════════════════════ */
     async function refreshDashboardStats() {
-      const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      document.getElementById('dashDateLine').textContent = new Date().toLocaleDateString('en-SG', opts).toUpperCase();
-      if (currentUserName) {
-        const first = currentUserName.split(' ')[0];
-        const prefix = isAdmin ? '⚡ ' : '';
-        document.getElementById('dashWelcome').innerHTML = `Welcome back,<br><em>${prefix}${first}.</em>`;
-      }
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('dashDateLine').textContent = new Date().toLocaleDateString('en-SG', opts).toUpperCase();
+  if (currentUserName) {
+    const first = currentUserName.split(' ')[0];
+    const prefix = isAdmin ? '⚡ ' : '';
+    document.getElementById('dashWelcome').innerHTML = `Welcome back,<br><em>${prefix}${first}.</em>`;
+  }
+  renderTimetable(); // ← add this line
+}
+    /* ══════════════════════════════════════
+   TIMETABLE DATA & RENDERER
+══════════════════════════════════════ */
+// ANCHOR: Even Week Monday 27 Apr 2026
+// Week number from that anchor determines odd/even
+const TIMETABLE_ANCHOR = new Date('2026-04-27'); // Even week Monday
+
+function getWeekParity() {
+  const now = new Date();
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+  const weeksDiff = Math.floor((now - TIMETABLE_ANCHOR) / msPerWeek);
+  // Anchor is even week (0), so even diff = even week
+  return weeksDiff % 2 === 0 ? 'even' : 'odd';
+}
+
+// Status: 'done', 'now', 'next', 'upcoming'
+function getSlotStatus(startStr, endStr) {
+  const now = new Date();
+  const [sh, sm] = startStr.split(':').map(Number);
+  const [eh, em] = endStr.split(':').map(Number);
+  const start = new Date(now); start.setHours(sh, sm, 0, 0);
+  const end   = new Date(now); end.setHours(eh, em, 0, 0);
+  if (now >= end)   return 'done';
+  if (now >= start) return 'now';
+  return null; // will be resolved to next/upcoming after loop
+}
+
+// [startHH:MM, endHH:MM, subject, teacher, room]
+const TIMETABLE = {
+  odd: {
+    Mon: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','MU','TanBB','Music Rm Level 2'],
+      ['09:00','09:30','PE','AngKS','—'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','11:30','TP','ChewTY','B2-04'],
+      ['11:30','12:30','MA','PekRH / LimBH / ChuaBW / ZongLX','1A3 classroom / 1F3 ProEd Room C402'],
+      ['12:30','13:00','HC','TeoMH','B2-04'],
+      ['13:00','13:30','Lunch','—','—'],
+    ],
+    Tue: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','ACC','PanYL','B2-04'],
+      ['09:00','09:30','HC','TeoMH','B2-04'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','11:30','LSS','LowSX','Lab 3/7'],
+      ['11:30','12:30','IF','ChiaKP','Level 1 – IT Lab'],
+      ['12:30','13:00','Lunch','—','—'],
+    ],
+    Wed: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','GE','YapHB','B2-04'],
+      ['09:00','09:30','Recess','—','—'],
+      ['09:30','11:00','ELL','Nicole Lua','B2-04'],
+      ['11:00','12:00','HC','TeoMH','B2-04'],
+      ['12:00','12:30','Lunch','—','—'],
+      ['13:30','14:00','HI','Mervin','B3-01'],
+    ],
+    Thu: [
+      ['08:00','12:30','HBL (Asynchronous)','—','Home'],
+    ],
+    Fri: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','Art','KuekSS','General Art Studio'],
+      ['09:00','09:30','MA','PekRH / LimBH / ChuaBW / ZongLX','1A3 classroom / 1F3 ProEd Room C402'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','11:00','CCE/FT/Con Assy','TeoMH / PanYL','B2-04'],
+      ['11:00','12:30','S1 Assembly & CCE (FT)','TeoMH / PanYL','B2-04'],
+      ['12:30','13:00','ELL','Nicole Lua','B2-04'],
+      ['13:00','13:30','Lunch','—','—'],
+    ],
+  },
+  even: {
+    Mon: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','IF','ChiaKP','Level 1 – IT Lab'],
+      ['09:00','09:30','PE','AngKS','—'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','11:00','ELL','Nicole Lua','B2-04'],
+      ['11:00','12:00','GE','YapHB','B2-04'],
+      ['12:00','13:00','Lunch','—','—'],
+    ],
+    Tue: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:30','LSS','LowSX','Lab 3/8'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','10:30','TP','ChewTY','B2-04'],
+      ['10:30','11:30','Art','KuekSS','General Art Studio'],
+      ['11:30','12:30','ELL','Nicole Lua','B2-04'],
+      ['12:30','13:00','Lunch','—','—'],
+    ],
+    Wed: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','ACC','PanYL','B2-04'],
+      ['09:00','09:30','MU','TanBB','Music Rm Level 2'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','11:00','PE','AngKS','—'],
+      ['11:00','12:00','HC','TeoMH','B2-04'],
+      ['12:00','12:30','MA','PekRH / LimBH / ChuaBW / ZongLX','1A3 classroom / 1F3 ProEd Room C402'],
+      ['12:30','13:00','Lunch','—','—'],
+      ['13:30','14:00','HI','Mervin','B3-01'],
+    ],
+    Thu: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','PACE','—','B2-04'],
+      ['09:00','09:30','Safety & Well-Being','—','B2-04'],
+      ['09:30','10:00','CCE/FT/Con Assy','TeoMH / PanYL','B2-04'],
+      ['10:00','11:30','MA','PekRH / LimBH / ChuaBW / ZongLX','1A3 classroom / 1F3 ProEd Room C402'],
+      ['11:30','12:30','HC','TeoMH','B2-04'],
+      ['12:30','13:00','Lunch','—','—'],
+    ],
+    Fri: [
+      ['07:40','08:00','Safety & Well-Being','—','B2-04'],
+      ['08:00','09:00','LSS','LowSX','B2-04'],
+      ['09:00','09:30','MA','PekRH / LimBH / ChuaBW / ZongLX','1A3 classroom / 1F3 ProEd Room C402'],
+      ['09:30','10:00','Recess','—','—'],
+      ['10:00','11:00','ELL','Nicole Lua','B2-04'],
+      ['11:00','12:30','S1 Assembly & CCE (FT)','TeoMH / PanYL','B2-04'],
+      ['12:30','13:00','Lunch','—','—'],
+      ['13:30','14:00','HI','Mervin','B3-01'],
+    ],
+  }
+};
+
+function renderTimetable() {
+  const body = document.getElementById('scheduleBody');
+  if (!body) return;
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today = new Date();
+  const dayName = dayNames[today.getDay()];
+  const parity = getWeekParity();
+
+  // Weekend or no schedule
+  if (dayName === 'Sun' || dayName === 'Sat') {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No school today — enjoy your weekend!</td></tr>`;
+    return;
+  }
+
+  const slots = TIMETABLE[parity]?.[dayName];
+  if (!slots || slots.length === 0) {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No timetable data for today.</td></tr>`;
+    return;
+  }
+
+  // Find 'now' and assign next/upcoming
+  let foundNow = false, foundNext = false;
+  const statuses = slots.map(([start, end]) => {
+    const s = getSlotStatus(start, end);
+    if (s === 'now') { foundNow = true; return 'now'; }
+    if (s === 'done') return 'done';
+    return null; // future
+  });
+  // Assign 'next' to first future slot after now, rest 'upcoming'
+  for (let i = 0; i < statuses.length; i++) {
+    if (statuses[i] === null) {
+      if (!foundNext) { statuses[i] = 'next'; foundNext = true; }
+      else statuses[i] = 'upcoming';
     }
+  }
+
+  const pillClass = { done:'status-done', now:'status-now', next:'status-next', upcoming:'status-next' };
+  const pillLabel = { done:'Done', now:'Now', next:'Next', upcoming:'Upcoming' };
+
+  body.innerHTML = slots.map(([start, end, subject, teacher, room], i) => {
+    const st = statuses[i];
+    return `<tr>
+      <td class="time-cell">${start} – ${end}</td>
+      <td>${subject}</td>
+      <td>${teacher}</td>
+      <td class="room-cell">${room}</td>
+      <td><span class="status-pill ${pillClass[st]}">${pillLabel[st]}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Also update the section label to show odd/even
+  const head = document.querySelector('#page-dashboard .schedule-wrap .section-title');
+  if (head) head.textContent = `Today's Schedule — ${parity.charAt(0).toUpperCase()+parity.slice(1)} Week`;
+}
 
     /* ══════════════════════════════════════
        NOTES
@@ -1270,12 +1427,12 @@
           <div class="admin-player-name">${adminPlayer ? '⚡ ' : ''}${p.display_name}</div>
           <div class="admin-player-meta">Session claimed</div>
           ${adminPlayer ? '<div class="perk-badge">Admin</div>' : ''}
-          ${isAdmin ? `<button class="btn-del" style="margin-top:8px;" onclick="adminKickPlayer('${p.id}','${p.display_name}')">Release name</button>` : ''}
+          ${isAdmin ? `<button class="btn-del" style="margin-top:8px;" onclick="adminKickPlayer('${p.id}')">Release name</button>` : ''}
         </div>`;
       }).join('');
     }
 
-    async function adminKickPlayer(id, name) {
+    async function adminKickPlayer(id) {
       if (!confirm(`Release name "${name}"? They will need to re-select their name.`)) return;
       await db.from('names').delete().eq('id', id);
       toast(`Name "${name}" released.`);
@@ -1283,22 +1440,34 @@
     }
 
     async function postAdminAnnouncement() {
-      if (!isAdmin) { toast('Not authorised.'); return; }
-      const title = document.getElementById('adminAnnTitle').value.trim();
-      const tag   = document.getElementById('adminAnnTag').value;
-      const body  = document.getElementById('adminAnnBody').value.trim();
-      if (!title || !body) { toast('Please fill in the title and message.'); return; }
-      // Inject announcement into dashboard
-      const grid = document.getElementById('dashAnnouncements');
-      const card = document.createElement('div');
-      card.className = 'ann-card';
-      card.style.borderTop = '2px solid var(--admin)';
-      card.innerHTML = `<div class="ann-tag" style="color:var(--admin);">${tag}</div><h3 class="ann-heading">${title}</h3><p class="ann-body">${body}</p><div class="ann-date" style="color:var(--admin);">Posted by ⚡ ${currentUserName} · ${new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}</div>`;
-      grid.prepend(card);
-      document.getElementById('adminAnnTitle').value = '';
-      document.getElementById('adminAnnBody').value  = '';
-      toast('Announcement posted to dashboard!');
-    }
+  if (!isAdmin) { toast('Not authorised.'); return; }
+  const title = document.getElementById('adminAnnTitle').value.trim();
+  const tag   = document.getElementById('adminAnnTag').value;
+  const body  = document.getElementById('adminAnnBody').value.trim();
+  if (!title || !body) { toast('Please fill in the title and message.'); return; }
+
+  // Clear ALL existing announcements first
+  const grid = document.getElementById('dashAnnouncements');
+  grid.innerHTML = '';
+
+  // Add the new admin announcement
+  const card = document.createElement('div');
+  card.className = 'ann-card';
+  card.style.borderTop = '2px solid var(--admin)';
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div class="ann-tag" style="color:var(--admin);">${tag}</div>
+      <button class="btn-del" onclick="this.closest('.ann-card').remove()" style="margin-top:2px;">✕ Remove</button>
+    </div>
+    <h3 class="ann-heading">${title}</h3>
+    <p class="ann-body">${body}</p>
+    <div class="ann-date" style="color:var(--admin);">Posted by ⚡ ${currentUserName} · ${new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}</div>`;
+  grid.appendChild(card);
+
+  document.getElementById('adminAnnTitle').value = '';
+  document.getElementById('adminAnnBody').value  = '';
+  toast('Announcement posted — previous announcements cleared.');
+}
 
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
