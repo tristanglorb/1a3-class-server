@@ -2555,7 +2555,7 @@ function buildPathCells(){const cells=new Set();for(let s=0;s<PATH_WP.length-1;s
 const PATH_CELLS=buildPathCells();
 const ENEMY_STATS={grunt:{hp:55,spd:1.4,reward:15,armor:0,color:'#d97070',size:10,label:'G'},armoured:{hp:340,spd:1.0,reward:25,armor:0.45,color:'#8a8070',size:12,label:'A'},fast:{hp:200,spd:4,reward:14,armor:0,color:'#e8d5a3',size:8,label:'F'},giant:{hp:4000,spd:0.65,reward:40,armor:0.25,color:'#c9a96e',size:16,label:'GI'},boss:{hp:10500,spd:0.6,reward:200,armor:0.55,color:'#b07ec9',size:20,label:'B'}};
 function waveEnemyList(wave){const list=[];const count=10+wave*4;for(let i=0;i<count;i++){let type='grunt';const r=Math.random();if(wave>=2&&r<0.18)type='armoured';if(wave>=4&&r<0.14)type='fast';if(wave>=6&&r<0.10)type='giant';if(wave>=10&&r<0.08)type='boss';list.push({type,delay:i*Math.max(6,35-wave*2)});}return list;}
-let tdState={gold:150,lives:20,wave:0,score:0,towers:[],enemies:[],projectiles:[],particles:[],selectedType:'arrow',selectedTower:null,waveRunning:false,waveQueue:[],spawnTimer:0,spawnIdx:0,frame:0,gameOver:false,victory:false,speed:1,chestPending:false,unlockedTowers:new Set(['arrow','cannon','frost'])};
+let tdState={gold:isAdmin?500:150,lives:isAdmin?20:20,wave:0,score:0,towers:[],enemies:[],projectiles:[],particles:[],selectedType:'arrow',selectedTower:null,waveRunning:false,waveQueue:[],spawnTimer:0,spawnIdx:0,frame:0,gameOver:false,victory:false,speed:1,chestPending:false,unlockedTowers:isAdmin?new Set(Object.keys(TD_ALL_TOWERS)):new Set(['arrow','cannon','frost'])};
 window._tdCurrentScore=null;
 let raf=null;
 window.tdSetSpeed=function(s){tdState.speed=s;[1,2,4,10].forEach(n=>{const b=document.getElementById('spd'+n);if(b)b.classList.toggle('active',n===s);});};
