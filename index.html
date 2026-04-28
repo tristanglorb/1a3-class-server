@@ -1619,13 +1619,12 @@ async function postAdminAnnouncement() {
 
       // Admin: larger catch zone
       function getPlayerZoneSize() {
-  if (!currentFish) return isAdmin ? 0.22 : 0.14;
-  // Heavier fish = smaller catch zone, capped so it never becomes impossible
-  const weight = currentFish.weightKg;
-  const shrink = Math.min(weight / 600, 0.10); // max 10% shrink from weight
-  const base = isAdmin ? 0.22 : 0.14;
-  return Math.max(base - shrink, isAdmin ? 0.12 : 0.07);
-}
+        if (!currentFish) return isAdmin ? 0.22 : 0.14;
+        const weight = currentFish.weightKg;
+        const shrink = Math.min(weight / 600, 0.10);
+        const base = isAdmin ? 0.22 : 0.14;
+        return Math.max(base - shrink, isAdmin ? 0.12 : 0.07);
+      }
 
       function getCatchRate(overlapRatio) {
         if (!currentFish) return 0.001;
@@ -1633,7 +1632,6 @@ async function postAdminAnnouncement() {
         return base * (overlapRatio + 0.15);
       }
 
-      let fishState   = 'idle';
       let fishState   = 'idle';
       let currentFish = null;
       let biteTimer   = 0;
