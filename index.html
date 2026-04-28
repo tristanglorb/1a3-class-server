@@ -1499,519 +1499,849 @@ async function postAdminAnnouncement() {
     ══════════════════════════════════════════════════════════ */
 
     function loadGame(id) {
-      document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active-game'));
-      const card = document.getElementById('gc-' + id) || document.getElementById('gc-' + id.replace('g', ''));
-      if (card) card.classList.add('active-game');
-      activeGame = id;
-      const arena = document.getElementById('gameArena');
-      const title = document.getElementById('gameArenaTitle');
-      const names = { chess: 'Chess', snake: 'Snake', tetris: 'Tetris', g2048: '2048', minesweeper: 'Minesweeper', wordle: 'Wordle', td: 'Tower Defence', fishing: 'Fishing' };
-      title.textContent = names[id] || id;
-      arena.innerHTML = '';
-      arena.style.minHeight = '600px';
-      if      (id === 'chess')       loadChess(arena);
-      else if (id === 'snake')       loadSnake(arena);
-      else if (id === 'tetris')      loadTetris(arena);
-      else if (id === 'g2048')       load2048(arena);
-      else if (id === 'minesweeper') loadMinesweeper(arena);
-      else if (id === 'wordle')      loadWordle(arena);
-      else if (id === 'td')          loadTD(arena);
-      else if (id === 'fishing')     loadFishing(arena);
-    }
+      // ══════════════════════════════════════════════════════════
+//  FISHING ROD SYSTEM — drop-in replacement for loadFishing()
+//  Paste this entire block over the existing loadFishing function
+// ══════════════════════════════════════════════════════════
 
-    /* ══════════════════════════════════════════════════════════
-       FISHING GAME — Fisch-style · 7 rarity tiers
-       ADMIN PERKS: 2× weight · 3× rare spawn rates · bigger catch zone
-    ══════════════════════════════════════════════════════════ */
-    function loadFishing(arena) {
-      arena.style.minHeight = '700px';
+// ── ROD DEFINITIONS ────────────────────────────────────────
+const ROD_DEFS = [
+  {
+    id: 'starter',
+    name: 'Starter Rod',
+    emoji: '🎣',
+    color: '#9a9286',
+    desc: 'The classic rod. Nothing fancy.',
+    unlocked: true,
+    craftable: false,
+    bonuses: {
+      catchRateBonus: 0,
+      weightMult: 1.0,
+      zoneSizeBonus: 0,
+      rareBoost: 1.0,
+      reelSpeedBonus: 0,
+      tensionReduction: 0,
+      biteSpeedBonus: 0,
+    },
+    power: null,
+  },
+  {
+    id: 'bamboo',
+    name: 'Bamboo Rod',
+    emoji: '🌿',
+    color: '#5a9e6f',
+    desc: 'Lightweight and flexible. Wider catch zone and faster reeling.',
+    unlocked: false,
+    craftable: true,
+    recipe: [
+      { fish: 'Sardine',  count: 5,  rarity: 'common'   },
+      { fish: 'Carp',     count: 3,  rarity: 'common'   },
+      { fish: 'Anchovy',  count: 4,  rarity: 'common'   },
+    ],
+    bonuses: {
+      catchRateBonus: 0.0008,
+      weightMult: 1.1,
+      zoneSizeBonus: 0.04,
+      rareBoost: 1.0,
+      reelSpeedBonus: 0.005,
+      tensionReduction: 0.1,
+      biteSpeedBonus: 200,
+    },
+    power: 'widenZone',
+  },
+  {
+    id: 'carbon',
+    name: 'Carbon Fibre Rod',
+    emoji: '⚫',
+    color: '#6e9ec9',
+    desc: 'Ultra-stiff. Reduces fish zone speed and boosts weight.',
+    unlocked: false,
+    craftable: true,
+    recipe: [
+      { fish: 'Bass',     count: 4,  rarity: 'uncommon' },
+      { fish: 'Trout',    count: 3,  rarity: 'uncommon' },
+      { fish: 'Pompano',  count: 2,  rarity: 'uncommon' },
+    ],
+    bonuses: {
+      catchRateBonus: 0.001,
+      weightMult: 1.25,
+      zoneSizeBonus: 0.02,
+      rareBoost: 1.3,
+      reelSpeedBonus: 0.008,
+      tensionReduction: 0.2,
+      biteSpeedBonus: 400,
+    },
+    power: 'slowBar',
+  },
+  {
+    id: 'crystal',
+    name: 'Crystal Rod',
+    emoji: '💎',
+    color: '#b07ec9',
+    desc: 'Infused with rare energy. Rare fish spawn more, bar freezes on hit.',
+    unlocked: false,
+    craftable: true,
+    recipe: [
+      { fish: 'Salmon',      count: 3, rarity: 'rare' },
+      { fish: 'Barramundi',  count: 2, rarity: 'rare' },
+      { fish: 'Dorado',      count: 2, rarity: 'rare' },
+    ],
+    bonuses: {
+      catchRateBonus: 0.0015,
+      weightMult: 1.4,
+      zoneSizeBonus: 0.05,
+      rareBoost: 1.8,
+      reelSpeedBonus: 0.01,
+      tensionReduction: 0.3,
+      biteSpeedBonus: 600,
+    },
+    power: 'freezeBar',
+  },
+  {
+    id: 'abyssal',
+    name: 'Abyssal Rod',
+    emoji: '🌊',
+    color: '#c9a96e',
+    desc: 'Forged from the deep. Auto-reel, massive weight mult, epic+ boost.',
+    unlocked: false,
+    craftable: true,
+    recipe: [
+      { fish: 'Swordfish',      count: 2, rarity: 'epic'      },
+      { fish: 'Giant Trevally', count: 2, rarity: 'epic'      },
+      { fish: 'Blue Marlin',    count: 1, rarity: 'legendary' },
+    ],
+    bonuses: {
+      catchRateBonus: 0.003,
+      weightMult: 1.8,
+      zoneSizeBonus: 0.07,
+      rareBoost: 2.5,
+      reelSpeedBonus: 0.015,
+      tensionReduction: 0.45,
+      biteSpeedBonus: 800,
+    },
+    power: 'autoReel',
+  },
+  {
+    id: 'celestial',
+    name: 'Celestial Rod',
+    emoji: '✨',
+    color: '#ffd700',
+    desc: 'One with the stars. All bonuses maximised. Mythical+ fish appear.',
+    unlocked: false,
+    craftable: true,
+    recipe: [
+      { fish: 'Leviathan',    count: 1, rarity: 'mythical'  },
+      { fish: 'Megalodon Jr', count: 1, rarity: 'mythical'  },
+      { fish: 'Giant Oarfish',count: 1, rarity: 'legendary' },
+      { fish: 'Whale Shark',  count: 1, rarity: 'legendary' },
+    ],
+    bonuses: {
+      catchRateBonus: 0.005,
+      weightMult: 2.5,
+      zoneSizeBonus: 0.10,
+      rareBoost: 4.0,
+      reelSpeedBonus: 0.02,
+      tensionReduction: 0.6,
+      biteSpeedBonus: 1200,
+    },
+    power: 'allPowers',
+  },
+];
 
-      const FISH_TABLE = [
-  // ── COMMON ──
-  { name: 'Sardine',        rarity: 'common',    wMin: 0.05, wMax: 0.4,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'A tiny schooling fish. Abundant everywhere.' },
-  { name: 'Carp',           rarity: 'common',    wMin: 0.5,  wMax: 3.5,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Common freshwater fish found in ponds.' },
-  { name: 'Tilapia',        rarity: 'common',    wMin: 0.3,  wMax: 2.5,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Hardy and plentiful. A staple catch.' },
-  { name: 'Mudfish',        rarity: 'common',    wMin: 0.1,  wMax: 1.0,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Slimy and unremarkable. But hey, it counts.' },
-  { name: 'Goldfish',       rarity: 'common',    wMin: 0.01, wMax: 0.15,  color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Tiny and ornamental. Nearly weightless.' },
-{ name: 'Anchovy',        rarity: 'common',    wMin: 0.02, wMax: 0.12,  color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Tiny schooling fish. Found everywhere.' },
-{ name: 'Perch',          rarity: 'common',    wMin: 0.2,  wMax: 1.8,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'A reliable beginner catch.' },
-{ name: 'Mullet',         rarity: 'common',    wMin: 0.4,  wMax: 3.0,   color: '#9a9286', emoji: '🐟', mult: 1,    power: 'bonusScore', desc: 'Jumps out of the water. Grants +10% score.' },
-  // ── UNCOMMON ──
-  { name: 'Bass',           rarity: 'uncommon',  wMin: 1.0,  wMax: 6.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'slowBar',    desc: 'Puts up a fight but tires quickly. Bar slows mid-catch.' },
-  { name: 'Catfish',        rarity: 'uncommon',  wMin: 2.0,  wMax: 9.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: null,         desc: 'Whiskers and attitude. Lurks at the bottom.' },
-  { name: 'Trout',          rarity: 'uncommon',  wMin: 0.8,  wMax: 5.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'bonusScore', desc: 'Spotted and swift. Grants +20% bonus score.' },
-  { name: 'Grouper',        rarity: 'uncommon',  wMin: 2.0,  wMax: 12.0,  color: '#5a9e6f', emoji: '🐠', mult: 3,    power: null,         desc: 'Ambush predator. Solid mid-tier catch.' },
-{ name: 'Snakehead',      rarity: 'uncommon',  wMin: 1.5,  wMax: 8.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'slowBar',    desc: 'Aggressive freshwater predator. Bar slows.' },
-{ name: 'Pompano',        rarity: 'uncommon',  wMin: 0.6,  wMax: 4.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'bonusScore', desc: 'Flat and fast. Grants +25% bonus score.' },
-  // ── RARE ──
-  { name: 'Salmon',         rarity: 'rare',      wMin: 3.0,  wMax: 14.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'slowBar',    desc: 'Fights hard upstream. Bar slows when overlapping.' },
-  { name: 'Red Snapper',    rarity: 'rare',      wMin: 2.0,  wMax: 10.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'bonusScore', desc: 'Vivid red scales. Grants +30% bonus score.' },
-  { name: 'Barramundi',     rarity: 'rare',      wMin: 4.0,  wMax: 18.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'widenZone',  desc: 'The prized fish of Southeast Asia. Widens your catch zone.' },
-  { name: 'Yellowfin Tuna', rarity: 'rare',      wMin: 10.0, wMax: 40.0,  color: '#6e9ec9', emoji: '🐡', mult: 9,    power: null,         desc: 'Built for speed. Heavy but catchable.' },
-  { name: 'Dorado',         rarity: 'rare',      wMin: 5.0,  wMax: 22.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'widenZone',  desc: 'Brilliant gold-green. Zone widens on catch.' },
-{ name: 'Coelacanth',     rarity: 'rare',      wMin: 30.0, wMax: 80.0,  color: '#6e9ec9', emoji: '🐡', mult: 9,    power: 'freezeBar',  desc: 'A living fossil. Bar freezes briefly.' },
-{ name: 'Giant Catfish',  rarity: 'rare',      wMin: 15.0, wMax: 60.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: null,         desc: 'Enormous freshwater beast. Pure weight.' },
-  // ── EPIC ──
-  { name: 'Swordfish',      rarity: 'epic',      wMin: 40,   wMax: 220,   color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'freezeBar',  desc: 'Slices through water. Bar briefly freezes on hit.' },
-  { name: 'Giant Trevally', rarity: 'epic',      wMin: 20,   wMax: 90,    color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'widenZone',  desc: 'Brute strength. Will drag your rod in. Zone widens.' },
-  { name: 'Mahi-Mahi',      rarity: 'epic',      wMin: 5,    wMax: 35,    color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'bonusScore', desc: 'Stunning colours. Acrobatic. Grants +50% bonus score.' },
-  { name: 'Hammerhead',     rarity: 'epic',      wMin: 80,   wMax: 300,   color: '#b07ec9', emoji: '🦈', mult: 22,   power: 'slowBar',    desc: 'Sweeps the deep. Magnificent but slow — bar decelerates.' },
-  { name: 'Goliath Tigerfish', rarity: 'epic',   wMin: 25,   wMax: 70,    color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'slowBar',    desc: 'Has teeth like razors. Bar decelerates.' },
-{ name: 'Alligator Gar',  rarity: 'epic',      wMin: 40,   wMax: 140,   color: '#b07ec9', emoji: '🦈', mult: 21,   power: 'widenZone',  desc: 'Ancient armoured predator. Zone widens.' },
-{ name: 'Sturgeon',       rarity: 'epic',      wMin: 60,   wMax: 200,   color: '#b07ec9', emoji: '🦈', mult: 22,   power: 'autoReel',   desc: 'Prehistoric and enormous. Fills meter faster.' },
-  // ── LEGENDARY ──
-  { name: 'Blue Marlin',    rarity: 'legendary', wMin: 100,  wMax: 650,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'freezeBar',  desc: 'The ocean monarch. Bar freezes for 1.5s on overlap.' },
-  { name: 'Giant Oarfish',  rarity: 'legendary', wMin: 50,   wMax: 350,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'widenZone',  desc: 'The sea serpent of legend. Zone expands dramatically.' },
-  { name: 'Arapaima',       rarity: 'legendary', wMin: 80,   wMax: 250,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'autoReel',   desc: 'Ancient Amazon giant. Catch meter fills 2× faster.' },
-  { name: 'Whale Shark',    rarity: 'legendary', wMin: 500,  wMax: 1500,  color: '#c9a96e', emoji: '🌟', mult: 65,   power: 'bonusScore', desc: 'Gentle but enormous. Grants +100% score bonus.' },
-  { name: 'Electric Eel',   rarity: 'legendary', wMin: 5,    wMax: 20,    color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'freezeBar',  desc: 'Discharges 600 volts. Bar locks for 2s.' },
-{ name: 'Black Dragonfish',rarity: 'legendary',wMin: 0.1,  wMax: 0.5,   color: '#c9a96e', emoji: '🌟', mult: 65,   power: 'autoReel',   desc: 'Deep sea nightmare. Nearly weightless but insanely rare.' },
-{ name: 'Opah',           rarity: 'legendary', wMin: 40,   wMax: 120,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'bonusScore', desc: 'The only warm-blooded fish. Grants +100% score.' },
-  // ── MYTHICAL ──
-  { name: 'Megalodon Jr',   rarity: 'mythical',  wMin: 500,  wMax: 2000,  color: '#ff6b6b', emoji: '🔥', mult: 200,  power: 'freezeBar',  desc: 'A descendant of the ancient terror. Bar locks for 2s.' },
-  { name: 'Leviathan',      rarity: 'mythical',  wMin: 1000, wMax: 5000,  color: '#ff6b6b', emoji: '🔥', mult: 200,  power: 'autoReel',   desc: 'The biblical sea monster. Fills catch meter instantly.' },
-  { name: 'Kraken Spawn',   rarity: 'mythical',  wMin: 800,  wMax: 3000,  color: '#ff6b6b', emoji: '🔥', mult: 220,  power: 'widenZone',  desc: 'A tentacle of something much larger. Zone triples.' },
-  { name: 'Abyssal Serpent',rarity: 'mythical',  wMin: 2000, wMax: 8000,  color: '#ff6b6b', emoji: '🔥', mult: 210,  power: 'widenZone',  desc: 'From the deepest trench. Zone triples in size.' },
-{ name: 'Phantom Ray',    rarity: 'mythical',  wMin: 300,  wMax: 1200,  color: '#ff6b6b', emoji: '🔥', mult: 200,  power: 'autoReel',   desc: 'Invisible until caught. Meter fills instantly.' },
-  // ── CELESTIAL ──
-  { name: 'Starfish God',   rarity: 'celestial', wMin: 9999, wMax: 9999,  color: '#ffd700', emoji: '✨', mult: 1000, power: 'autoReel',   desc: 'It cannot be described. It simply catches itself.' },
-  { name: 'Voidfish',       rarity: 'celestial', wMin: 9999, wMax: 9999,  color: '#ffd700', emoji: '🌌', mult: 1200, power: 'freezeBar',  desc: 'From beyond the stars. Reality warps around it.' },
-{ name: 'Prismatic Whale', rarity: 'celestial', wMin: 9999, wMax: 9999, color: '#ffd700', emoji: '🌈', mult: 1100, power: 'bonusScore', desc: 'Refracts all light. Beyond comprehension. +200% score.' },
-      ];
+// ── FISH TABLE (same as before, kept here for self-containment) ─
+const FISH_TABLE = [
+  { name:'Sardine',         rarity:'common',    wMin:0.05,  wMax:0.4,   color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'A tiny schooling fish. Abundant everywhere.' },
+  { name:'Carp',            rarity:'common',    wMin:0.5,   wMax:3.5,   color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'Common freshwater fish found in ponds.' },
+  { name:'Tilapia',         rarity:'common',    wMin:0.3,   wMax:2.5,   color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'Hardy and plentiful. A staple catch.' },
+  { name:'Mudfish',         rarity:'common',    wMin:0.1,   wMax:1.0,   color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'Slimy and unremarkable. But hey, it counts.' },
+  { name:'Goldfish',        rarity:'common',    wMin:0.01,  wMax:0.15,  color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'Tiny and ornamental. Nearly weightless.' },
+  { name:'Anchovy',         rarity:'common',    wMin:0.02,  wMax:0.12,  color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'Tiny schooling fish. Found everywhere.' },
+  { name:'Perch',           rarity:'common',    wMin:0.2,   wMax:1.8,   color:'#9a9286', emoji:'🐟', mult:1,    power:null,         desc:'A reliable beginner catch.' },
+  { name:'Mullet',          rarity:'common',    wMin:0.4,   wMax:3.0,   color:'#9a9286', emoji:'🐟', mult:1,    power:'bonusScore', desc:'Jumps out of the water. Grants +10% score.' },
+  { name:'Bass',            rarity:'uncommon',  wMin:1.0,   wMax:6.0,   color:'#5a9e6f', emoji:'🐠', mult:3,    power:'slowBar',    desc:'Puts up a fight but tires quickly.' },
+  { name:'Catfish',         rarity:'uncommon',  wMin:2.0,   wMax:9.0,   color:'#5a9e6f', emoji:'🐠', mult:3,    power:null,         desc:'Whiskers and attitude. Lurks at the bottom.' },
+  { name:'Trout',           rarity:'uncommon',  wMin:0.8,   wMax:5.0,   color:'#5a9e6f', emoji:'🐠', mult:3,    power:'bonusScore', desc:'Spotted and swift. Grants +20% bonus score.' },
+  { name:'Grouper',         rarity:'uncommon',  wMin:2.0,   wMax:12.0,  color:'#5a9e6f', emoji:'🐠', mult:3,    power:null,         desc:'Ambush predator. Solid mid-tier catch.' },
+  { name:'Snakehead',       rarity:'uncommon',  wMin:1.5,   wMax:8.0,   color:'#5a9e6f', emoji:'🐠', mult:3,    power:'slowBar',    desc:'Aggressive freshwater predator. Bar slows.' },
+  { name:'Pompano',         rarity:'uncommon',  wMin:0.6,   wMax:4.0,   color:'#5a9e6f', emoji:'🐠', mult:3,    power:'bonusScore', desc:'Flat and fast. Grants +25% bonus score.' },
+  { name:'Salmon',          rarity:'rare',      wMin:3.0,   wMax:14.0,  color:'#6e9ec9', emoji:'🐡', mult:8,    power:'slowBar',    desc:'Fights hard upstream. Bar slows when overlapping.' },
+  { name:'Red Snapper',     rarity:'rare',      wMin:2.0,   wMax:10.0,  color:'#6e9ec9', emoji:'🐡', mult:8,    power:'bonusScore', desc:'Vivid red scales. Grants +30% bonus score.' },
+  { name:'Barramundi',      rarity:'rare',      wMin:4.0,   wMax:18.0,  color:'#6e9ec9', emoji:'🐡', mult:8,    power:'widenZone',  desc:'The prized fish of Southeast Asia.' },
+  { name:'Yellowfin Tuna',  rarity:'rare',      wMin:10.0,  wMax:40.0,  color:'#6e9ec9', emoji:'🐡', mult:9,    power:null,         desc:'Built for speed. Heavy but catchable.' },
+  { name:'Dorado',          rarity:'rare',      wMin:5.0,   wMax:22.0,  color:'#6e9ec9', emoji:'🐡', mult:8,    power:'widenZone',  desc:'Brilliant gold-green. Zone widens on catch.' },
+  { name:'Coelacanth',      rarity:'rare',      wMin:30.0,  wMax:80.0,  color:'#6e9ec9', emoji:'🐡', mult:9,    power:'freezeBar',  desc:'A living fossil. Bar freezes briefly.' },
+  { name:'Giant Catfish',   rarity:'rare',      wMin:15.0,  wMax:60.0,  color:'#6e9ec9', emoji:'🐡', mult:8,    power:null,         desc:'Enormous freshwater beast. Pure weight.' },
+  { name:'Swordfish',       rarity:'epic',      wMin:40,    wMax:220,   color:'#b07ec9', emoji:'🦈', mult:20,   power:'freezeBar',  desc:'Slices through water. Bar briefly freezes on hit.' },
+  { name:'Giant Trevally',  rarity:'epic',      wMin:20,    wMax:90,    color:'#b07ec9', emoji:'🦈', mult:20,   power:'widenZone',  desc:'Brute strength. Zone widens.' },
+  { name:'Mahi-Mahi',       rarity:'epic',      wMin:5,     wMax:35,    color:'#b07ec9', emoji:'🦈', mult:20,   power:'bonusScore', desc:'Stunning colours. Grants +50% bonus score.' },
+  { name:'Hammerhead',      rarity:'epic',      wMin:80,    wMax:300,   color:'#b07ec9', emoji:'🦈', mult:22,   power:'slowBar',    desc:'Sweeps the deep. Bar decelerates.' },
+  { name:'Goliath Tigerfish',rarity:'epic',     wMin:25,    wMax:70,    color:'#b07ec9', emoji:'🦈', mult:20,   power:'slowBar',    desc:'Has teeth like razors.' },
+  { name:'Alligator Gar',   rarity:'epic',      wMin:40,    wMax:140,   color:'#b07ec9', emoji:'🦈', mult:21,   power:'widenZone',  desc:'Ancient armoured predator.' },
+  { name:'Sturgeon',        rarity:'epic',      wMin:60,    wMax:200,   color:'#b07ec9', emoji:'🦈', mult:22,   power:'autoReel',   desc:'Prehistoric and enormous.' },
+  { name:'Blue Marlin',     rarity:'legendary', wMin:100,   wMax:650,   color:'#c9a96e', emoji:'🌟', mult:60,   power:'freezeBar',  desc:'The ocean monarch. Bar freezes for 1.5s on overlap.' },
+  { name:'Giant Oarfish',   rarity:'legendary', wMin:50,    wMax:350,   color:'#c9a96e', emoji:'🌟', mult:60,   power:'widenZone',  desc:'The sea serpent of legend.' },
+  { name:'Arapaima',        rarity:'legendary', wMin:80,    wMax:250,   color:'#c9a96e', emoji:'🌟', mult:60,   power:'autoReel',   desc:'Ancient Amazon giant.' },
+  { name:'Whale Shark',     rarity:'legendary', wMin:500,   wMax:1500,  color:'#c9a96e', emoji:'🌟', mult:65,   power:'bonusScore', desc:'Gentle but enormous. Grants +100% score bonus.' },
+  { name:'Electric Eel',    rarity:'legendary', wMin:5,     wMax:20,    color:'#c9a96e', emoji:'🌟', mult:60,   power:'freezeBar',  desc:'Discharges 600 volts. Bar locks for 2s.' },
+  { name:'Black Dragonfish', rarity:'legendary',wMin:0.1,   wMax:0.5,   color:'#c9a96e', emoji:'🌟', mult:65,   power:'autoReel',   desc:'Deep sea nightmare.' },
+  { name:'Opah',            rarity:'legendary', wMin:40,    wMax:120,   color:'#c9a96e', emoji:'🌟', mult:60,   power:'bonusScore', desc:'The only warm-blooded fish.' },
+  { name:'Megalodon Jr',    rarity:'mythical',  wMin:500,   wMax:2000,  color:'#ff6b6b', emoji:'🔥', mult:200,  power:'freezeBar',  desc:'A descendant of the ancient terror.' },
+  { name:'Leviathan',       rarity:'mythical',  wMin:1000,  wMax:5000,  color:'#ff6b6b', emoji:'🔥', mult:200,  power:'autoReel',   desc:'The biblical sea monster.' },
+  { name:'Kraken Spawn',    rarity:'mythical',  wMin:800,   wMax:3000,  color:'#ff6b6b', emoji:'🔥', mult:220,  power:'widenZone',  desc:'A tentacle of something much larger.' },
+  { name:'Abyssal Serpent', rarity:'mythical',  wMin:2000,  wMax:8000,  color:'#ff6b6b', emoji:'🔥', mult:210,  power:'widenZone',  desc:'From the deepest trench.' },
+  { name:'Phantom Ray',     rarity:'mythical',  wMin:300,   wMax:1200,  color:'#ff6b6b', emoji:'🔥', mult:200,  power:'autoReel',   desc:'Invisible until caught.' },
+  { name:'Starfish God',    rarity:'celestial', wMin:9999,  wMax:9999,  color:'#ffd700', emoji:'✨', mult:1000, power:'autoReel',   desc:'It cannot be described.' },
+  { name:'Voidfish',        rarity:'celestial', wMin:9999,  wMax:9999,  color:'#ffd700', emoji:'🌌', mult:1200, power:'freezeBar',  desc:'From beyond the stars.' },
+  { name:'Prismatic Whale', rarity:'celestial', wMin:9999,  wMax:9999,  color:'#ffd700', emoji:'🌈', mult:1100, power:'bonusScore', desc:'Refracts all light.' },
+];
 
-      // ── FIX: The epic barSpeed/barSize missing comma was the original JS crash ──
-      const RARITY_META = {
-  common:    { label: 'Common',    color: '#9a9286', border: 'rgba(154,146,134,.4)', weight: 40, barSpeed: 0.008, barSize: 0.55, tension: 1.4 },
-  uncommon:  { label: 'Uncommon',  color: '#5a9e6f', border: 'rgba(90,158,111,.5)',  weight: 25, barSpeed: 0.012, barSize: 0.50, tension: 1.6 },
-  rare:      { label: 'Rare',      color: '#6e9ec9', border: 'rgba(110,158,201,.5)', weight: 15, barSpeed: 0.018, barSize: 0.46, tension: 1.8 },
-  epic:      { label: 'Epic',      color: '#b07ec9', border: 'rgba(176,126,201,.5)', weight: 10, barSpeed: 0.024, barSize: 0.42, tension: 2.0 },
-  legendary: { label: 'Legendary', color: '#c9a96e', border: 'rgba(201,169,110,.7)', weight: 6,  barSpeed: 0.030, barSize: 0.38, tension: 2.2 },
-  mythical:  { label: 'Mythical',  color: '#ff6b6b', border: 'rgba(255,107,107,.6)', weight: 3,  barSpeed: 0.036, barSize: 0.34, tension: 2.5 },
-  celestial: { label: 'Celestial', color: '#ffd700', border: 'rgba(255,215,0,.8)',   weight: 1,  barSpeed: 0.042, barSize: 0.30, tension: 3.0 },
+const RARITY_META = {
+  common:    { label:'Common',    color:'#9a9286', border:'rgba(154,146,134,.4)', weight:40, barSpeed:0.008, barSize:0.55, tension:1.4 },
+  uncommon:  { label:'Uncommon',  color:'#5a9e6f', border:'rgba(90,158,111,.5)',  weight:25, barSpeed:0.012, barSize:0.50, tension:1.6 },
+  rare:      { label:'Rare',      color:'#6e9ec9', border:'rgba(110,158,201,.5)', weight:15, barSpeed:0.018, barSize:0.46, tension:1.8 },
+  epic:      { label:'Epic',      color:'#b07ec9', border:'rgba(176,126,201,.5)', weight:10, barSpeed:0.024, barSize:0.42, tension:2.0 },
+  legendary: { label:'Legendary', color:'#c9a96e', border:'rgba(201,169,110,.7)', weight:6,  barSpeed:0.030, barSize:0.38, tension:2.2 },
+  mythical:  { label:'Mythical',  color:'#ff6b6b', border:'rgba(255,107,107,.6)', weight:3,  barSpeed:0.036, barSize:0.34, tension:2.5 },
+  celestial: { label:'Celestial', color:'#ffd700', border:'rgba(255,215,0,.8)',   weight:1,  barSpeed:0.042, barSize:0.30, tension:3.0 },
 };
 
+function loadFishing(arena) {
+  arena.style.minHeight = '760px';
 
-      // Admin: boost rarity weights so rarer fish appear more
-      function getWeightTable() {
-        if (!isAdmin) return RARITY_META;
-        const boosted = {};
-        Object.entries(RARITY_META).forEach(([k, v]) => {
-          const boost = { common: 0.4, uncommon: 0.8, rare: 1.6, epic: 1.8, legendary: 2.0, mythical: 2.0, celestial: 5 }[k] || 1;
-          boosted[k] = { ...v, weight: v.weight * boost };
-        });
-        return boosted;
+  // ── STATE ─────────────────────────────────────────────────
+  let fishState   = 'idle';
+  let currentFish = null;
+  let biteTimer   = 0;
+  let minigame    = null;
+  let raf2        = null;
+  let waveT       = 0;
+  let holding     = false;
+  let casts = 0, caught = 0, bestScore = 0;
+  const catchLog  = [];
+
+  // Rod state — persisted per session in memory (also saved to Supabase)
+  let equippedRodId = 'starter';
+  let unlockedRods  = new Set(['starter']);
+  // catchHistory: { [fishName]: count } — loaded from Supabase
+  let catchHistory  = {};
+  let activeTab     = 'fish'; // 'fish' | 'craft'
+
+  // ── ROD HELPERS ───────────────────────────────────────────
+  function getEquippedRod() {
+    return ROD_DEFS.find(r => r.id === equippedRodId) || ROD_DEFS[0];
+  }
+
+  function getRodBonus(key) {
+    return getEquippedRod().bonuses[key] || 0;
+  }
+
+  // ── LOAD PLAYER DATA FROM SUPABASE ────────────────────────
+  async function loadPlayerData() {
+    if (!currentUser) return;
+    try {
+      const { data } = await db.from('fish_rod_progress').select('*').eq('user_id', currentUser.id).single();
+      if (data) {
+        catchHistory  = data.catch_history  || {};
+        unlockedRods  = new Set(data.unlocked_rods || ['starter']);
+        equippedRodId = data.equipped_rod   || 'starter';
       }
+    } catch (e) {}
+    renderRodBar();
+    renderCraftPanel();
+  }
 
-      function rollFish() {
-        const table = getWeightTable();
-        const total = Object.values(table).reduce((a, r) => a + r.weight, 0);
-        let roll = Math.random() * total;
-        let rarity = 'common';
-        for (const [k, v] of Object.entries(table)) { roll -= v.weight; if (roll <= 0) { rarity = k; break; } }
-        const pool = FISH_TABLE.filter(f => f.rarity === rarity);
-        const fish = pool[Math.floor(Math.random() * pool.length)];
-        let weight = fish.wMin === fish.wMax ? fish.wMin : fish.wMin + Math.random() * (fish.wMax - fish.wMin);
-        if (isAdmin) weight *= 2; // Admin: 2× heavier fish
-        return { ...fish, weightKg: parseFloat(weight.toFixed(3)) };
+  async function savePlayerData() {
+    if (!currentUser) return;
+    try {
+      await db.from('fish_rod_progress').upsert({
+        user_id:       currentUser.id,
+        catch_history: catchHistory,
+        unlocked_rods: [...unlockedRods],
+        equipped_rod:  equippedRodId,
+      }, { onConflict: 'user_id' });
+    } catch (e) {}
+  }
+
+  // ── WEIGHT TABLE (boosted by rod rareBoost) ───────────────
+  function getWeightTable() {
+    const boost = getEquippedRod().bonuses.rareBoost || 1.0;
+    const adminBoost = isAdmin ? 1.5 : 1.0;
+    const result = {};
+    Object.entries(RARITY_META).forEach(([k, v]) => {
+      const rareMult = { common:0.6, uncommon:0.9, rare:1.2, epic:1.4, legendary:1.6, mythical:1.8, celestial:2.0 }[k] || 1.0;
+      result[k] = { ...v, weight: v.weight * (k === 'common' ? 1 : (boost * adminBoost * rareMult - rareMult + 1)) };
+    });
+    return result;
+  }
+
+  function rollFish() {
+    const table = getWeightTable();
+    const total = Object.values(table).reduce((a, r) => a + r.weight, 0);
+    let roll = Math.random() * total;
+    let rarity = 'common';
+    for (const [k, v] of Object.entries(table)) { roll -= v.weight; if (roll <= 0) { rarity = k; break; } }
+    const pool = FISH_TABLE.filter(f => f.rarity === rarity);
+    const fish = pool[Math.floor(Math.random() * pool.length)];
+    let weight = fish.wMin === fish.wMax ? fish.wMin : fish.wMin + Math.random() * (fish.wMax - fish.wMin);
+    weight *= getEquippedRod().bonuses.weightMult || 1.0;
+    if (isAdmin) weight *= 2;
+    return { ...fish, weightKg: parseFloat(weight.toFixed(3)) };
+  }
+
+  function getPlayerZoneSize() {
+    const base = (isAdmin ? 0.22 : 0.14) + getRodBonus('zoneSizeBonus');
+    if (!currentFish) return base;
+    const shrink = Math.min(currentFish.weightKg / 600, 0.10);
+    return Math.max(base - shrink, 0.07);
+  }
+
+  function getCatchRate(overlapRatio) {
+    const base = (isAdmin ? 0.003 : 0.0015) + getRodBonus('catchRateBonus');
+    return base * (overlapRatio + 0.15);
+  }
+
+  // ── CRAFT CHECK ───────────────────────────────────────────
+  function canCraft(rod) {
+    if (!rod.craftable || unlockedRods.has(rod.id)) return false;
+    return rod.recipe.every(req => (catchHistory[req.fish] || 0) >= req.count);
+  }
+
+  function craftRod(rod) {
+    if (!canCraft(rod)) return false;
+    unlockedRods.add(rod.id);
+    savePlayerData();
+    return true;
+  }
+
+  // ── BUILD LAYOUT ──────────────────────────────────────────
+  arena.innerHTML = `
+    <div style="width:100%;display:flex;flex-direction:column;align-items:center;padding:16px 20px;gap:0;">
+      ${isAdmin ? `<div style="background:rgba(255,159,67,.08);border:1px solid rgba(255,159,67,.3);padding:7px 18px;margin-bottom:12px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ Admin: 2× weight · Wider catch zone · Rarer fish</div>` : ''}
+
+      <!-- HUD row -->
+      <div style="display:flex;gap:28px;margin-bottom:14px;flex-wrap:wrap;justify-content:center;align-items:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="fishCasts">0</div><div class="g-hud-key">Casts</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="fishCaught">0</div><div class="g-hud-key">Caught</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="fishBest">—</div><div class="g-hud-key">Best</div></div>
+        <button class="g-btn" onclick="fishShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Board</button>
+      </div>
+
+      <!-- Rod bar -->
+      <div id="fishRodBar" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;"></div>
+
+      <!-- Canvas -->
+      <canvas id="fishCanvas" width="700" height="400" style="border:1px solid rgba(201,169,110,.15);max-width:100%;cursor:pointer;"></canvas>
+
+      <!-- Status + button -->
+      <div id="fishStatus" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-top:12px;text-align:center;min-height:20px;"></div>
+      <button class="g-btn" id="fishBtn" onclick="fishAction()" style="margin-top:12px;font-size:10px;padding:12px 36px;">🎣 Cast Line</button>
+
+      <!-- Tab switcher -->
+      <div style="display:flex;gap:0;margin-top:24px;border-bottom:1px solid rgba(201,169,110,.15);width:100%;max-width:700px;">
+        <button id="tabFish" onclick="fishSwitchTab('fish')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;padding:10px;cursor:pointer;">Recent Catches</button>
+        <button id="tabCraft" onclick="fishSwitchTab('craft')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;padding:10px;cursor:pointer;">🔨 Craft Rods</button>
+        <button id="tabProg" onclick="fishSwitchTab('prog')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;padding:10px;cursor:pointer;">📖 Progress</button>
+      </div>
+
+      <!-- Tab panels -->
+      <div id="panelFish"  style="width:100%;max-width:700px;padding-top:16px;"></div>
+      <div id="panelCraft" style="width:100%;max-width:700px;padding-top:16px;display:none;"></div>
+      <div id="panelProg"  style="width:100%;max-width:700px;padding-top:16px;display:none;"></div>
+    </div>`;
+
+  const canvas = document.getElementById('fishCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  // ── TAB SWITCHER ──────────────────────────────────────────
+  window.fishSwitchTab = function(tab) {
+    activeTab = tab;
+    ['fish','craft','prog'].forEach(t => {
+      document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? 'block' : 'none';
+      const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn) {
+        btn.style.borderBottomColor = t === tab ? 'var(--gold)' : 'transparent';
+        btn.style.color = t === tab ? 'var(--gold)' : 'var(--text-muted)';
       }
+    });
+    if (tab === 'craft') renderCraftPanel();
+    if (tab === 'prog')  renderProgressPanel();
+  };
 
-      // Admin: larger catch zone
-      function getPlayerZoneSize() {
-        if (!currentFish) return isAdmin ? 0.22 : 0.14;
-        const weight = currentFish.weightKg;
-        const shrink = Math.min(weight / 600, 0.10);
-        const base = isAdmin ? 0.22 : 0.14;
-        return Math.max(base - shrink, isAdmin ? 0.12 : 0.07);
-      }
+  // ── ROD BAR ───────────────────────────────────────────────
+  function renderRodBar() {
+    const el = document.getElementById('fishRodBar'); if (!el) return;
+    el.innerHTML = ROD_DEFS.map(rod => {
+      const owned   = unlockedRods.has(rod.id);
+      const equipped = rod.id === equippedRodId;
+      const locked   = !owned;
+      return `<button
+        onclick="fishEquipRod('${rod.id}')"
+        title="${rod.name}: ${rod.desc}"
+        style="
+          font-size:18px;padding:8px 12px;
+          background:${equipped ? 'rgba(201,169,110,.18)' : 'var(--dark-3)'};
+          border:1px solid ${equipped ? rod.color : locked ? 'rgba(201,169,110,.08)' : 'rgba(201,169,110,.2)'};
+          cursor:${locked ? 'not-allowed' : 'pointer'};
+          opacity:${locked ? '.35' : '1'};
+          position:relative;
+          font-family:'Josefin Sans',sans-serif;
+          transition:all .2s;
+          display:flex;flex-direction:column;align-items:center;gap:2px;
+        "
+        ${locked ? 'disabled' : ''}
+      >
+        <span style="font-size:20px;">${rod.emoji}</span>
+        <span style="font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:${equipped ? rod.color : 'var(--text-muted)'};">${rod.name.split(' ')[0]}</span>
+        ${equipped ? `<span style="font-size:7px;color:${rod.color};letter-spacing:.1em;">EQUIPPED</span>` : ''}
+        ${locked ? `<span style="font-size:7px;color:var(--text-muted);letter-spacing:.1em;">LOCKED</span>` : ''}
+      </button>`;
+    }).join('');
+  }
 
-      function getCatchRate(overlapRatio) {
-        if (!currentFish) return 0.001;
-        const base = isAdmin ? 0.003 : 0.0015;
-        return base * (overlapRatio + 0.15);
-      }
+  window.fishEquipRod = function(id) {
+    if (!unlockedRods.has(id)) { toast('Craft this rod first!'); return; }
+    equippedRodId = id;
+    savePlayerData();
+    renderRodBar();
+    const rod = getEquippedRod();
+    fishSetStatus(`Equipped: ${rod.name} — ${rod.desc}`);
+  };
 
-      let fishState   = 'idle';
-      let currentFish = null;
-      let biteTimer   = 0;
-      let minigame    = null;
-      let raf2        = null;
+  // ── CRAFT PANEL ───────────────────────────────────────────
+  function renderCraftPanel() {
+    const el = document.getElementById('panelCraft'); if (!el) return;
+    el.innerHTML = ROD_DEFS.filter(r => r.craftable).map(rod => {
+      const owned    = unlockedRods.has(rod.id);
+      const craftable = canCraft(rod);
+      const b = rod.bonuses;
+      const recipeHtml = rod.recipe.map(req => {
+        const have = catchHistory[req.fish] || 0;
+        const done = have >= req.count;
+        const rm   = RARITY_META[req.rarity];
+        return `<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--dark-3);border:1px solid ${done ? 'rgba(90,158,111,.3)' : 'rgba(201,169,110,.08)'};">
+          <span style="font-size:10px;color:${rm.color};letter-spacing:.15em;text-transform:uppercase;min-width:60px;">${req.rarity}</span>
+          <span style="font-size:11px;color:var(--cream);flex:1;">${req.fish}</span>
+          <span style="font-size:11px;color:${done ? '#5a9e6f' : '#d97070'};font-family:'Cormorant Garamond',serif;font-size:16px;">${have}/${req.count}</span>
+          <span style="font-size:14px;">${done ? '✓' : '○'}</span>
+        </div>`;
+      }).join('');
 
-      arena.innerHTML = `
-        <div style="width:100%;display:flex;flex-direction:column;align-items:center;padding:20px 24px;gap:0;">
-          ${isAdmin ? `<div style="background:rgba(255,159,67,.08);border:1px solid rgba(255,159,67,.3);padding:8px 20px;margin-bottom:16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ Admin Perks: 2× weight · 3× rare fish · Wider catch zone</div>` : ''}
-          <div style="display:flex;gap:32px;margin-bottom:20px;flex-wrap:wrap;justify-content:center;">
-            <div class="g-hud-item"><div class="g-hud-val" id="fishCasts">0</div><div class="g-hud-key">Casts</div></div>
-            <div class="g-hud-item"><div class="g-hud-val" id="fishCaught">0</div><div class="g-hud-key">Caught</div></div>
-            <div class="g-hud-item"><div class="g-hud-val" id="fishBest">—</div><div class="g-hud-key">Best</div></div>
-            <button class="g-btn" onclick="fishShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Board</button>
-          </div>
-          <canvas id="fishCanvas" width="740" height="420" style="border:1px solid rgba(201,169,110,.15);max-width:100%;cursor:pointer;"></canvas>
-          <div id="fishStatus" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-top:14px;text-align:center;min-height:20px;"></div>
-          <button class="g-btn" id="fishBtn" onclick="fishAction()" style="margin-top:14px;font-size:10px;padding:12px 36px;">🎣 Cast Line</button>
-          <div id="fishCatchLog" style="margin-top:20px;width:100%;max-width:600px;"></div>
+      const statsHtml = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:12px 0;font-size:10px;letter-spacing:.1em;">
+          <div style="color:var(--text-muted);">Weight mult: <span style="color:var(--gold);">${b.weightMult}×</span></div>
+          <div style="color:var(--text-muted);">Zone size: <span style="color:var(--gold);">+${Math.round(b.zoneSizeBonus*100)}%</span></div>
+          <div style="color:var(--text-muted);">Catch rate: <span style="color:var(--gold);">+${Math.round(b.catchRateBonus*10000)/100}</span></div>
+          <div style="color:var(--text-muted);">Rare boost: <span style="color:var(--gold);">${b.rareBoost}×</span></div>
+          <div style="color:var(--text-muted);">Reel speed: <span style="color:var(--gold);">+${Math.round(b.reelSpeedBonus*1000)/10}</span></div>
+          <div style="color:var(--text-muted);">Tension redux: <span style="color:var(--gold);">-${Math.round(b.tensionReduction*100)}%</span></div>
         </div>`;
 
-      const canvas = document.getElementById('fishCanvas');
-      const ctx    = canvas.getContext('2d');
-      let casts = 0, caught = 0, bestScore = 0;
-      const catchLog = [];
-
-      function fishSetStatus(msg) { const e = document.getElementById('fishStatus'); if (e) e.textContent = msg; }
-      function fishSetBtn(label, show = true) { const e = document.getElementById('fishBtn'); if (e) { e.textContent = label; e.style.display = show ? '' : 'none'; } }
-
-      let waveT = 0;
-      function drawScene() {
-        const W = 600, H = 380;
-        ctx.clearRect(0, 0, W, H);
-        const sky = ctx.createLinearGradient(0, 0, 0, H * 0.45);
-        sky.addColorStop(0, '#0a0d18'); sky.addColorStop(1, '#0e1a2e');
-        ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H * 0.45);
-        ctx.fillStyle = 'rgba(255,255,255,.6)';
-        [[50,30],[120,15],[200,40],[350,12],[480,35],[560,20],[90,55],[310,28]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill(); });
-        const moonG = ctx.createRadialGradient(520, 45, 0, 520, 45, 25);
-        moonG.addColorStop(0, 'rgba(201,169,110,.9)'); moonG.addColorStop(1, 'rgba(201,169,110,0)');
-        ctx.fillStyle = moonG; ctx.beginPath(); ctx.arc(520, 45, 25, 0, Math.PI * 2); ctx.fill();
-        const water = ctx.createLinearGradient(0, H * 0.45, 0, H);
-        water.addColorStop(0, '#0a1520'); water.addColorStop(1, '#050e18');
-        ctx.fillStyle = water; ctx.fillRect(0, H * 0.45, W, H * 0.55);
-        ctx.strokeStyle = 'rgba(201,169,110,.12)'; ctx.lineWidth = 1.5;
-        for (let i = 0; i < 3; i++) {
-          ctx.beginPath();
-          for (let x = 0; x <= W; x += 4) {
-            const y = H * 0.46 + i * 12 + Math.sin((x / 80) + waveT + i * 1.2) * 4;
-            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-          }
-          ctx.stroke();
-        }
-        const rodX = W / 2 - 60, rodBaseY = H * 0.44;
-        ctx.strokeStyle = '#8a6d3b'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(rodX, rodBaseY + 40); ctx.lineTo(rodX + 30, rodBaseY - 10); ctx.lineTo(rodX + 55, rodBaseY - 50); ctx.stroke();
-        ctx.strokeStyle = 'rgba(201,169,110,.4)'; ctx.lineWidth = 1;
-        if (fishState === 'idle') {
-          ctx.beginPath(); ctx.moveTo(rodX + 55, rodBaseY - 50); ctx.lineTo(rodX + 55, rodBaseY - 10); ctx.stroke();
-        } else {
-          const lineEndX = W / 2 + 80, lineEndY = H * 0.5 + 20;
-          ctx.beginPath(); ctx.moveTo(rodX + 55, rodBaseY - 50); ctx.quadraticCurveTo(W / 2, H * 0.44 - 30, lineEndX, lineEndY); ctx.stroke();
-          const bobY = fishState === 'bite_wait' ? lineEndY + Math.sin(waveT * 2) * 3 : lineEndY;
-          ctx.fillStyle = fishState === 'bite_wait' ? '#d97070' : '#c9a96e';
-          ctx.beginPath(); ctx.arc(lineEndX, bobY, 5, 0, Math.PI * 2); ctx.fill();
-        }
-        if (fishState === 'bite_wait' && currentFish) {
-          const rm = RARITY_META[currentFish.rarity];
-          const bx = W / 2 + 80 + Math.sin(waveT * 0.8) * 20;
-          const by = H * 0.56 + Math.sin(waveT * 0.6) * 10;
-          ctx.globalAlpha = 0.3;
-          ctx.fillStyle = rm.color;
-          ctx.font = '32px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText(currentFish.emoji, bx, by);
-          ctx.globalAlpha = 1;
-        }
-        // Admin indicator
-        if (isAdmin) {
-          ctx.font = '10px Josefin Sans'; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = 'rgba(255,159,67,.6)';
-          ctx.fillText('⚡ ADMIN MODE', 8, 8);
-        }
-      }
-
-      function drawMinigame() {
-        if (!minigame || fishState !== 'minigame') return;
-        const W = 600, H = 380;
-        ctx.fillStyle = 'rgba(10,8,6,.82)'; ctx.fillRect(0, 0, W, H);
-        const fish = currentFish, rm = RARITY_META[fish.rarity];
-        ctx.font = 'bold 13px Josefin Sans,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-        ctx.fillStyle = rm.color; ctx.fillText(rm.label.toUpperCase() + ' — ' + fish.name, W / 2, 16);
-        ctx.fillStyle = 'rgba(201,169,110,.5)'; ctx.font = '10px Josefin Sans';
-        ctx.fillText(fish.weightKg.toFixed(3) + ' kg  ·  ' + fish.emoji + (isAdmin ? '  ⚡ Admin bonus active' : ''), W / 2, 36);
-        const barX = W / 2 - 200, barW = 400, barH = 44, barY = H / 2 - 22;
-        ctx.fillStyle = 'rgba(201,169,110,.06)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
-        ctx.fillStyle = 'rgba(14,12,9,.8)';       ctx.fillRect(barX, barY, barW, barH);
-        ctx.strokeStyle = 'rgba(201,169,110,.15)'; ctx.lineWidth = 1; ctx.strokeRect(barX, barY, barW, barH);
-        const fzW = barW * minigame.fishZoneSize, fzX = barX + minigame.fishPos * (barW - fzW);
-        ctx.fillStyle = rm.color + '44'; ctx.fillRect(fzX, barY, fzW, barH);
-        ctx.strokeStyle = rm.color + '99'; ctx.lineWidth = 1.5; ctx.strokeRect(fzX, barY, fzW, barH);
-        const pbW = barW * minigame.playerZoneSize, pbX = barX + minigame.playerPos * (barW - pbW);
-        const overlap = Math.max(0, Math.min(pbX + pbW, fzX + fzW) - Math.max(pbX, fzX));
-        const overlapRatio = overlap / fzW;
-        const pbColor = overlapRatio > 0.3 ? '#5a9e6f' : '#d97070';
-        ctx.fillStyle = pbColor + '88'; ctx.fillRect(pbX, barY, pbW, barH);
-        ctx.strokeStyle = pbColor; ctx.lineWidth = 2; ctx.strokeRect(pbX, barY, pbW, barH);
-        const meterY = barY - 24;
-        ctx.fillStyle = 'rgba(14,12,9,.6)'; ctx.fillRect(barX, meterY, barW, 12);
-        ctx.fillStyle = overlapRatio > 0.3 ? (isAdmin ? '#ff9f43' : '#5a9e6f') : '#1a1713';
-        ctx.fillRect(barX, meterY, barW * minigame.catchProgress, 12);
-        ctx.strokeStyle = 'rgba(201,169,110,.2)'; ctx.lineWidth = 1; ctx.strokeRect(barX, meterY, barW, 12);
-        ctx.fillStyle = 'rgba(201,169,110,.5)'; ctx.font = '9px Josefin Sans'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-        ctx.fillText('CATCH', barX, meterY - 14); ctx.textAlign = 'right';
-        ctx.fillText(Math.round(minigame.catchProgress * 100) + '%', barX + barW, meterY - 14);
-        const tenX = barX + barW + 14, tenH = barH + 36, tenW = 14, tenY = meterY;
-        ctx.fillStyle = 'rgba(14,12,9,.6)'; ctx.fillRect(tenX, tenY, tenW, tenH);
-        const tenRatio = minigame.tension / minigame.maxTension;
-        const tenColor = tenRatio > 0.8 ? '#d97070' : tenRatio > 0.5 ? '#c9a96e' : '#5a9e6f';
-        ctx.fillStyle = tenColor; ctx.fillRect(tenX, tenY + tenH * (1 - tenRatio), tenW, tenH * tenRatio);
-        ctx.strokeStyle = 'rgba(201,169,110,.2)'; ctx.lineWidth = 1; ctx.strokeRect(tenX, tenY, tenW, tenH);
-        ctx.fillStyle = 'rgba(201,169,110,.4)'; ctx.font = '8px Josefin Sans'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-        ctx.fillText('LINE', tenX + tenW / 2, tenY - 12);
-        ctx.font = '10px Josefin Sans'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-        ctx.fillStyle = 'rgba(196,185,154,.4)';
-        ctx.fillText('HOLD SPACE / click & hold to reel in — keep ▮ over the fish zone', W / 2, H - 12);
-        const fishX = barX + minigame.fishPos * (barW - fzW) + fzW / 2;
-        ctx.font = '28px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = 0.9;
-        ctx.fillText(fish.emoji, fishX, barY + barH + 28); ctx.globalAlpha = 1;
-      }
-
-      let holding = false;
-
-      function gameLoop() {
-        if (!document.getElementById('fishCanvas')) { cancelAnimationFrame(raf2); return; }
-        waveT += 0.03;
-        if (fishState === 'minigame' && minigame) {
-          if (minigame.power === 'freezeBar' && minigame.freezeTimer > 0) {
-  minigame.freezeTimer--;
-} else {
-  // Wider oscillation: use a sine-based drift with random bumps
-minigame.fishT = (minigame.fishT || 0) + 0.022;
-const targetPos = 0.5 + Math.sin(minigame.fishT) * 0.42 + Math.sin(minigame.fishT * 2.3) * 0.15;
-const diff = targetPos - (minigame.fishPos + minigame.fishZoneSize / 2);
-// Accelerate toward target, decelerate naturally via drag
-minigame.fishVel += diff * 0.06 + (Math.random() - 0.5) * 0.018;
-minigame.fishVel *= 0.88; // drag — causes natural deceleration
-minigame.fishVel = Math.max(-minigame.maxSpeed * 2.2, Math.min(minigame.maxSpeed * 2.2, minigame.fishVel));
-minigame.fishPos += minigame.fishVel;
-          }
-          const fzW = minigame.fishZoneSize;
-          if (minigame.fishPos < 0)        { minigame.fishPos = 0;          minigame.fishVel *= -1; }
-          if (minigame.fishPos > 1 - fzW)  { minigame.fishPos = 1 - fzW;   minigame.fishVel *= -1; }
-          const pbW = minigame.playerZoneSize;
-          if (holding)  minigame.playerPos += 0.025;
-          else          minigame.playerPos -= 0.018;
-          minigame.playerPos = Math.max(0, Math.min(1 - pbW, minigame.playerPos));
-          const fzX_rel = minigame.fishPos, pbX_rel = minigame.playerPos;
-          const overlap = Math.max(0, Math.min(pbX_rel + pbW, fzX_rel + fzW) - Math.max(pbX_rel, fzX_rel));
-          const overlapRatio = overlap / fzW;
-          if (overlapRatio > 0.3) {
-  // slowBar: fish decelerates when overlapping
-  if (minigame.power === 'slowBar') minigame.fishVel *= 0.85;
-  // freezeBar: start freeze timer
-  if (minigame.power === 'freezeBar') minigame.freezeTimer = Math.max(minigame.freezeTimer, 18);
-  // autoReel: fills 2-3× faster
-  const rateBoost = minigame.autoReelActive ? 2.5 : 1.0;
-  minigame.catchProgress += getCatchRate(overlapRatio) * rateBoost;
-  minigame.tension -= 0.008;
-} else {
-  minigame.catchProgress -= 0.002;
-  minigame.tension += holding ? 0.014 : 0.004;
-}
-          minigame.catchProgress = Math.max(0, Math.min(1, minigame.catchProgress));
-          minigame.tension       = Math.max(0, Math.min(minigame.maxTension, minigame.tension));
-          if (minigame.catchProgress >= 1)        { fishState = 'caught'; onFishCaught(); }
-          else if (minigame.tension >= minigame.maxTension) { fishState = 'failed'; onFishFailed(); }
-        }
-        drawScene();
-        if (fishState === 'minigame') drawMinigame();
-        raf2 = requestAnimationFrame(gameLoop);
-      }
-
-      window.fishAction = function () {
-        if      (fishState === 'idle')                fishStartCast();
-        else if (fishState === 'bite_wait')           startMinigame();
-        else if (fishState === 'caught' || fishState === 'failed') { fishState = 'idle'; currentFish = null; fishSetBtn('🎣 Cast Line'); fishSetStatus(''); }
-      };
-
-      canvas.addEventListener('mousedown',  ()  => holding = true);
-      canvas.addEventListener('mouseup',    ()  => holding = false);
-      canvas.addEventListener('mouseleave', ()  => holding = false);
-      canvas.addEventListener('touchstart', e  => { e.preventDefault(); holding = true; }, { passive: false });
-      canvas.addEventListener('touchend',   ()  => holding = false);
-
-      function handleFishKey(e)    { if (!document.getElementById('fishCanvas')) { document.removeEventListener('keydown', handleFishKey); return; } if (e.key === ' ') { e.preventDefault(); holding = true; if (fishState === 'idle') fishStartCast(); else if (fishState === 'bite_wait') startMinigame(); } }
-      function handleFishKeyUp(e)  { if (!document.getElementById('fishCanvas')) { document.removeEventListener('keyup', handleFishKeyUp); return; } if (e.key === ' ') holding = false; }
-      document.addEventListener('keydown', handleFishKey);
-      document.addEventListener('keyup',   handleFishKeyUp);
-
-      function fishStartCast() {
-        fishState = 'casting';
-        casts++;
-        document.getElementById('fishCasts').textContent = casts;
-        fishSetBtn('', false);
-        fishSetStatus('Line in the water… waiting for a bite');
-        currentFish = rollFish();
-        const rm = RARITY_META[currentFish.rarity];
-        // Admin: bite comes faster
-        const baseWait = isAdmin ? 800 : 1500;
-        const waitMs   = baseWait + Math.random() * 2500 * (1 / rm.weight * 30);
-        biteTimer = setTimeout(() => {
-          fishState = 'bite_wait';
-          fishSetStatus('🐟 Something is biting! Press SPACE or click to reel in!');
-          fishSetBtn('🎣 Reel In!');
-          // Admin: more time to respond
-          const reelWindow = isAdmin ? 6000 : 4000;
-          biteTimer = setTimeout(() => {
-            if (fishState === 'bite_wait') {
-              fishState = 'idle'; currentFish = null;
-              fishSetStatus('Too slow — the fish got away!');
-              fishSetBtn('🎣 Cast Again');
-            }
-          }, reelWindow);
-        }, waitMs);
-      }
-function startMinigame() {
-  if (fishState !== 'bite_wait') return;
-  clearTimeout(biteTimer);
-  fishState = 'minigame';
-  fishSetBtn('', false);
-  const rm = RARITY_META[currentFish.rarity];
-  const power = currentFish.power;
-  minigame = {
-    fishPos:        0.3,
-    fishVel:        rm.barSpeed * 0.012,
-    fishZoneSize:   rm.barSize,
-    playerPos:      0.4,
-    playerZoneSize: power === 'widenZone'
-                      ? Math.min(getPlayerZoneSize() * (currentFish.rarity === 'legendary' ? 2.2 : currentFish.rarity === 'mythical' ? 3.0 : 1.5), 0.7)
-                      : getPlayerZoneSize(),
-    catchProgress:  0,
-    tension:        0,
-    maxTension:     rm.tension,
-    maxSpeed:       rm.barSpeed * 0.025,
-    randomness:     rm.barSpeed,
-    power,
-    freezeTimer:    0,   // for freezeBar power
-    autoReelActive: power === 'autoReel',
-    bonusMult:      power === 'bonusScore'
-                      ? ({ uncommon: 1.2, rare: 1.3, epic: 1.5, legendary: 2.0 }[currentFish.rarity] || 1.0)
-                      : 1.0,
-  };
-  // Show power hint
-  const powerHints = {
-    slowBar:    '🐠 Power: Bar slows when you overlap!',
-    widenZone:  '📏 Power: Your catch zone is wider!',
-    freezeBar:  '❄️ Power: Bar freezes on overlap!',
-    autoReel:   '⚡ Power: Catch fills faster!',
-    bonusScore: '💰 Power: Bonus score on catch!',
-  };
-  fishSetStatus(powerHints[power] || 'Hold SPACE / click & hold to reel in!');
-}
-
-      function onFishCaught() {
-        const fish  = currentFish;
-        const rm    = RARITY_META[fish.rarity];
-        caught++;
-        const score = Math.round(fish.weightKg * fish.mult * 10 * (minigame?.bonusMult || 1.0));
-        if (score > bestScore) { bestScore = score; document.getElementById('fishBest').textContent = score; }
-        document.getElementById('fishCaught').textContent = caught;
-        catchLog.unshift({ fish, score });
-        if (catchLog.length > 5) catchLog.pop();
-        renderCatchLog();
-        saveFishCatch(fish, score);
-        fishSetStatus(`🎉 Caught a ${rm.label} ${fish.name}! ${fish.weightKg.toFixed(3)} kg · ${score} pts`);
-        fishSetBtn('🎣 Cast Again');
-        setTimeout(() => drawCelebration(fish, score), 50);
-        minigame = null; currentFish = null;
-      }
-
-      function onFishFailed() {
-        fishSetStatus('💦 Line snapped — the fish escaped!');
-        fishSetBtn('🎣 Try Again');
-        minigame = null; currentFish = null;
-      }
-
-      function drawCelebration(fish, score) {
-        const W = 600, H = 380;
-        ctx.fillStyle = 'rgba(10,8,6,.88)'; ctx.fillRect(0, 0, W, H);
-        const rm = RARITY_META[fish.rarity];
-        ctx.font = '56px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(fish.emoji, W / 2, H / 2 - 60);
-        ctx.font = 'bold 28px Cormorant Garamond,serif'; ctx.fillStyle = rm.color; ctx.fillText(fish.name, W / 2, H / 2 - 5);
-        ctx.font = '11px Josefin Sans'; ctx.fillStyle = 'rgba(201,169,110,.7)';
-        ctx.fillText(rm.label.toUpperCase() + ' · ' + fish.weightKg.toFixed(3) + ' kg', W / 2, H / 2 + 28);
-        ctx.font = 'bold 22px Cormorant Garamond,serif'; ctx.fillStyle = isAdmin ? 'var(--admin)' : '#c9a96e';
-        ctx.fillText('+' + score + ' pts' + (isAdmin ? ' ⚡' : ''), W / 2, H / 2 + 62);
-        ctx.font = '9px Josefin Sans'; ctx.fillStyle = 'rgba(196,185,154,.3)';
-        ctx.fillText(fish.desc, W / 2, H / 2 + 90);
-      }
-
-      function renderCatchLog() {
-        const el = document.getElementById('fishCatchLog');
-        if (!el) return;
-        el.innerHTML = `<div class="section-head" style="margin-bottom:10px;"><h2 class="section-title" style="font-size:16px;">Recent Catches</h2><div class="section-line"></div></div>` +
-          catchLog.map(({ fish, score }) => {
-            const rm = RARITY_META[fish.rarity];
-            return `<div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(201,169,110,.06);background:var(--dark-2);">
-              <span style="font-size:22px;">${fish.emoji}</span>
-              <div style="flex:1;">
-                <div style="font-size:11px;letter-spacing:.12em;color:${rm.color};text-transform:uppercase;margin-bottom:2px;">${rm.label} · ${fish.name}</div>
-                <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);">${fish.weightKg.toFixed(3)} kg · ${fish.desc.slice(0, 55)}…</div>
-              </div>
-              <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--gold);">${score}</div>
-            </div>`;
-          }).join('');
-      }
-
-      async function saveFishCatch(fish, score) {
-        if (!currentUser) return;
-        try {
-          await db.from('fish_catches').insert({
-            user_id:     currentUser.id,
-            player_name: currentUserName || currentUser.email,
-            fish_name:   fish.name,
-            rarity:      fish.rarity,
-            weight_kg:   fish.weightKg,
-            score,
-          });
-        } catch (e) { console.log('Fish save error:', e); }
-      }
-
-      window.fishShowLeaderboard = async function () {
-        let entries = [];
-        try {
-          const { data } = await db.from('fish_catches').select('*').order('score', { ascending: false }).limit(20);
-          if (data) entries = data;
-        } catch (e) {}
-        const ov   = document.createElement('div');
-        ov.className = 'lb-overlay';
-        ov.id = 'fishLBOverlay';
-        const tabs = ['Top Score', 'Heaviest', 'Rarest'];
-        let activeTab = 'Top Score';
-        function renderLB(tab) {
-          let sorted = [...entries];
-          if (tab === 'Heaviest') sorted.sort((a, b) => b.weight_kg - a.weight_kg);
-          if (tab === 'Rarest') {
-            const ro = { celestial: 0, mythical: 1, legendary: 2, epic: 3, rare: 4, uncommon: 5, common: 6 };
-            sorted.sort((a, b) => (ro[a.rarity] || 5) - (ro[b.rarity] || 5));
-          }
-          const rows = sorted.slice(0, 15).map((e, i) => {
-            const rm  = RARITY_META[e.rarity] || { color: '#9a9286', label: 'Common' };
-            const rc  = i === 0 ? 'gold-rank' : i === 1 ? 'silver-rank' : i === 2 ? 'bronze-rank' : '';
-            const med = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-            return `<div class="lb-row">
-              <div class="lb-rank ${rc}">${i + 1}</div>
-              <div style="flex:1;"><div style="font-size:10px;letter-spacing:.12em;color:var(--cream);text-transform:uppercase;">${e.player_name || 'Anonymous'} ${med}</div><div style="font-size:9px;letter-spacing:.1em;color:${rm.color};">${rm.label} · ${e.fish_name}</div></div>
-              <div style="text-align:right;"><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--gold);">${tab === 'Heaviest' ? e.weight_kg.toFixed(3) + ' kg' : e.score + ' pts'}</div></div>
-            </div>`;
-          }).join('');
-          return rows || '<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No catches yet — be the first!</div>';
-        }
-        ov.innerHTML = `<div class="lb-modal" style="max-width:560px;">
-          <button class="lb-close" onclick="document.getElementById('fishLBOverlay').remove()">✕</button>
-          <div style="text-align:center;margin-bottom:24px;">
-            <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">🎣 Fishing</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">Leaderboard</div>
+      return `<div style="background:var(--dark-2);border:1px solid ${owned ? rod.color+'66' : 'rgba(201,169,110,.1)'};padding:24px;margin-bottom:12px;position:relative;">
+        ${owned ? `<div style="position:absolute;top:12px;right:12px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#5a9e6f;border:1px solid rgba(90,158,111,.3);padding:3px 10px;">CRAFTED</div>` : ''}
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+          <span style="font-size:32px;">${rod.emoji}</span>
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:${rod.color};">${rod.name}</div>
+            <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-top:2px;">${rod.desc}</div>
           </div>
-          <div style="display:flex;gap:6px;margin-bottom:20px;">${tabs.map(t => `<button onclick="fishLBTab('${t}')" id="fishLBBtn-${t.replace(/ /g,'_')}" class="filter-btn${t === activeTab ? ' active' : ''}" style="flex:1;">${t}</button>`).join('')}</div>
-          <div id="fishLBRows">${renderLB(activeTab)}</div>
-        </div>`;
-        document.body.appendChild(ov);
-        window.fishLBTab = function (tab) {
-          activeTab = tab;
-          tabs.forEach(t => { const b = document.getElementById('fishLBBtn-' + t.replace(/ /g, '_')); if (b) b.classList.toggle('active', t === tab); });
-          const rows = document.getElementById('fishLBRows');
-          if (rows) rows.innerHTML = renderLB(tab);
-        };
-      };
+        </div>
+        ${statsHtml}
+        <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Recipe</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px;">${recipeHtml}</div>
+        ${owned
+          ? `<button class="btn-gold" onclick="fishEquipRod('${rod.id}')" style="${equippedRodId===rod.id?'border-color:#5a9e6f;':''}"><span>${equippedRodId===rod.id ? '✓ Equipped' : 'Equip'}</span></button>`
+          : `<button class="btn-gold" onclick="fishTryCraft('${rod.id}')" ${craftable?'':'disabled'} style="opacity:${craftable?'1':'.4'};cursor:${craftable?'pointer':'not-allowed'};"><span>${craftable ? '🔨 Craft Now' : 'Catch required fish first'}</span></button>`
+        }
+      </div>`;
+    }).join('');
+  }
 
-      fishSetStatus('Press "Cast Line" or SPACE to start fishing');
-      gameLoop();
+  window.fishTryCraft = function(rodId) {
+    const rod = ROD_DEFS.find(r => r.id === rodId);
+    if (!rod || !craftRod(rod)) { toast('Requirements not met yet.'); return; }
+    toast(`🎉 ${rod.name} crafted! Check your rod bar.`);
+    renderRodBar();
+    renderCraftPanel();
+    renderProgressPanel();
+  };
+
+  // ── PROGRESS PANEL ────────────────────────────────────────
+  function renderProgressPanel() {
+    const el = document.getElementById('panelProg'); if (!el) return;
+    const nextRod = ROD_DEFS.find(r => r.craftable && !unlockedRods.has(r.id));
+    const allFishSeen = Object.entries(catchHistory).sort((a,b) => b[1]-a[1]);
+    const totalCaught = allFishSeen.reduce((s,[,c]) => s+c, 0);
+
+    let nextHtml = '';
+    if (nextRod) {
+      const progress = nextRod.recipe.map(req => {
+        const have = catchHistory[req.fish] || 0;
+        const pct  = Math.min(100, Math.round((have / req.count) * 100));
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:.1em;margin-bottom:4px;">
+            <span style="color:var(--cream);">${req.fish}</span>
+            <span style="color:${have>=req.count?'#5a9e6f':'var(--gold)'};">${have}/${req.count}</span>
+          </div>
+          <div style="height:6px;background:rgba(201,169,110,.08);position:relative;">
+            <div style="height:100%;width:${pct}%;background:${have>=req.count?'#5a9e6f':'var(--gold)'};transition:width .4s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+      nextHtml = `<div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.15);padding:20px;margin-bottom:16px;">
+        <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Next to craft</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:${nextRod.color};margin-bottom:14px;">${nextRod.emoji} ${nextRod.name}</div>
+        ${progress}
+      </div>`;
+    } else {
+      nextHtml = `<div style="background:var(--dark-2);border:1px solid rgba(90,158,111,.3);padding:20px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:8px;">🏆</div>
+        <div style="font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#5a9e6f;">All rods crafted!</div>
+      </div>`;
     }
 
+    const rarityGroups = {};
+    FISH_TABLE.forEach(f => { rarityGroups[f.rarity] = rarityGroups[f.rarity] || []; rarityGroups[f.rarity].push(f.name); });
+    const compHtml = Object.entries(RARITY_META).map(([r, rm]) => {
+      const fish = rarityGroups[r] || [];
+      const caughtCount = fish.filter(n => (catchHistory[n]||0)>0).length;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(201,169,110,.05);">
+        <span style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:${rm.color};min-width:70px;">${rm.label}</span>
+        <div style="flex:1;height:5px;background:rgba(201,169,110,.08);position:relative;">
+          <div style="height:100%;width:${Math.round(caughtCount/fish.length*100)}%;background:${rm.color};"></div>
+        </div>
+        <span style="font-size:10px;color:var(--text-muted);">${caughtCount}/${fish.length}</span>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="background:var(--dark-2);padding:16px;text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">${totalCaught}</div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Total Caught</div>
+        </div>
+        <div style="background:var(--dark-2);padding:16px;text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">${allFishSeen.length}</div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Species Found</div>
+        </div>
+        <div style="background:var(--dark-2);padding:16px;text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">${[...unlockedRods].length}</div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Rods Owned</div>
+        </div>
+      </div>
+      ${nextHtml}
+      <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Compendium Progress</div>
+      <div style="background:var(--dark-2);padding:16px;margin-bottom:16px;">${compHtml}</div>
+      ${allFishSeen.length ? `
+        <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Top Catches</div>
+        <div style="background:var(--dark-2);padding:16px;">
+          ${allFishSeen.slice(0,10).map(([name, count]) => {
+            const fish = FISH_TABLE.find(f => f.name === name);
+            const rm   = RARITY_META[fish?.rarity || 'common'];
+            return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(201,169,110,.05);">
+              <span style="font-size:16px;">${fish?.emoji||'🐟'}</span>
+              <span style="flex:1;font-size:11px;letter-spacing:.1em;color:var(--cream);">${name}</span>
+              <span style="font-size:9px;color:${rm.color};letter-spacing:.15em;text-transform:uppercase;">${rm.label}</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);">×${count}</span>
+            </div>`;
+          }).join('')}
+        </div>` : ''}`;
+  }
+
+  // ── CATCH LOG ─────────────────────────────────────────────
+  function renderCatchLog() {
+    const el = document.getElementById('panelFish'); if (!el) return;
+    if (!catchLog.length) { el.innerHTML = '<div style="padding:24px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(138,128,112,.4);">No catches yet — cast a line!</div>'; return; }
+    el.innerHTML = catchLog.map(({ fish, score }) => {
+      const rm = RARITY_META[fish.rarity];
+      return `<div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(201,169,110,.06);background:var(--dark-2);">
+        <span style="font-size:22px;">${fish.emoji}</span>
+        <div style="flex:1;">
+          <div style="font-size:11px;letter-spacing:.12em;color:${rm.color};text-transform:uppercase;margin-bottom:2px;">${rm.label} · ${fish.name}</div>
+          <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);">${fish.weightKg.toFixed(3)} kg · ${fish.desc.slice(0,55)}…</div>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--gold);">${score}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── FISHING LOGIC ─────────────────────────────────────────
+  function fishSetStatus(msg) { const e = document.getElementById('fishStatus'); if (e) e.textContent = msg; }
+  function fishSetBtn(label, show = true) { const e = document.getElementById('fishBtn'); if (e) { e.textContent = label; e.style.display = show ? '' : 'none'; } }
+
+  function drawScene() {
+    const W = 700, H = 400;
+    ctx.clearRect(0, 0, W, H);
+    const sky = ctx.createLinearGradient(0, 0, 0, H * 0.45);
+    sky.addColorStop(0, '#0a0d18'); sky.addColorStop(1, '#0e1a2e');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H * 0.45);
+    ctx.fillStyle = 'rgba(255,255,255,.6)';
+    [[50,30],[120,15],[200,40],[350,12],[480,35],[560,20],[620,45],[90,55],[310,28]].forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2); ctx.fill(); });
+    const moonG = ctx.createRadialGradient(580,40,0,580,40,25);
+    moonG.addColorStop(0,'rgba(201,169,110,.9)'); moonG.addColorStop(1,'rgba(201,169,110,0)');
+    ctx.fillStyle = moonG; ctx.beginPath(); ctx.arc(580,40,25,0,Math.PI*2); ctx.fill();
+    const water = ctx.createLinearGradient(0,H*.45,0,H);
+    water.addColorStop(0,'#0a1520'); water.addColorStop(1,'#050e18');
+    ctx.fillStyle = water; ctx.fillRect(0,H*.45,W,H*.55);
+    ctx.strokeStyle='rgba(201,169,110,.12)'; ctx.lineWidth=1.5;
+    for(let i=0;i<3;i++){ctx.beginPath();for(let x=0;x<=W;x+=4){const y=H*.46+i*12+Math.sin((x/80)+waveT+i*1.2)*4;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}
+    // Draw rod with equipped rod colour
+    const rod = getEquippedRod();
+    const rodX=W/2-80, rodBaseY=H*.44;
+    ctx.strokeStyle = rod.color || '#8a6d3b'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(rodX,rodBaseY+40); ctx.lineTo(rodX+30,rodBaseY-10); ctx.lineTo(rodX+60,rodBaseY-55); ctx.stroke();
+    // Rod glow for special rods
+    if (rod.id !== 'starter') {
+      ctx.shadowBlur=12; ctx.shadowColor=rod.color;
+      ctx.strokeStyle=rod.color+'66'; ctx.lineWidth=5;
+      ctx.beginPath(); ctx.moveTo(rodX,rodBaseY+40); ctx.lineTo(rodX+60,rodBaseY-55); ctx.stroke();
+      ctx.shadowBlur=0;
+    }
+    ctx.strokeStyle='rgba(201,169,110,.4)'; ctx.lineWidth=1;
+    if(fishState==='idle'){ctx.beginPath();ctx.moveTo(rodX+60,rodBaseY-55);ctx.lineTo(rodX+60,rodBaseY-10);ctx.stroke();}
+    else{const lx=W/2+100,ly=H*.5+20;ctx.beginPath();ctx.moveTo(rodX+60,rodBaseY-55);ctx.quadraticCurveTo(W/2,H*.44-30,lx,ly);ctx.stroke();const bobY=fishState==='bite_wait'?ly+Math.sin(waveT*2)*3:ly;ctx.fillStyle=fishState==='bite_wait'?'#d97070':rod.color;ctx.beginPath();ctx.arc(lx,bobY,5,0,Math.PI*2);ctx.fill();}
+    if(fishState==='bite_wait'&&currentFish){const rm=RARITY_META[currentFish.rarity];ctx.globalAlpha=.3;ctx.fillStyle=rm.color;ctx.font='32px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(currentFish.emoji,W/2+100+Math.sin(waveT*.8)*20,H*.56+Math.sin(waveT*.6)*10);ctx.globalAlpha=1;}
+    // Rod name watermark
+    ctx.font='9px Josefin Sans'; ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillStyle=rod.color+'99'; ctx.fillText(rod.emoji+' '+rod.name, 8, 8);
+    if(isAdmin){ctx.fillStyle='rgba(255,159,67,.5)';ctx.fillText('⚡ ADMIN',8,20);}
+  }
+
+  function drawMinigame() {
+    if(!minigame||fishState!=='minigame') return;
+    const W=700,H=400,fish=currentFish,rm=RARITY_META[fish.rarity];
+    ctx.fillStyle='rgba(10,8,6,.82)'; ctx.fillRect(0,0,W,H);
+    ctx.font='bold 13px Josefin Sans'; ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillStyle=rm.color; ctx.fillText(rm.label.toUpperCase()+' — '+fish.name,W/2,14);
+    ctx.fillStyle='rgba(201,169,110,.5)'; ctx.font='10px Josefin Sans';
+    ctx.fillText(fish.weightKg.toFixed(3)+' kg  ·  '+fish.emoji+'  ·  '+getEquippedRod().emoji+' '+getEquippedRod().name,W/2,34);
+    const barX=W/2-210,barW=420,barH=44,barY=H/2-22;
+    ctx.fillStyle='rgba(201,169,110,.06)'; ctx.fillRect(barX-2,barY-2,barW+4,barH+4);
+    ctx.fillStyle='rgba(14,12,9,.8)'; ctx.fillRect(barX,barY,barW,barH);
+    ctx.strokeStyle='rgba(201,169,110,.15)'; ctx.lineWidth=1; ctx.strokeRect(barX,barY,barW,barH);
+    const fzW=barW*minigame.fishZoneSize,fzX=barX+minigame.fishPos*(barW-fzW);
+    ctx.fillStyle=rm.color+'44'; ctx.fillRect(fzX,barY,fzW,barH);
+    ctx.strokeStyle=rm.color+'99'; ctx.lineWidth=1.5; ctx.strokeRect(fzX,barY,fzW,barH);
+    const pbW=barW*minigame.playerZoneSize,pbX=barX+minigame.playerPos*(barW-pbW);
+    const overlap=Math.max(0,Math.min(pbX+pbW,fzX+fzW)-Math.max(pbX,fzX));
+    const overlapRatio=overlap/fzW;
+    const pbColor=overlapRatio>.3?'#5a9e6f':'#d97070';
+    ctx.fillStyle=pbColor+'88'; ctx.fillRect(pbX,barY,pbW,barH);
+    ctx.strokeStyle=pbColor; ctx.lineWidth=2; ctx.strokeRect(pbX,barY,pbW,barH);
+    const meterY=barY-24;
+    ctx.fillStyle='rgba(14,12,9,.6)'; ctx.fillRect(barX,meterY,barW,12);
+    ctx.fillStyle=overlapRatio>.3?getEquippedRod().color:'#1a1713';
+    ctx.fillRect(barX,meterY,barW*minigame.catchProgress,12);
+    ctx.strokeStyle='rgba(201,169,110,.2)'; ctx.lineWidth=1; ctx.strokeRect(barX,meterY,barW,12);
+    ctx.fillStyle='rgba(201,169,110,.5)'; ctx.font='9px Josefin Sans'; ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('CATCH',barX,meterY-14); ctx.textAlign='right';
+    ctx.fillText(Math.round(minigame.catchProgress*100)+'%',barX+barW,meterY-14);
+    const tenX=barX+barW+14,tenH=barH+36,tenW=14,tenY=meterY;
+    ctx.fillStyle='rgba(14,12,9,.6)'; ctx.fillRect(tenX,tenY,tenW,tenH);
+    const tenRatio=minigame.tension/minigame.maxTension;
+    const tenColor=tenRatio>.8?'#d97070':tenRatio>.5?'#c9a96e':'#5a9e6f';
+    ctx.fillStyle=tenColor; ctx.fillRect(tenX,tenY+tenH*(1-tenRatio),tenW,tenH*tenRatio);
+    ctx.strokeStyle='rgba(201,169,110,.2)'; ctx.lineWidth=1; ctx.strokeRect(tenX,tenY,tenW,tenH);
+    ctx.fillStyle='rgba(201,169,110,.4)'; ctx.font='8px Josefin Sans'; ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText('LINE',tenX+tenW/2,tenY-12);
+    ctx.fillStyle='rgba(196,185,154,.4)'; ctx.font='10px Josefin Sans'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText('HOLD SPACE / click & hold to reel in',W/2,H-12);
+    ctx.font='28px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.globalAlpha=.9;
+    ctx.fillText(fish.emoji,barX+minigame.fishPos*(barW-fzW)+fzW/2,barY+barH+28); ctx.globalAlpha=1;
+  }
+
+  function gameLoop() {
+    if(!document.getElementById('fishCanvas')){cancelAnimationFrame(raf2);return;}
+    waveT+=.03;
+    if(fishState==='minigame'&&minigame){
+      if(minigame.freezeTimer>0){minigame.freezeTimer--;}
+      else{
+        minigame.fishT=(minigame.fishT||0)+0.022;
+        const target=0.5+Math.sin(minigame.fishT)*0.42+Math.sin(minigame.fishT*2.3)*0.15;
+        const diff=target-(minigame.fishPos+minigame.fishZoneSize/2);
+        minigame.fishVel+=diff*0.06+(Math.random()-.5)*0.018;
+        minigame.fishVel*=0.88;
+        minigame.fishVel=Math.max(-minigame.maxSpeed*2.2,Math.min(minigame.maxSpeed*2.2,minigame.fishVel));
+        minigame.fishPos+=minigame.fishVel;
+      }
+      const fzW=minigame.fishZoneSize;
+      if(minigame.fishPos<0){minigame.fishPos=0;minigame.fishVel*=-1;}
+      if(minigame.fishPos>1-fzW){minigame.fishPos=1-fzW;minigame.fishVel*=-1;}
+      const pbW=minigame.playerZoneSize;
+      const reelSpeed = 0.025 + getRodBonus('reelSpeedBonus');
+      const fallSpeed = 0.018;
+      if(holding) minigame.playerPos+=reelSpeed;
+      else        minigame.playerPos-=fallSpeed;
+      minigame.playerPos=Math.max(0,Math.min(1-pbW,minigame.playerPos));
+      const fzX_rel=minigame.fishPos,pbX_rel=minigame.playerPos;
+      const overlap=Math.max(0,Math.min(pbX_rel+pbW,fzX_rel+fzW)-Math.max(pbX_rel,fzX_rel));
+      const overlapRatio=overlap/fzW;
+      if(overlapRatio>.3){
+        if(minigame.power==='slowBar'||minigame.rodPower==='slowBar') minigame.fishVel*=.82;
+        if(minigame.power==='freezeBar'||minigame.rodPower==='freezeBar') minigame.freezeTimer=Math.max(minigame.freezeTimer,22);
+        const rateBoost=minigame.autoReelActive?2.5:1.0;
+        minigame.catchProgress+=getCatchRate(overlapRatio)*rateBoost;
+        minigame.tension-=0.008;
+      } else {
+        minigame.catchProgress-=0.002;
+        const tensionRate = holding ? (0.014*(1-getRodBonus('tensionReduction'))) : 0.004;
+        minigame.tension+=tensionRate;
+      }
+      minigame.catchProgress=Math.max(0,Math.min(1,minigame.catchProgress));
+      minigame.tension=Math.max(0,Math.min(minigame.maxTension,minigame.tension));
+      if(minigame.catchProgress>=1)       {fishState='caught';onFishCaught();}
+      else if(minigame.tension>=minigame.maxTension){fishState='failed';onFishFailed();}
+    }
+    drawScene();
+    if(fishState==='minigame') drawMinigame();
+    raf2=requestAnimationFrame(gameLoop);
+  }
+
+  window.fishAction = function() {
+    if     (fishState==='idle')                 fishStartCast();
+    else if(fishState==='bite_wait')            startMinigame();
+    else if(fishState==='caught'||fishState==='failed'){fishState='idle';currentFish=null;fishSetBtn('🎣 Cast Line');fishSetStatus('');}
+  };
+
+  canvas.addEventListener('mousedown',  ()  => holding=true);
+  canvas.addEventListener('mouseup',    ()  => holding=false);
+  canvas.addEventListener('mouseleave', ()  => holding=false);
+  canvas.addEventListener('touchstart', e  => {e.preventDefault();holding=true;},{passive:false});
+  canvas.addEventListener('touchend',   ()  => holding=false);
+
+  function hFishKey(e){if(!document.getElementById('fishCanvas')){document.removeEventListener('keydown',hFishKey);return;}if(e.key===' '){e.preventDefault();holding=true;if(fishState==='idle')fishStartCast();else if(fishState==='bite_wait')startMinigame();}}
+  function hFishKeyUp(e){if(!document.getElementById('fishCanvas')){document.removeEventListener('keyup',hFishKeyUp);return;}if(e.key===' ')holding=false;}
+  document.addEventListener('keydown',hFishKey);
+  document.addEventListener('keyup',hFishKeyUp);
+
+  function fishStartCast() {
+    fishState='casting'; casts++;
+    document.getElementById('fishCasts').textContent=casts;
+    fishSetBtn('',false);
+    fishSetStatus('Line in the water… waiting for a bite');
+    currentFish=rollFish();
+    const rm=RARITY_META[currentFish.rarity];
+    const biteBonus=getRodBonus('biteSpeedBonus');
+    const baseWait=Math.max(400,(isAdmin?600:1200)-biteBonus);
+    const waitMs=baseWait+Math.random()*2000*(1/rm.weight*30);
+    biteTimer=setTimeout(()=>{
+      fishState='bite_wait';
+      fishSetStatus('🐟 Something is biting! Press SPACE or click!');
+      fishSetBtn('🎣 Reel In!');
+      biteTimer=setTimeout(()=>{
+        if(fishState==='bite_wait'){fishState='idle';currentFish=null;fishSetStatus('Too slow — the fish got away!');fishSetBtn('🎣 Cast Again');}
+      },isAdmin?6000:4000);
+    },waitMs);
+  }
+
+  function startMinigame() {
+    if(fishState!=='bite_wait') return;
+    clearTimeout(biteTimer);
+    fishState='minigame';
+    fishSetBtn('',false);
+    const rm=RARITY_META[currentFish.rarity];
+    const rod=getEquippedRod();
+    const fishPower=currentFish.power;
+    const rodPower=rod.power;
+    // allPowers rod: combine effects
+    const effectivePower = rod.id==='celestial' ? fishPower : fishPower;
+    const tensionMax = rm.tension * (1 - getRodBonus('tensionReduction'));
+    let zoneSize = getPlayerZoneSize();
+    if(fishPower==='widenZone'||rodPower==='widenZone') zoneSize=Math.min(zoneSize*1.6,0.7);
+    minigame={
+      fishPos:.3, fishVel:rm.barSpeed*.012, fishT:0,
+      fishZoneSize:rm.barSize,
+      playerPos:.4, playerZoneSize:zoneSize,
+      catchProgress:0, tension:0, maxTension:tensionMax,
+      maxSpeed:rm.barSpeed*.025, power:effectivePower, rodPower,
+      freezeTimer:0,
+      autoReelActive:(fishPower==='autoReel'||rodPower==='autoReel'),
+      bonusMult:(fishPower==='bonusScore'?({uncommon:1.2,rare:1.3,epic:1.5,legendary:2.0}[currentFish.rarity]||1.0):1.0),
+    };
+    const hints={slowBar:'🐠 Bar slows on overlap!',widenZone:'📏 Zone widened!',freezeBar:'❄️ Bar freezes on hit!',autoReel:'⚡ Auto-reel active!',bonusScore:'💰 Score bonus on catch!'};
+    const ph=hints[fishPower]||'Hold SPACE / click to reel!';
+    const rh=rodPower&&rodPower!==fishPower?` ${rod.emoji} ${rod.name} bonus active!`:'';
+    fishSetStatus(ph+rh);
+  }
+
+  function onFishCaught() {
+    const fish=currentFish,rm=RARITY_META[fish.rarity];
+    caught++;
+    const score=Math.round(fish.weightKg*fish.mult*10*(minigame?.bonusMult||1.0));
+    if(score>bestScore){bestScore=score;document.getElementById('fishBest').textContent=score;}
+    document.getElementById('fishCaught').textContent=caught;
+    // Update catch history
+    catchHistory[fish.name]=(catchHistory[fish.name]||0)+1;
+    catchLog.unshift({fish,score});
+    if(catchLog.length>8) catchLog.pop();
+    // Check if any rod just became craftable
+    const newlyCraftable=ROD_DEFS.find(r=>r.craftable&&!unlockedRods.has(r.id)&&canCraft(r));
+    if(newlyCraftable) setTimeout(()=>toast(`🔨 You can now craft: ${newlyCraftable.name}!`),800);
+    savePlayerData();
+    if(activeTab==='fish') renderCatchLog();
+    if(activeTab==='prog') renderProgressPanel();
+    renderCraftPanel();
+    saveFishCatch(fish,score);
+    fishSetStatus(`🎉 Caught ${rm.label} ${fish.name}! ${fish.weightKg.toFixed(3)} kg · ${score} pts`);
+    fishSetBtn('🎣 Cast Again');
+    setTimeout(()=>drawCelebration(fish,score),50);
+    minigame=null; currentFish=null;
+  }
+
+  function onFishFailed() {
+    fishSetStatus('💦 Line snapped — the fish escaped!');
+    fishSetBtn('🎣 Try Again');
+    minigame=null; currentFish=null;
+  }
+
+  function drawCelebration(fish,score) {
+    const W=700,H=400,rm=RARITY_META[fish.rarity];
+    ctx.fillStyle='rgba(10,8,6,.88)'; ctx.fillRect(0,0,W,H);
+    ctx.font='56px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(fish.emoji,W/2,H/2-60);
+    ctx.font='bold 28px Cormorant Garamond,serif'; ctx.fillStyle=rm.color; ctx.fillText(fish.name,W/2,H/2-5);
+    ctx.font='11px Josefin Sans'; ctx.fillStyle='rgba(201,169,110,.7)';
+    ctx.fillText(rm.label.toUpperCase()+' · '+fish.weightKg.toFixed(3)+' kg',W/2,H/2+28);
+    const rod=getEquippedRod();
+    ctx.font='bold 22px Cormorant Garamond,serif'; ctx.fillStyle=rod.color;
+    ctx.fillText('+'+score+' pts  '+rod.emoji,W/2,H/2+62);
+    ctx.font='9px Josefin Sans'; ctx.fillStyle='rgba(196,185,154,.3)';
+    ctx.fillText(fish.desc,W/2,H/2+90);
+    // Show catch progress for craft
+    const nextRod=ROD_DEFS.find(r=>r.craftable&&!unlockedRods.has(r.id));
+    if(nextRod){const req=nextRod.recipe.find(r=>r.fish===fish.name);if(req){const h=catchHistory[fish.name]||0;ctx.fillStyle=getEquippedRod().color;ctx.fillText(`${nextRod.emoji} ${nextRod.name} progress: ${fish.name} ${h}/${req.count}`,W/2,H/2+110);}}
+  }
+
+  async function saveFishCatch(fish,score) {
+    if(!currentUser) return;
+    try { await db.from('fish_catches').insert({user_id:currentUser.id,player_name:currentUserName||currentUser.email,fish_name:fish.name,rarity:fish.rarity,weight_kg:fish.weightKg,score}); } catch(e){}
+  }
+
+  window.fishShowLeaderboard = async function() {
+    let entries=[];
+    try{const{data}=await db.from('fish_catches').select('*').order('score',{ascending:false}).limit(20);if(data)entries=data;}catch(e){}
+    const ov=document.createElement('div');ov.className='lb-overlay';ov.id='fishLBOverlay';
+    const tabs=['Top Score','Heaviest','Rarest'];let activeT='Top Score';
+    function renderLB(tab){
+      let sorted=[...entries];
+      if(tab==='Heaviest')sorted.sort((a,b)=>b.weight_kg-a.weight_kg);
+      if(tab==='Rarest'){const ro={celestial:0,mythical:1,legendary:2,epic:3,rare:4,uncommon:5,common:6};sorted.sort((a,b)=>(ro[a.rarity]||5)-(ro[b.rarity]||5));}
+      return sorted.slice(0,15).map((e,i)=>{
+        const rm=RARITY_META[e.rarity]||{color:'#9a9286',label:'Common'};
+        const rc=i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':'';
+        const md=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return`<div class="lb-row"><div class="lb-rank ${rc}">${i+1}</div><div style="flex:1;"><div style="font-size:10px;letter-spacing:.12em;color:var(--cream);text-transform:uppercase;">${e.player_name||'Anonymous'} ${md}</div><div style="font-size:9px;letter-spacing:.1em;color:${rm.color};">${rm.label} · ${e.fish_name}</div></div><div style="text-align:right;"><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--gold);">${tab==='Heaviest'?e.weight_kg.toFixed(3)+' kg':e.score+' pts'}</div></div></div>`;
+      }).join('')||'<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No catches yet!</div>';
+    }
+    ov.innerHTML=`<div class="lb-modal" style="max-width:560px;"><button class="lb-close" onclick="document.getElementById('fishLBOverlay').remove()">✕</button><div style="text-align:center;margin-bottom:24px;"><div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">🎣 Fishing</div><div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">Leaderboard</div></div><div style="display:flex;gap:6px;margin-bottom:20px;">${tabs.map(t=>`<button onclick="fishLBTab('${t}')" id="fishLBBtn-${t.replace(/ /g,'_')}" class="filter-btn${t===activeT?' active':''}" style="flex:1;">${t}</button>`).join('')}</div><div id="fishLBRows">${renderLB(activeT)}</div></div>`;
+    document.body.appendChild(ov);
+    window.fishLBTab=function(tab){activeT=tab;tabs.forEach(t=>{const b=document.getElementById('fishLBBtn-'+t.replace(/ /g,'_'));if(b)b.classList.toggle('active',t===tab);});const rows=document.getElementById('fishLBRows');if(rows)rows.innerHTML=renderLB(tab);};
+  };
+
+  // ── INIT ──────────────────────────────────────────────────
+  fishSetStatus('Press "Cast Line" or SPACE to start fishing');
+  renderCatchLog();
+  loadPlayerData();
+  gameLoop();
+}
     /* ══════════════════════════════════════════════════════════
        CHESS — ADMIN PERK: weaker AI (depth 1) + undo button
     ══════════════════════════════════════════════════════════ */
