@@ -456,7 +456,6 @@
         <th>Status</th>
       </tr>
     </thead>
-    <tbody id="scheduleBody"></tbody>
   </table>
 </section>
       <tbody id="scheduleBody"></tbody>
@@ -806,6 +805,7 @@
        SECRET GAME CODE LOCK  — Code: 67123450
        FIX: overlay starts display:none, initGamesPage shows it
     ══════════════════════════════════════════════════════════ */
+    let activeGame = null;
     const GAME_CODE = '67123450';
     let lockInput    = '';
     let gamesUnlocked = sessionStorage.getItem('gamesUnlocked') === '1';
@@ -1498,7 +1498,6 @@ async function postAdminAnnouncement() {
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
     ══════════════════════════════════════════════════════════ */
-    let activeGame = null;
 
     function loadGame(id) {
       document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active-game'));
