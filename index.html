@@ -1497,14 +1497,27 @@ async function postAdminAnnouncement() {
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
     ══════════════════════════════════════════════════════════ */
-
-    function loadGame(id) {
-      // ══════════════════════════════════════════════════════════
-//  FISHING ROD SYSTEM — drop-in replacement for loadFishing()
-//  Paste this entire block over the existing loadFishing function
-// ══════════════════════════════════════════════════════════
-
-// ── ROD DEFINITIONS ────────────────────────────────────────
+function loadGame(id) {
+  const arena = document.getElementById('gameArena');
+  document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active-game'));
+  const gc = document.getElementById('gc-' + id.replace('g2048','2048').replace('td','td'));
+  if (gc) gc.classList.add('active-game');
+  document.getElementById('gameArenaTitle').textContent = {
+    chess:'Chess', snake:'Snake', tetris:'Tetris', g2048:'2048',
+    minesweeper:'Minesweeper', fishing:'Fishing', td:'Tower Defence', wordle:'Wordle'
+  }[id] || id;
+  activeGame = id;
+  if (id === 'chess')       loadChess(arena);
+  else if (id === 'snake')  loadSnake(arena);
+  else if (id === 'tetris') loadTetris(arena);
+  else if (id === 'g2048')  load2048(arena);
+  else if (id === 'minesweeper') loadMinesweeper(arena);
+  else if (id === 'fishing')     loadFishing(arena);
+  else if (id === 'td')          loadTD(arena);
+  else if (id === 'wordle')      loadWordle(arena);
+}
+    function loadFishing(arena) {
+  // ROD_DEFS etc. move INSIDE loadFishing below ↓
 const ROD_DEFS = [
   {
     id: 'starter',
@@ -1812,6 +1825,7 @@ function loadFishing(arena) {
     savePlayerData();
     return true;
   }
+}
 
   // ── BUILD LAYOUT ──────────────────────────────────────────
   arena.innerHTML = `
