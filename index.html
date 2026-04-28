@@ -1605,9 +1605,9 @@ async function postAdminAnnouncement() {
       }
 
       // Admin: larger catch zone
-      function getPlayerZoneSize() { return isAdmin ? 0.32 : 0.22; }
+      function getPlayerZoneSize() { return isAdmin ? 0.22 : 0.14; }
       // Admin: catch progress fills faster
-      function getCatchRate(overlapRatio) { return isAdmin ? 0.005 * (overlapRatio + 0.6) : 0.003 * (overlapRatio + 0.3); }
+      function getCatchRate(overlapRatio) { return isAdmin ? 0.003 * (overlapRatio + 0.4) : 0.0015 * (overlapRatio + 0.15); }
 
       let fishState   = 'idle';
       let currentFish = null;
@@ -1751,10 +1751,12 @@ async function postAdminAnnouncement() {
 minigame.fishT = (minigame.fishT || 0) + 0.022;
 const targetPos = 0.5 + Math.sin(minigame.fishT) * 0.42 + Math.sin(minigame.fishT * 2.3) * 0.15;
 const diff = targetPos - (minigame.fishPos + minigame.fishZoneSize / 2);
-minigame.fishVel += diff * 0.04 + (Math.random() - 0.5) * 0.012;
-minigame.fishVel = Math.max(-minigame.maxSpeed * 1.6, Math.min(minigame.maxSpeed * 1.6, minigame.fishVel));
+// Accelerate toward target, decelerate naturally via drag
+minigame.fishVel += diff * 0.06 + (Math.random() - 0.5) * 0.018;
+minigame.fishVel *= 0.88; // drag — causes natural deceleration
+minigame.fishVel = Math.max(-minigame.maxSpeed * 2.2, Math.min(minigame.maxSpeed * 2.2, minigame.fishVel));
 minigame.fishPos += minigame.fishVel;
-}
+          }
           const fzW = minigame.fishZoneSize;
           if (minigame.fishPos < 0)        { minigame.fishPos = 0;          minigame.fishVel *= -1; }
           if (minigame.fishPos > 1 - fzW)  { minigame.fishPos = 1 - fzW;   minigame.fishVel *= -1; }
@@ -1775,7 +1777,7 @@ minigame.fishPos += minigame.fishVel;
   minigame.catchProgress += getCatchRate(overlapRatio) * rateBoost;
   minigame.tension -= 0.008;
 } else {
-  minigame.catchProgress -= 0.004;
+  minigame.catchProgress -= 0.002;
   minigame.tension += holding ? 0.014 : 0.004;
 }
           minigame.catchProgress = Math.max(0, Math.min(1, minigame.catchProgress));
