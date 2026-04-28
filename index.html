@@ -1534,49 +1534,62 @@ async function postAdminAnnouncement() {
   { name: 'Carp',           rarity: 'common',    wMin: 0.5,  wMax: 3.5,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Common freshwater fish found in ponds.' },
   { name: 'Tilapia',        rarity: 'common',    wMin: 0.3,  wMax: 2.5,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Hardy and plentiful. A staple catch.' },
   { name: 'Mudfish',        rarity: 'common',    wMin: 0.1,  wMax: 1.0,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Slimy and unremarkable. But hey, it counts.' },
-
+  { name: 'Goldfish',       rarity: 'common',    wMin: 0.01, wMax: 0.15,  color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Tiny and ornamental. Nearly weightless.' },
+{ name: 'Anchovy',        rarity: 'common',    wMin: 0.02, wMax: 0.12,  color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'Tiny schooling fish. Found everywhere.' },
+{ name: 'Perch',          rarity: 'common',    wMin: 0.2,  wMax: 1.8,   color: '#9a9286', emoji: '🐟', mult: 1,    power: null,         desc: 'A reliable beginner catch.' },
+{ name: 'Mullet',         rarity: 'common',    wMin: 0.4,  wMax: 3.0,   color: '#9a9286', emoji: '🐟', mult: 1,    power: 'bonusScore', desc: 'Jumps out of the water. Grants +10% score.' },
   // ── UNCOMMON ──
   { name: 'Bass',           rarity: 'uncommon',  wMin: 1.0,  wMax: 6.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'slowBar',    desc: 'Puts up a fight but tires quickly. Bar slows mid-catch.' },
   { name: 'Catfish',        rarity: 'uncommon',  wMin: 2.0,  wMax: 9.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: null,         desc: 'Whiskers and attitude. Lurks at the bottom.' },
   { name: 'Trout',          rarity: 'uncommon',  wMin: 0.8,  wMax: 5.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'bonusScore', desc: 'Spotted and swift. Grants +20% bonus score.' },
-
+  { name: 'Grouper',        rarity: 'uncommon',  wMin: 2.0,  wMax: 12.0,  color: '#5a9e6f', emoji: '🐠', mult: 3,    power: null,         desc: 'Ambush predator. Solid mid-tier catch.' },
+{ name: 'Snakehead',      rarity: 'uncommon',  wMin: 1.5,  wMax: 8.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'slowBar',    desc: 'Aggressive freshwater predator. Bar slows.' },
+{ name: 'Pompano',        rarity: 'uncommon',  wMin: 0.6,  wMax: 4.0,   color: '#5a9e6f', emoji: '🐠', mult: 3,    power: 'bonusScore', desc: 'Flat and fast. Grants +25% bonus score.' },
   // ── RARE ──
   { name: 'Salmon',         rarity: 'rare',      wMin: 3.0,  wMax: 14.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'slowBar',    desc: 'Fights hard upstream. Bar slows when overlapping.' },
   { name: 'Red Snapper',    rarity: 'rare',      wMin: 2.0,  wMax: 10.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'bonusScore', desc: 'Vivid red scales. Grants +30% bonus score.' },
   { name: 'Barramundi',     rarity: 'rare',      wMin: 4.0,  wMax: 18.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'widenZone',  desc: 'The prized fish of Southeast Asia. Widens your catch zone.' },
   { name: 'Yellowfin Tuna', rarity: 'rare',      wMin: 10.0, wMax: 40.0,  color: '#6e9ec9', emoji: '🐡', mult: 9,    power: null,         desc: 'Built for speed. Heavy but catchable.' },
-
+  { name: 'Dorado',         rarity: 'rare',      wMin: 5.0,  wMax: 22.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: 'widenZone',  desc: 'Brilliant gold-green. Zone widens on catch.' },
+{ name: 'Coelacanth',     rarity: 'rare',      wMin: 30.0, wMax: 80.0,  color: '#6e9ec9', emoji: '🐡', mult: 9,    power: 'freezeBar',  desc: 'A living fossil. Bar freezes briefly.' },
+{ name: 'Giant Catfish',  rarity: 'rare',      wMin: 15.0, wMax: 60.0,  color: '#6e9ec9', emoji: '🐡', mult: 8,    power: null,         desc: 'Enormous freshwater beast. Pure weight.' },
   // ── EPIC ──
   { name: 'Swordfish',      rarity: 'epic',      wMin: 40,   wMax: 220,   color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'freezeBar',  desc: 'Slices through water. Bar briefly freezes on hit.' },
   { name: 'Giant Trevally', rarity: 'epic',      wMin: 20,   wMax: 90,    color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'widenZone',  desc: 'Brute strength. Will drag your rod in. Zone widens.' },
   { name: 'Mahi-Mahi',      rarity: 'epic',      wMin: 5,    wMax: 35,    color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'bonusScore', desc: 'Stunning colours. Acrobatic. Grants +50% bonus score.' },
   { name: 'Hammerhead',     rarity: 'epic',      wMin: 80,   wMax: 300,   color: '#b07ec9', emoji: '🦈', mult: 22,   power: 'slowBar',    desc: 'Sweeps the deep. Magnificent but slow — bar decelerates.' },
-
+  { name: 'Goliath Tigerfish', rarity: 'epic',   wMin: 25,   wMax: 70,    color: '#b07ec9', emoji: '🦈', mult: 20,   power: 'slowBar',    desc: 'Has teeth like razors. Bar decelerates.' },
+{ name: 'Alligator Gar',  rarity: 'epic',      wMin: 40,   wMax: 140,   color: '#b07ec9', emoji: '🦈', mult: 21,   power: 'widenZone',  desc: 'Ancient armoured predator. Zone widens.' },
+{ name: 'Sturgeon',       rarity: 'epic',      wMin: 60,   wMax: 200,   color: '#b07ec9', emoji: '🦈', mult: 22,   power: 'autoReel',   desc: 'Prehistoric and enormous. Fills meter faster.' },
   // ── LEGENDARY ──
   { name: 'Blue Marlin',    rarity: 'legendary', wMin: 100,  wMax: 650,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'freezeBar',  desc: 'The ocean monarch. Bar freezes for 1.5s on overlap.' },
   { name: 'Giant Oarfish',  rarity: 'legendary', wMin: 50,   wMax: 350,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'widenZone',  desc: 'The sea serpent of legend. Zone expands dramatically.' },
   { name: 'Arapaima',       rarity: 'legendary', wMin: 80,   wMax: 250,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'autoReel',   desc: 'Ancient Amazon giant. Catch meter fills 2× faster.' },
   { name: 'Whale Shark',    rarity: 'legendary', wMin: 500,  wMax: 1500,  color: '#c9a96e', emoji: '🌟', mult: 65,   power: 'bonusScore', desc: 'Gentle but enormous. Grants +100% score bonus.' },
-
+  { name: 'Electric Eel',   rarity: 'legendary', wMin: 5,    wMax: 20,    color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'freezeBar',  desc: 'Discharges 600 volts. Bar locks for 2s.' },
+{ name: 'Black Dragonfish',rarity: 'legendary',wMin: 0.1,  wMax: 0.5,   color: '#c9a96e', emoji: '🌟', mult: 65,   power: 'autoReel',   desc: 'Deep sea nightmare. Nearly weightless but insanely rare.' },
+{ name: 'Opah',           rarity: 'legendary', wMin: 40,   wMax: 120,   color: '#c9a96e', emoji: '🌟', mult: 60,   power: 'bonusScore', desc: 'The only warm-blooded fish. Grants +100% score.' },
   // ── MYTHICAL ──
   { name: 'Megalodon Jr',   rarity: 'mythical',  wMin: 500,  wMax: 2000,  color: '#ff6b6b', emoji: '🔥', mult: 200,  power: 'freezeBar',  desc: 'A descendant of the ancient terror. Bar locks for 2s.' },
   { name: 'Leviathan',      rarity: 'mythical',  wMin: 1000, wMax: 5000,  color: '#ff6b6b', emoji: '🔥', mult: 200,  power: 'autoReel',   desc: 'The biblical sea monster. Fills catch meter instantly.' },
   { name: 'Kraken Spawn',   rarity: 'mythical',  wMin: 800,  wMax: 3000,  color: '#ff6b6b', emoji: '🔥', mult: 220,  power: 'widenZone',  desc: 'A tentacle of something much larger. Zone triples.' },
-
+  { name: 'Abyssal Serpent',rarity: 'mythical',  wMin: 2000, wMax: 8000,  color: '#ff6b6b', emoji: '🔥', mult: 210,  power: 'widenZone',  desc: 'From the deepest trench. Zone triples in size.' },
+{ name: 'Phantom Ray',    rarity: 'mythical',  wMin: 300,  wMax: 1200,  color: '#ff6b6b', emoji: '🔥', mult: 200,  power: 'autoReel',   desc: 'Invisible until caught. Meter fills instantly.' },
   // ── CELESTIAL ──
   { name: 'Starfish God',   rarity: 'celestial', wMin: 9999, wMax: 9999,  color: '#ffd700', emoji: '✨', mult: 1000, power: 'autoReel',   desc: 'It cannot be described. It simply catches itself.' },
   { name: 'Voidfish',       rarity: 'celestial', wMin: 9999, wMax: 9999,  color: '#ffd700', emoji: '🌌', mult: 1200, power: 'freezeBar',  desc: 'From beyond the stars. Reality warps around it.' },
-];
+{ name: 'Prismatic Whale', rarity: 'celestial', wMin: 9999, wMax: 9999, color: '#ffd700', emoji: '🌈', mult: 1100, power: 'bonusScore', desc: 'Refracts all light. Beyond comprehension. +200% score.' },
+      ];
 
       // ── FIX: The epic barSpeed/barSize missing comma was the original JS crash ──
       const RARITY_META = {
-  common:    { label: 'Common',    color: '#9a9286', border: 'rgba(154,146,134,.4)', weight: 40, barSpeed: 0.01, barSize: 0.55, tension: 1.4 },
-  uncommon:  { label: 'Uncommon',  color: '#5a9e6f', border: 'rgba(90,158,111,.5)',  weight: 25, barSpeed: 0.04, barSize: 0.48, tension: 1.6 },
-  rare:      { label: 'Rare',      color: '#6e9ec9', border: 'rgba(110,158,201,.5)', weight: 15, barSpeed: 0.08, barSize: 0.42, tension: 1.8 },
-  epic:      { label: 'Epic',      color: '#b07ec9', border: 'rgba(176,126,201,.5)', weight: 10, barSpeed: 0.1, barSize: 0.36, tension: 2.0 },
-  legendary: { label: 'Legendary', color: '#c9a96e', border: 'rgba(201,169,110,.7)', weight: 6,  barSpeed: 0.15, barSize: 0.30, tension: 2.2 },
-  mythical:  { label: 'Mythical',  color: '#ff6b6b', border: 'rgba(255,107,107,.6)', weight: 3,  barSpeed: 0.19, barSize: 0.26, tension: 2.5 },
-  celestial: { label: 'Celestial', color: '#ffd700', border: 'rgba(255,215,0,.8)',   weight: 1,  barSpeed: 0.24, barSize: 0.28, tension: 3.0 },
+  common:    { label: 'Common',    color: '#9a9286', border: 'rgba(154,146,134,.4)', weight: 40, barSpeed: 0.008, barSize: 0.55, tension: 1.4 },
+  uncommon:  { label: 'Uncommon',  color: '#5a9e6f', border: 'rgba(90,158,111,.5)',  weight: 25, barSpeed: 0.012, barSize: 0.50, tension: 1.6 },
+  rare:      { label: 'Rare',      color: '#6e9ec9', border: 'rgba(110,158,201,.5)', weight: 15, barSpeed: 0.018, barSize: 0.46, tension: 1.8 },
+  epic:      { label: 'Epic',      color: '#b07ec9', border: 'rgba(176,126,201,.5)', weight: 10, barSpeed: 0.024, barSize: 0.42, tension: 2.0 },
+  legendary: { label: 'Legendary', color: '#c9a96e', border: 'rgba(201,169,110,.7)', weight: 6,  barSpeed: 0.030, barSize: 0.38, tension: 2.2 },
+  mythical:  { label: 'Mythical',  color: '#ff6b6b', border: 'rgba(255,107,107,.6)', weight: 3,  barSpeed: 0.036, barSize: 0.34, tension: 2.5 },
+  celestial: { label: 'Celestial', color: '#ffd700', border: 'rgba(255,215,0,.8)',   weight: 1,  barSpeed: 0.042, barSize: 0.30, tension: 3.0 },
 };
 
 
@@ -1585,7 +1598,7 @@ async function postAdminAnnouncement() {
         if (!isAdmin) return RARITY_META;
         const boosted = {};
         Object.entries(RARITY_META).forEach(([k, v]) => {
-          const boost = { common: 0.4, uncommon: 0.8, rare: 1.6, epic: 1.8, legendary: 2.0, mythical: 2.0, celestial: 2.5 }[k] || 1;
+          const boost = { common: 0.4, uncommon: 0.8, rare: 1.6, epic: 1.8, legendary: 2.0, mythical: 2.0, celestial: 5 }[k] || 1;
           boosted[k] = { ...v, weight: v.weight * boost };
         });
         return boosted;
@@ -1605,9 +1618,15 @@ async function postAdminAnnouncement() {
       }
 
       // Admin: larger catch zone
-      function getPlayerZoneSize() { return isAdmin ? 0.22 : 0.14; }
-      // Admin: catch progress fills faster
-      function getCatchRate(overlapRatio) { return isAdmin ? 0.003 * (overlapRatio + 0.4) : 0.0015 * (overlapRatio + 0.15); }
+      function getPlayerZoneSize() {
+  if (!currentFish) return isAdmin ? 0.22 : 0.14;
+  // Heavier fish = smaller catch zone, capped so it never becomes impossible
+  const weight = currentFish.weightKg;
+  const shrink = Math.min(weight / 600, 0.10); // max 10% shrink from weight
+  const base = isAdmin ? 0.22 : 0.14;
+  return Math.max(base - shrink, isAdmin ? 0.12 : 0.07);
+}
+}
 
       let fishState   = 'idle';
       let currentFish = null;
