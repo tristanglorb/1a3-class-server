@@ -1599,7 +1599,7 @@ const ROD_DEFS = [
       { fish: 'Dorado',      count: 2, rarity: 'rare' },
     ],
     bonuses: {
-      catchRateBonus: 0.0015,
+      catchRateBonus: 0.0006,
       weightMult: 1.4,
       zoneSizeBonus: 0.05,
       rareBoost: 1.8,
@@ -2181,8 +2181,8 @@ function loadFishing(arena) {
       if(minigame.fishPos<0){minigame.fishPos=0;minigame.fishVel*=-1;}
       if(minigame.fishPos>1-fzW){minigame.fishPos=1-fzW;minigame.fishVel*=-1;}
       const pbW=minigame.playerZoneSize;
-      const reelSpeed = 0.012 + getRodBonus('reelSpeedBonus') * 0.5;
-      const fallSpeed = 0.022;
+      const reelSpeed = 0.006 + getRodBonus('reelSpeedBonus') * 0.5;
+      const fallSpeed = 0.032;
       if(holding) minigame.playerPos+=reelSpeed;
       else        minigame.playerPos-=fallSpeed;
       minigame.playerPos=Math.max(0,Math.min(1-pbW,minigame.playerPos));
@@ -2264,7 +2264,7 @@ function loadFishing(arena) {
     minigame={
       fishPos:.3, fishVel:rm.barSpeed*.012, fishT:0,
       fishZoneSize:  0.008,
-      playerPos:.4, playerZoneSize:zoneSize*2,
+      playerPos:.4, playerZoneSize:zoneSize*0.8,
       catchProgress:0, tension:0, maxTension:tensionMax,
       maxSpeed:rm.barSpeed*.025, power:effectivePower, rodPower,
       freezeTimer:0,
