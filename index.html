@@ -2126,7 +2126,7 @@ function loadFishing(arena) {
     ctx.fillStyle=rm.color; ctx.fillText(rm.label.toUpperCase()+' — '+fish.name,W/2,14);
     ctx.fillStyle='rgba(201,169,110,.5)'; ctx.font='10px Josefin Sans';
     ctx.fillText(fish.weightKg.toFixed(3)+' kg  ·  '+fish.emoji+'  ·  '+getEquippedRod().emoji+' '+getEquippedRod().name,W/2,34);
-    const barX=W/2-210,barW=420,barH=44,barY=H/2-22;
+    const barX=W/2-290, barW=580,barH=44,barY=H/2-22;
     ctx.fillStyle='rgba(201,169,110,.06)'; ctx.fillRect(barX-2,barY-2,barW+4,barH+4);
     ctx.fillStyle='rgba(14,12,9,.8)'; ctx.fillRect(barX,barY,barW,barH);
     ctx.strokeStyle='rgba(201,169,110,.15)'; ctx.lineWidth=1; ctx.strokeRect(barX,barY,barW,barH);
@@ -2134,8 +2134,10 @@ function loadFishing(arena) {
     ctx.fillStyle=rm.color+'44'; ctx.fillRect(fzX,barY,fzW,barH);
     ctx.strokeStyle=rm.color+'99'; ctx.lineWidth=1.5; ctx.strokeRect(fzX,barY,fzW,barH);
     const pbW=barW*minigame.playerZoneSize,pbX=barX+minigame.playerPos*(barW-pbW);
-    const overlap=Math.max(0,Math.min(pbX+pbW,fzX+fzW)-Math.max(pbX,fzX));
-    const overlapRatio=overlap/fzW;
+    const fishLineX = minigame.fishPos;  // 0-1 normalized
+    const playerLeft = minigame.playerPos;
+    const playerRight = minigame.playerPos + minigame.playerZoneSize;
+    const overlapRatio = (fishLineX >= playerLeft && fishLineX <= playerRight) ? 1.0 : 0;
     const pbColor=overlapRatio>.3?'#5a9e6f':'#d97070';
     ctx.fillStyle=pbColor+'88'; ctx.fillRect(pbX,barY,pbW,barH);
     ctx.strokeStyle=pbColor; ctx.lineWidth=2; ctx.strokeRect(pbX,barY,pbW,barH);
@@ -2179,8 +2181,8 @@ function loadFishing(arena) {
       if(minigame.fishPos<0){minigame.fishPos=0;minigame.fishVel*=-1;}
       if(minigame.fishPos>1-fzW){minigame.fishPos=1-fzW;minigame.fishVel*=-1;}
       const pbW=minigame.playerZoneSize;
-      const reelSpeed = 0.025 + getRodBonus('reelSpeedBonus');
-      const fallSpeed = 0.018;
+      const reelSpeed = 0.012 + getRodBonus('reelSpeedBonus') * 0.5;
+      const fallSpeed = 0.022;
       if(holding) minigame.playerPos+=reelSpeed;
       else        minigame.playerPos-=fallSpeed;
       minigame.playerPos=Math.max(0,Math.min(1-pbW,minigame.playerPos));
@@ -2261,8 +2263,8 @@ function loadFishing(arena) {
     if(fishPower==='widenZone'||rodPower==='widenZone') zoneSize=Math.min(zoneSize*1.6,0.7);
     minigame={
       fishPos:.3, fishVel:rm.barSpeed*.012, fishT:0,
-      fishZoneSize:rm.barSize,
-      playerPos:.4, playerZoneSize:zoneSize,
+      fishZoneSize:  0.008,
+      playerPos:.4, playerZoneSize:zoneSize*2,
       catchProgress:0, tension:0, maxTension:tensionMax,
       maxSpeed:rm.barSpeed*.025, power:effectivePower, rodPower,
       freezeTimer:0,
