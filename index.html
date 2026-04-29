@@ -579,6 +579,11 @@
           <div class="game-card" id="gc-chameleon"   onclick="goto('chameleon')" style="border-left:2px solid rgba(201,169,110,.3);"><span class="game-icon">🦎</span><div class="game-title">Chameleon</div><div class="game-desc">Multiplayer — create a room and play live with classmates</div></div>
           <div class="game-card" id="gc-td"          onclick="loadGame('td')"><span class="game-icon">🏰</span><div class="game-title">Tower Defence</div><div class="game-desc">Unlock towers from chests · 7 rarities · survive 20 waves</div></div>
           <div class="game-card" id="gc-wordle"      onclick="loadGame('wordle')"><span class="game-icon">🔤</span><div class="game-title">Wordle</div><div class="game-desc">Guess the 5-letter word in 6 tries</div></div>
+          <div class="game-card" id="gc-cat" onclick="loadGame('cat')">
+          <span class="game-icon">🐱</span>
+          <div class="game-title">Cat Game</div>
+          <div class="game-desc">Click the cat · collect purrs · unlock upgrades · top the leaderboard</div>
+          </div>
         </div>
         <div class="section-head"><h2 class="section-title" id="gameArenaTitle">Select a game above</h2><div class="section-line"></div></div>
         <div class="game-arena" id="gameArena">
@@ -1515,6 +1520,7 @@ function loadGame(id) {
   else if (id === 'fishing')     loadFishing(arena);
   else if (id === 'td')          loadTD(arena);
   else if (id === 'wordle')      loadWordle(arena);
+  else if (id === 'cat') loadCatGame(arena);
 }
   
 const ROD_DEFS = [
@@ -2970,6 +2976,239 @@ function checkGameOver(){if(tdState.lives<=0&&!tdState.gameOver){
   gameLoop();
 }
 
+/* ══════════════════════════════════════════════════════════
+   CAT CLICKER
+══════════════════════════════════════════════════════════ */
+function loadCatGame(arena) {
+  arena.style.minHeight = '600px';
+
+  const UPGRADES = [
+    { id:'yarn',    name:'Yarn Ball',       emoji:'🧶', cost:10,    cpsAdd:1,    clickAdd:0, desc:'+1 purr/sec',       unlockAt:0     },
+    { id:'fish',    name:'Fish Bowl',       emoji:'🐟', cost:50,    cpsAdd:3,    clickAdd:0, desc:'+3 purrs/sec',      unlockAt:0     },
+    { id:'catnip',  name:'Catnip Farm',     emoji:'🌿', cost:200,   cpsAdd:8,    clickAdd:0, desc:'+8 purrs/sec',      unlockAt:100   },
+    { id:'laser',   name:'Laser Pointer',   emoji:'🔴', cost:100,   cpsAdd:0,    clickAdd:2, desc:'+2 purrs/click',    unlockAt:50    },
+    { id:'cafe',    name:'Cat Café',        emoji:'☕', cost:800,   cpsAdd:25,   clickAdd:0, desc:'+25 purrs/sec',     unlockAt:500   },
+    { id:'army',    name:'Cat Army',        emoji:'🐱', cost:3000,  cpsAdd:60,   clickAdd:0, desc:'+60 purrs/sec',     unlockAt:2000  },
+    { id:'planet',  name:'Cat Planet',      emoji:'🪐', cost:12000, cpsAdd:200,  clickAdd:0, desc:'+200 purrs/sec',    unlockAt:8000  },
+    { id:'meow',    name:'Meow Singularity',emoji:'✨', cost:99999, cpsAdd:1000, clickAdd:0, desc:'+1000 purrs/sec',   unlockAt:50000 },
+  ];
+
+  const MILESTONES = [
+    { at:100,    skin:'🐱', label:'100 purrs'   },
+    { at:1000,   skin:'😸', label:'1K purrs'    },
+    { at:10000,  skin:'😻', label:'10K purrs'   },
+    { at:100000, skin:'👑🐱',label:'100K purrs' },
+    { at:1000000,skin:'🌟🐱',label:'1M purrs'  },
+  ];
+
+  let clicks = 0, cps = 0, clickPower = 1, totalClicks = 0;
+  let owned = {}, particles = [], popTO = null;
+  let catSkin = '🐱';
+
+  const fmt = n => n >= 1e6 ? (n/1e6).toFixed(2)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.floor(n).toString();
+
+  arena.innerHTML = `
+    <div style="width:100%;padding:16px 20px;box-sizing:border-box;">
+      ${isAdmin ? `<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);margin-bottom:10px;text-align:center;">⚡ Admin: 5× click power · 2× CPS</div>` : ''}
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+
+        <!-- LEFT: cat + HUD -->
+        <div style="flex:1.4;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:220px;">
+          <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+            <div style="text-align:center;">
+              <div id="cgPurrs" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);line-height:1;">0</div>
+              <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Purrs</div>
+            </div>
+            <div style="text-align:center;">
+              <div id="cgCPS" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);line-height:1;">0</div>
+              <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">per sec</div>
+            </div>
+            <div style="text-align:center;">
+              <div id="cgPower" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);line-height:1;">1</div>
+              <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">/click</div>
+            </div>
+          </div>
+
+          <!-- cat canvas + sprite -->
+          <div style="position:relative;width:220px;height:200px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="cgCanvas" width="220" height="200" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+            <div id="cgCat" style="font-size:96px;cursor:pointer;user-select:none;display:inline-block;line-height:1;z-index:1;animation:cgSway 2s ease-in-out infinite;transition:transform .12s;">🐱</div>
+          </div>
+
+          <!-- milestones -->
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;">
+            ${MILESTONES.map((m,i) => `<div id="ms${i}" style="display:flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);opacity:.4;transition:opacity .4s;">
+              <div style="width:8px;height:8px;border-radius:50%;background:rgba(201,169,110,.3);"></div>${m.label}</div>`).join('')}
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px;">
+            <button class="g-btn" onclick="cgShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Leaderboard</button>
+            <button class="g-btn" onclick="cgSubmitScore()" style="font-size:9px;padding:8px 16px;">Submit Score</button>
+          </div>
+          <div id="cgMsg" style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-align:center;min-height:16px;"></div>
+        </div>
+
+        <!-- RIGHT: upgrades -->
+        <div style="flex:1;min-width:200px;background:var(--dark-2);border:1px solid rgba(201,169,110,.08);max-height:500px;overflow-y:auto;">
+          <div style="padding:12px 16px;border-bottom:1px solid rgba(201,169,110,.08);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Upgrades</div>
+          <div id="cgUpgrades"></div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes cgSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+      @keyframes cgPop{0%{transform:scale(1)}50%{transform:scale(1.28)}100%{transform:scale(1)}}
+    </style>
+  `;
+
+  const catEl   = document.getElementById('cgCat');
+  const canvas  = document.getElementById('cgCanvas');
+  const ctx     = canvas.getContext('2d');
+  const pEl     = document.getElementById('cgPurrs');
+  const cpsEl   = document.getElementById('cgCPS');
+  const powEl   = document.getElementById('cgPower');
+  const msgEl   = document.getElementById('cgMsg');
+
+  const EMOJIS  = ['✨','❤️','⭐','💛','🐾'];
+
+  function updateHUD() {
+    if(pEl)  pEl.textContent  = fmt(clicks);
+    if(cpsEl) cpsEl.textContent = fmt(cps);
+    if(powEl) powEl.textContent = clickPower;
+    MILESTONES.forEach((m,i) => {
+      const el = document.getElementById('ms'+i);
+      if(el) el.style.opacity = totalClicks >= m.at ? '1' : '.4';
+    });
+    const ms = [...MILESTONES].reverse().find(m => totalClicks >= m.at);
+    if(ms && catEl && catEl.textContent !== ms.skin) catEl.textContent = ms.skin;
+  }
+
+  function renderUpgrades() {
+    const el = document.getElementById('cgUpgrades'); if(!el) return;
+    el.innerHTML = UPGRADES.map(u => {
+      const isOwned  = !!owned[u.id];
+      const isLocked = totalClicks < u.unlockAt && !isOwned;
+      const canBuy   = !isOwned && !isLocked && clicks >= u.cost;
+      let cls = '';
+      if(isOwned)  cls = 'style="background:rgba(90,158,111,.06);border-left:2px solid #5a9e6f;"';
+      if(isLocked) cls = 'style="opacity:.35;cursor:not-allowed;"';
+      return `<div onclick="cgBuy('${u.id}')" ${cls} style="padding:12px 16px;border-bottom:0.5px solid rgba(201,169,110,.08);cursor:${isLocked||isOwned?'default':'pointer'};display:flex;gap:10px;align-items:flex-start;transition:background .15s;${!isLocked&&!isOwned&&canBuy?'border-left:2px solid #c9a96e;':''}">
+        <span style="font-size:20px;flex-shrink:0;">${u.emoji}</span>
+        <div style="flex:1;">
+          <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--cream);">${u.name}${isOwned?' ✓':''}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;line-height:1.5;">${u.desc}</div>
+          ${!isOwned ? `<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:${canBuy?'#c9a96e':'rgba(138,128,112,.5)'};">${fmt(u.cost)} purrs</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.cgBuy = function(id) {
+    const u = UPGRADES.find(x => x.id === id);
+    if(!u || owned[u.id] || totalClicks < u.unlockAt) return;
+    if(clicks < u.cost) { if(msgEl) msgEl.textContent = 'Not enough purrs!'; return; }
+    clicks     -= u.cost;
+    cps        += u.cpsAdd * (isAdmin ? 2 : 1);
+    clickPower += u.clickAdd * (isAdmin ? 5 : 1);
+    owned[u.id] = true;
+    if(msgEl) msgEl.textContent = u.name + ' unlocked!';
+    updateHUD();
+    renderUpgrades();
+  };
+
+  function spawnParticle(x, y) {
+    const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    particles.push({ x, y, emoji, vy: -2 - Math.random(), vx: (Math.random()-.5)*2, life: 40 });
+  }
+
+  function animLoop() {
+    if(!document.getElementById('cgCanvas')) return;
+    ctx.clearRect(0, 0, 220, 200);
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life / 40;
+      ctx.font = '18px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.emoji, p.x, p.y);
+      p.x += p.vx; p.y += p.vy; p.life--;
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animLoop);
+  }
+
+  catEl.addEventListener('click', function(e) {
+    const power = clickPower * (isAdmin ? 5 : 1);
+    clicks      += power;
+    totalClicks += power;
+    updateHUD();
+    renderUpgrades();
+    // pop animation
+    catEl.style.animation = 'none';
+    catEl.style.transform = 'scale(1.26)';
+    clearTimeout(popTO);
+    popTO = setTimeout(() => {
+      catEl.style.transform = '';
+      catEl.style.animation = 'cgSway 2s ease-in-out infinite';
+    }, 120);
+    // particles — position relative to canvas
+    const rect = catEl.getBoundingClientRect();
+    const cr   = canvas.getBoundingClientRect();
+    for(let i=0;i<4;i++) spawnParticle(
+      rect.left - cr.left + rect.width/2 + (Math.random()-.5)*40,
+      rect.top  - cr.top  + rect.height/2 + (Math.random()-.5)*30
+    );
+  });
+
+  // passive income 20fps
+  const passiveTick = setInterval(() => {
+    if(!document.getElementById('cgCat')) { clearInterval(passiveTick); return; }
+    const gain = cps / 20;
+    clicks      += gain;
+    totalClicks += gain;
+    updateHUD();
+  }, 50);
+
+  window.cgShowLeaderboard = async function() {
+    let entries = [];
+    try {
+      const {data} = await db.from('cat_leaderboard').select('*').order('total_clicks',{ascending:false}).limit(15);
+      if(data) entries = data;
+    } catch(e){}
+    const ov = document.createElement('div');
+    ov.className = 'lb-overlay'; ov.id = 'cgLBOv';
+    ov.innerHTML = `<div class="lb-modal"><button class="lb-close" onclick="document.getElementById('cgLBOv').remove()">✕</button>
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🐱 Cat Game</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">Leaderboard</div>
+      </div>
+      ${entries.length ? entries.map((e,i) => {
+        const rc = i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':'';
+        const md = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return `<div class="lb-row"><div class="lb-rank ${rc}">${i+1}</div>
+          <div style="flex:1;font-size:10px;letter-spacing:.12em;color:var(--cream);text-transform:uppercase;">${e.player_name||'Anonymous'} ${md}</div>
+          <div><span class="lb-score">${fmt(e.total_clicks||0)}</span>
+          <span class="lb-wave"> ${(e.cps||0).toFixed(1)} cps</span></div></div>`;
+      }).join('') : '<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No scores yet — be the first!</div>'}
+    </div>`;
+    document.body.appendChild(ov);
+  };
+
+  window.cgSubmitScore = async function() {
+    const name = currentUserName || prompt('Your name?') || 'Anonymous';
+    try {
+      await db.from('cat_leaderboard').upsert({
+        player_name: name, total_clicks: Math.floor(totalClicks), cps: parseFloat(cps.toFixed(2)), user_id: currentUser?.id
+      }, { onConflict: 'player_name' });
+      if(msgEl) msgEl.textContent = 'Score submitted — ' + fmt(totalClicks) + ' purrs!';
+      toast('Score submitted!');
+    } catch(e) { if(msgEl) msgEl.textContent = 'Submit failed.'; }
+  };
+
+  renderUpgrades();
+  updateHUD();
+  animLoop();
+}
 /* ══════════════════════════════════════
    CHAMELEON
 ══════════════════════════════════════ */
