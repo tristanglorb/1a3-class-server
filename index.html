@@ -2980,124 +2980,345 @@ function checkGameOver(){if(tdState.lives<=0&&!tdState.gameOver){
    CAT CLICKER
 ══════════════════════════════════════════════════════════ */
 function loadCatGame(arena) {
-  arena.style.minHeight = '600px';
+  arena.style.minHeight = '700px';
 
+  // ── UPGRADES (exponential cost scaling — forces real decisions) ──
   const UPGRADES = [
-    { id:'yarn',    name:'Yarn Ball',       emoji:'🧶', cost:10,    cpsAdd:1,    clickAdd:0, desc:'+1 purr/sec',       unlockAt:0     },
-    { id:'fish',    name:'Fish Bowl',       emoji:'🐟', cost:50,    cpsAdd:3,    clickAdd:0, desc:'+3 purrs/sec',      unlockAt:0     },
-    { id:'catnip',  name:'Catnip Farm',     emoji:'🌿', cost:200,   cpsAdd:8,    clickAdd:0, desc:'+8 purrs/sec',      unlockAt:100   },
-    { id:'laser',   name:'Laser Pointer',   emoji:'🔴', cost:100,   cpsAdd:0,    clickAdd:2, desc:'+2 purrs/click',    unlockAt:50    },
-    { id:'cafe',    name:'Cat Café',        emoji:'☕', cost:800,   cpsAdd:25,   clickAdd:0, desc:'+25 purrs/sec',     unlockAt:500   },
-    { id:'army',    name:'Cat Army',        emoji:'🐱', cost:3000,  cpsAdd:60,   clickAdd:0, desc:'+60 purrs/sec',     unlockAt:2000  },
-    { id:'planet',  name:'Cat Planet',      emoji:'🪐', cost:12000, cpsAdd:200,  clickAdd:0, desc:'+200 purrs/sec',    unlockAt:8000  },
-    { id:'meow',    name:'Meow Singularity',emoji:'✨', cost:99999, cpsAdd:1000, clickAdd:0, desc:'+1000 purrs/sec',   unlockAt:50000 },
+    { id:'yarn',     name:'Yarn Ball',        emoji:'🧶', baseCost:15,    cpsAdd:0.5,  clickAdd:0,  desc:'+0.5 purrs/sec',    unlockAt:0      },
+    { id:'laser',    name:'Laser Pointer',    emoji:'🔴', baseCost:80,    cpsAdd:0,    clickAdd:1,  desc:'+1 purr/click',     unlockAt:20     },
+    { id:'fish',     name:'Fish Bowl',        emoji:'🐟', baseCost:200,   cpsAdd:2,    clickAdd:0,  desc:'+2 purrs/sec',      unlockAt:100    },
+    { id:'catnip',   name:'Catnip Farm',      emoji:'🌿', baseCost:800,   cpsAdd:6,    clickAdd:0,  desc:'+6 purrs/sec',      unlockAt:400    },
+    { id:'sunspot',  name:'Sunspot Nap',      emoji:'☀️', baseCost:500,   cpsAdd:0,    clickAdd:3,  desc:'+3 purrs/click',    unlockAt:300    },
+    { id:'cafe',     name:'Cat Café',         emoji:'☕', baseCost:3500,  cpsAdd:20,   clickAdd:0,  desc:'+20 purrs/sec',     unlockAt:2000   },
+    { id:'scratching',name:'Scratch Post',    emoji:'🪵', baseCost:2500,  cpsAdd:0,    clickAdd:8,  desc:'+8 purrs/click',    unlockAt:1500   },
+    { id:'army',     name:'Cat Army',         emoji:'🐱', baseCost:14000, cpsAdd:55,   clickAdd:0,  desc:'+55 purrs/sec',     unlockAt:8000   },
+    { id:'tower',    name:'Cat Tower',        emoji:'🏰', baseCost:8000,  cpsAdd:0,    clickAdd:20, desc:'+20 purrs/click',   unlockAt:5000   },
+    { id:'planet',   name:'Cat Planet',       emoji:'🪐', baseCost:60000, cpsAdd:180,  clickAdd:0,  desc:'+180 purrs/sec',    unlockAt:35000  },
+    { id:'meow',     name:'Meow Singularity', emoji:'✨', baseCost:500000,cpsAdd:1000, clickAdd:0,  desc:'+1000 purrs/sec',   unlockAt:300000 },
   ];
+
+  // Each upgrade can be bought multiple times — cost multiplies by 1.18 each time
+  const UPGRADE_COST_MULT = 1.18;
 
   const MILESTONES = [
-    { at:100,    skin:'🐱', label:'100 purrs'   },
-    { at:1000,   skin:'😸', label:'1K purrs'    },
-    { at:10000,  skin:'😻', label:'10K purrs'   },
-    { at:100000, skin:'👑🐱',label:'100K purrs' },
-    { at:1000000,skin:'🌟🐱',label:'1M purrs'  },
+    { at:50,       skin:'🐱',   label:'50',      reward:'Yarn unlocked'           },
+    { at:500,      skin:'😺',   label:'500',     reward:'+10% click power'        },
+    { at:5000,     skin:'😸',   label:'5K',      reward:'+15% CPS'                },
+    { at:50000,    skin:'😻',   label:'50K',     reward:'+25% all income'         },
+    { at:500000,   skin:'🙀',   label:'500K',    reward:'Prestige unlocked!'      },
+    { at:1000000,  skin:'👑🐱', label:'1M',      reward:'Legend status'           },
+    { at:10000000, skin:'🌟🐱', label:'10M',     reward:'Ascendant cat'           },
   ];
 
-  let clicks = 0, cps = 0, clickPower = 1, totalClicks = 0;
-  let owned = {}, particles = [], popTO = null;
-  let catSkin = '🐱';
+  // Critical clicks: random power-up window
+  const CRIT_CHANCE = 0.08; // 8% chance per click
+  const CRIT_MULT   = 5;
 
-  const fmt = n => n >= 1e6 ? (n/1e6).toFixed(2)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.floor(n).toString();
+  // Frenzy: clicking fast builds a frenzy meter
+  let state = {
+    clicks: 0,
+    totalEarned: 0,
+    prestige: 0,
+    prestigeBonus: 1,
+    frenzy: 0,          // 0–100
+    frenzyActive: false,
+    frenzyTimer: 0,
+    lastClickTime: 0,
+    streak: 0,
+    owned: {},          // { upgradeId: count }
+    cps: 0,
+    clickPower: 1,
+    particles: [],
+    popTO: null,
+    catSkin: '🐱',
+    milestoneBonus: 1,  // multiplier from milestones
+  };
 
+  const adminMult = isAdmin ? 3 : 1;
+
+  function upgradeCost(u) {
+    const count = state.owned[u.id] || 0;
+    return Math.floor(u.baseCost * Math.pow(UPGRADE_COST_MULT, count));
+  }
+
+  function recalcStats() {
+    let cps = 0, cp = 1;
+    UPGRADES.forEach(u => {
+      const count = state.owned[u.id] || 0;
+      cps += u.cpsAdd * count;
+      cp  += u.clickAdd * count;
+    });
+    // Milestone bonus
+    cps *= state.milestoneBonus * state.prestigeBonus * adminMult;
+    cp  *= state.milestoneBonus * state.prestigeBonus * adminMult;
+    state.cps        = cps;
+    state.clickPower = Math.floor(cp);
+  }
+
+  function checkMilestones() {
+    let bonus = 1, skin = '🐱';
+    MILESTONES.forEach((m, i) => {
+      if (state.totalEarned >= m.at) {
+        skin = m.skin;
+        if      (i === 1) bonus *= 1.10;
+        else if (i === 2) bonus *= 1.15;
+        else if (i === 3) bonus *= 1.25;
+        else if (i === 4) bonus *= 1.30;
+      }
+    });
+    state.milestoneBonus = bonus;
+    if (catEl && catEl.textContent !== skin) {
+      catEl.textContent = skin;
+      catEl.style.transition = 'transform .3s';
+      catEl.style.transform  = 'scale(1.5)';
+      setTimeout(() => { catEl.style.transform = ''; }, 300);
+    }
+    MILESTONES.forEach((m, i) => {
+      const el = document.getElementById('ms' + i);
+      if (el) el.style.opacity = state.totalEarned >= m.at ? '1' : '.35';
+    });
+  }
+
+  function fmt(n) {
+    if (n >= 1e9)  return (n/1e9).toFixed(2)  + 'B';
+    if (n >= 1e6)  return (n/1e6).toFixed(2)  + 'M';
+    if (n >= 1e3)  return (n/1e3).toFixed(1)  + 'K';
+    return Math.floor(n).toString();
+  }
+
+  // ── BUILD UI ────────────────────────────────────────────
   arena.innerHTML = `
     <div style="width:100%;padding:16px 20px;box-sizing:border-box;">
-      ${isAdmin ? `<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);margin-bottom:10px;text-align:center;">⚡ Admin: 5× click power · 2× CPS</div>` : ''}
+      ${isAdmin ? `<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);margin-bottom:10px;text-align:center;">⚡ Admin: 3× all income</div>` : ''}
       <div style="display:flex;gap:16px;flex-wrap:wrap;">
 
-        <!-- LEFT: cat + HUD -->
-        <div style="flex:1.4;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:220px;">
-          <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+        <!-- LEFT -->
+        <div style="flex:1.4;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:240px;">
+
+          <!-- Stats row -->
+          <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;width:100%;">
             <div style="text-align:center;">
-              <div id="cgPurrs" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);line-height:1;">0</div>
-              <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Purrs</div>
+              <div id="cgPurrs" style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:var(--cream);line-height:1;">0</div>
+              <div style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">Purrs</div>
             </div>
             <div style="text-align:center;">
-              <div id="cgCPS" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);line-height:1;">0</div>
-              <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">per sec</div>
+              <div id="cgCPS" style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:var(--gold);line-height:1;">0</div>
+              <div style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">per sec</div>
             </div>
             <div style="text-align:center;">
-              <div id="cgPower" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);line-height:1;">1</div>
-              <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">/click</div>
+              <div id="cgPower" style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:var(--cream);line-height:1;">1</div>
+              <div style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);">/click</div>
             </div>
+            ${state.prestige > 0 ? `
+            <div style="text-align:center;">
+              <div id="cgPrestige" style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:#ff6b6b;line-height:1;">${state.prestige}</div>
+              <div style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:#ff6b6b;">prestige</div>
+            </div>` : `<div id="cgPrestigePlaceholder" style="text-align:center;opacity:.35;">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:#ff6b6b;line-height:1;">0</div>
+              <div style="font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:#ff6b6b;">prestige</div>
+            </div>`}
           </div>
 
-          <!-- cat canvas + sprite -->
-          <div style="position:relative;width:220px;height:200px;display:flex;align-items:center;justify-content:center;">
-            <canvas id="cgCanvas" width="220" height="200" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
-            <div id="cgCat" style="font-size:96px;cursor:pointer;user-select:none;display:inline-block;line-height:1;z-index:1;animation:cgSway 2s ease-in-out infinite;transition:transform .12s;">🐱</div>
+          <!-- Frenzy bar -->
+          <div style="width:90%;max-width:280px;">
+            <div style="display:flex;justify-content:space-between;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
+              <span>Frenzy Meter</span>
+              <span id="cgFrenzyLabel">0%</span>
+            </div>
+            <div style="height:8px;background:rgba(201,169,110,.08);position:relative;border:1px solid rgba(201,169,110,.1);">
+              <div id="cgFrenzyBar" style="height:100%;width:0%;background:var(--gold);transition:width .1s;"></div>
+            </div>
+            <div id="cgFrenzyStatus" style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-top:4px;text-align:center;min-height:14px;"></div>
           </div>
 
-          <!-- milestones -->
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;">
-            ${MILESTONES.map((m,i) => `<div id="ms${i}" style="display:flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);opacity:.4;transition:opacity .4s;">
-              <div style="width:8px;height:8px;border-radius:50%;background:rgba(201,169,110,.3);"></div>${m.label}</div>`).join('')}
+          <!-- Cat -->
+          <div style="position:relative;width:240px;height:210px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="cgCanvas" width="240" height="210" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+            <div id="cgCat" style="font-size:96px;cursor:pointer;user-select:none;display:inline-block;line-height:1;z-index:1;">🐱</div>
           </div>
 
-          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px;">
-            <button class="g-btn" onclick="cgShowLeaderboard()" style="font-size:9px;padding:8px 16px;">🏆 Leaderboard</button>
-            <button class="g-btn" onclick="cgSubmitScore()" style="font-size:9px;padding:8px 16px;">Submit Score</button>
+          <!-- Milestones -->
+          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;">
+            ${MILESTONES.map((m,i) => `
+              <div id="ms${i}" title="${m.reward}" style="display:flex;align-items:center;gap:3px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);opacity:.35;transition:opacity .4s;cursor:default;">
+                <div style="width:7px;height:7px;border-radius:50%;background:rgba(201,169,110,.4);"></div>${m.label}
+              </div>`).join('')}
           </div>
-          <div id="cgMsg" style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-align:center;min-height:16px;"></div>
+
+          <!-- Prestige button -->
+          <div id="cgPrestigeBtn" style="display:none;width:90%;max-width:280px;">
+            <button onclick="cgPrestige()" style="width:100%;background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;padding:12px;cursor:pointer;transition:background .3s,color .3s;" onmouseover="this.style.background='#ff6b6b';this.style.color='#0e0c09'" onmouseout="this.style.background='transparent';this.style.color='#ff6b6b'">
+              🔄 Prestige — Reset for +20% permanent bonus
+            </button>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <button class="g-btn" onclick="cgShowLeaderboard()" style="font-size:9px;padding:8px 14px;">🏆 Leaderboard</button>
+            <button class="g-btn" onclick="cgSubmitScore()" style="font-size:9px;padding:8px 14px;">Submit Score</button>
+          </div>
+          <div id="cgMsg" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);text-align:center;min-height:16px;max-width:280px;"></div>
         </div>
 
         <!-- RIGHT: upgrades -->
-        <div style="flex:1;min-width:200px;background:var(--dark-2);border:1px solid rgba(201,169,110,.08);max-height:500px;overflow-y:auto;">
-          <div style="padding:12px 16px;border-bottom:1px solid rgba(201,169,110,.08);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);">Upgrades</div>
-          <div id="cgUpgrades"></div>
+        <div style="flex:1;min-width:200px;background:var(--dark-2);border:1px solid rgba(201,169,110,.08);display:flex;flex-direction:column;max-height:580px;">
+          <div style="padding:12px 16px;border-bottom:1px solid rgba(201,169,110,.08);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);flex-shrink:0;">Upgrades — tap to buy (repeatable)</div>
+          <div id="cgUpgrades" style="overflow-y:auto;flex:1;"></div>
         </div>
       </div>
     </div>
     <style>
-      @keyframes cgSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-      @keyframes cgPop{0%{transform:scale(1)}50%{transform:scale(1.28)}100%{transform:scale(1)}}
-    </style>
-  `;
+      @keyframes cgBounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+      #cgCat{animation:cgBounce 1.8s ease-in-out infinite;}
+    </style>`;
 
-  const catEl   = document.getElementById('cgCat');
-  const canvas  = document.getElementById('cgCanvas');
-  const ctx     = canvas.getContext('2d');
-  const pEl     = document.getElementById('cgPurrs');
-  const cpsEl   = document.getElementById('cgCPS');
-  const powEl   = document.getElementById('cgPower');
-  const msgEl   = document.getElementById('cgMsg');
+  const catEl  = document.getElementById('cgCat');
+  const canvas = document.getElementById('cgCanvas');
+  const ctx    = canvas.getContext('2d');
+  const pEl    = document.getElementById('cgPurrs');
+  const cpsEl  = document.getElementById('cgCPS');
+  const powEl  = document.getElementById('cgPower');
+  const msgEl  = document.getElementById('cgMsg');
 
-  const EMOJIS  = ['✨','❤️','⭐','💛','🐾'];
+  const EMOJIS = ['✨','❤️','⭐','💛','🐾','💕','🐟','🐠'];
 
-  function updateHUD() {
-    if(pEl)  pEl.textContent  = fmt(clicks);
-    if(cpsEl) cpsEl.textContent = fmt(cps);
-    if(powEl) powEl.textContent = clickPower;
-    MILESTONES.forEach((m,i) => {
-      const el = document.getElementById('ms'+i);
-      if(el) el.style.opacity = totalClicks >= m.at ? '1' : '.4';
-    });
-    const ms = [...MILESTONES].reverse().find(m => totalClicks >= m.at);
-    if(ms && catEl && catEl.textContent !== ms.skin) catEl.textContent = ms.skin;
+  // ── FRENZY SYSTEM ───────────────────────────────────────
+  // Click fast (< 600ms apart) to build frenzy
+  // At 100% frenzy activates 10s window of 3× click power
+  function handleFrenzy() {
+    const now = Date.now();
+    const gap  = now - state.lastClickTime;
+    state.lastClickTime = now;
+
+    if (gap < 600) {
+      state.frenzy = Math.min(100, state.frenzy + 4);
+      state.streak++;
+    } else if (gap < 1200) {
+      state.frenzy = Math.max(0, state.frenzy - 1);
+      state.streak = 0;
+    } else {
+      state.frenzy = Math.max(0, state.frenzy - 8);
+      state.streak = 0;
+    }
+
+    if (state.frenzy >= 100 && !state.frenzyActive) {
+      state.frenzyActive = true;
+      state.frenzy       = 100;
+      state.frenzyTimer  = 10000; // 10s
+      if (msgEl) msgEl.textContent = '🔥 FRENZY! 3× click power for 10s!';
+      catEl.style.filter = 'drop-shadow(0 0 12px orange)';
+    }
+
+    const fb = document.getElementById('cgFrenzyBar');
+    const fl = document.getElementById('cgFrenzyLabel');
+    const fs = document.getElementById('cgFrenzyStatus');
+    if (fb)  fb.style.width = state.frenzy + '%';
+    if (fl)  fl.textContent = Math.floor(state.frenzy) + '%';
+    if (fb)  fb.style.background = state.frenzyActive ? '#ff6b6b' : state.frenzy > 70 ? '#c9a96e' : 'var(--gold)';
+    if (fs && !state.frenzyActive) {
+      fs.textContent = state.frenzy > 70 ? '⚡ Almost there!' : state.streak > 3 ? `${state.streak}× streak` : '';
+    }
   }
 
+  // ── CLICK HANDLER ───────────────────────────────────────
+  catEl.addEventListener('click', function(e) {
+    handleFrenzy();
+
+    const frenzyMult   = state.frenzyActive ? 3 : 1;
+    const isCrit       = Math.random() < (isAdmin ? 0.15 : CRIT_CHANCE);
+    const critMult     = isCrit ? CRIT_MULT : 1;
+    const power        = state.clickPower * frenzyMult * critMult;
+
+    state.clicks       += power;
+    state.totalEarned  += power;
+    checkMilestones();
+    recalcStats();
+    updateHUD();
+    renderUpgrades();
+
+    // Pop animation
+    catEl.style.animation = 'none';
+    catEl.style.transform  = isCrit ? 'scale(1.5) rotate(10deg)' : 'scale(1.28)';
+    clearTimeout(state.popTO);
+    state.popTO = setTimeout(() => {
+      catEl.style.transform  = '';
+      catEl.style.animation  = 'cgBounce 1.8s ease-in-out infinite';
+    }, 150);
+
+    // Particles
+    const rect = catEl.getBoundingClientRect();
+    const cr   = canvas.getBoundingClientRect();
+    const cx   = rect.left - cr.left + rect.width  / 2;
+    const cy   = rect.top  - cr.top  + rect.height / 2;
+    const count = isCrit ? 10 : 4;
+    for (let i = 0; i < count; i++) {
+      state.particles.push({
+        x:     cx + (Math.random() - .5) * 50,
+        y:     cy + (Math.random() - .5) * 30,
+        emoji: isCrit ? '💥' : EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+        vy:    -2.5 - Math.random() * 2,
+        vx:    (Math.random() - .5) * 3,
+        life:  isCrit ? 55 : 40,
+        maxLife: isCrit ? 55 : 40,
+        scale: isCrit ? 1.6 : 1,
+      });
+    }
+
+    if (isCrit && msgEl) {
+      msgEl.textContent = `💥 CRITICAL! ×${CRIT_MULT} — +${fmt(power)} purrs!`;
+      setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 1500);
+    }
+  });
+
+  // ── PRESTIGE ────────────────────────────────────────────
+  window.cgPrestige = function() {
+    if (state.totalEarned < 500000) return;
+    if (!confirm('Reset your purrs and upgrades for a permanent +20% income bonus?')) return;
+    state.prestige++;
+    state.prestigeBonus = 1 + state.prestige * 0.20;
+    state.clicks        = 0;
+    state.totalEarned   = 0;
+    state.owned         = {};
+    state.frenzy        = 0;
+    state.frenzyActive  = false;
+    state.streak        = 0;
+    recalcStats();
+    updateHUD();
+    renderUpgrades();
+    if (msgEl) msgEl.textContent = `🔄 Prestige ${state.prestige}! +${state.prestige * 20}% permanent bonus.`;
+    document.getElementById('cgPrestigeBtn').style.display = 'none';
+    toast(`Prestige ${state.prestige} — ${state.prestige * 20}% bonus active!`);
+  };
+
+  // ── UPGRADES ────────────────────────────────────────────
   function renderUpgrades() {
-    const el = document.getElementById('cgUpgrades'); if(!el) return;
+    const el = document.getElementById('cgUpgrades'); if (!el) return;
     el.innerHTML = UPGRADES.map(u => {
-      const isOwned  = !!owned[u.id];
-      const isLocked = totalClicks < u.unlockAt && !isOwned;
-      const canBuy   = !isOwned && !isLocked && clicks >= u.cost;
-      let cls = '';
-      if(isOwned)  cls = 'style="background:rgba(90,158,111,.06);border-left:2px solid #5a9e6f;"';
-      if(isLocked) cls = 'style="opacity:.35;cursor:not-allowed;"';
-      return `<div onclick="cgBuy('${u.id}')" ${cls} style="padding:12px 16px;border-bottom:0.5px solid rgba(201,169,110,.08);cursor:${isLocked||isOwned?'default':'pointer'};display:flex;gap:10px;align-items:flex-start;transition:background .15s;${!isLocked&&!isOwned&&canBuy?'border-left:2px solid #c9a96e;':''}">
-        <span style="font-size:20px;flex-shrink:0;">${u.emoji}</span>
-        <div style="flex:1;">
-          <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--cream);">${u.name}${isOwned?' ✓':''}</div>
+      const count    = state.owned[u.id] || 0;
+      const cost     = upgradeCost(u);
+      const locked   = state.totalEarned < u.unlockAt && count === 0;
+      const canBuy   = !locked && state.clicks >= cost;
+      const contribC = (u.cpsAdd   * count * state.milestoneBonus * state.prestigeBonus * adminMult).toFixed(1);
+      const contribK = (u.clickAdd * count * state.milestoneBonus * state.prestigeBonus * adminMult).toFixed(0);
+      return `<div onclick="cgBuy('${u.id}')"
+        style="padding:12px 16px;border-bottom:0.5px solid rgba(201,169,110,.07);cursor:${locked?'default':'pointer'};
+          display:flex;gap:10px;align-items:flex-start;opacity:${locked?.4:1};
+          background:${canBuy?'rgba(201,169,110,.04)':'transparent'};
+          border-left:${canBuy?'2px solid rgba(201,169,110,.5)':count>0?'2px solid rgba(90,158,111,.3)':'2px solid transparent'};
+          transition:background .15s;">
+        <span style="font-size:22px;flex-shrink:0;">${u.emoji}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px;">
+            <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--cream);white-space:nowrap;">${u.name}</div>
+            ${count > 0 ? `<div style="font-size:9px;letter-spacing:.1em;color:#5a9e6f;flex-shrink:0;">×${count}</div>` : ''}
+          </div>
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px;line-height:1.5;">${u.desc}</div>
-          ${!isOwned ? `<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:${canBuy?'#c9a96e':'rgba(138,128,112,.5)'};">${fmt(u.cost)} purrs</div>` : ''}
+          ${count > 0 ? `<div style="font-size:9px;color:rgba(90,158,111,.7);margin-top:1px;">
+            Contributing: ${u.cpsAdd>0 ? contribC+'/s' : ''}${u.clickAdd>0 ? contribK+'/click' : ''}
+          </div>` : ''}
+          <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-top:3px;color:${canBuy?'#c9a96e':locked?'rgba(138,128,112,.4)':'rgba(138,128,112,.55)'};">
+            ${locked ? `🔒 Unlock at ${fmt(u.unlockAt)}` : fmt(cost) + ' purrs'}
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -3105,106 +3326,146 @@ function loadCatGame(arena) {
 
   window.cgBuy = function(id) {
     const u = UPGRADES.find(x => x.id === id);
-    if(!u || owned[u.id] || totalClicks < u.unlockAt) return;
-    if(clicks < u.cost) { if(msgEl) msgEl.textContent = 'Not enough purrs!'; return; }
-    clicks     -= u.cost;
-    cps        += u.cpsAdd * (isAdmin ? 2 : 1);
-    clickPower += u.clickAdd * (isAdmin ? 5 : 1);
-    owned[u.id] = true;
-    if(msgEl) msgEl.textContent = u.name + ' unlocked!';
+    if (!u) return;
+    const count = state.owned[u.id] || 0;
+    if (state.totalEarned < u.unlockAt && count === 0) return;
+    const cost = upgradeCost(u);
+    if (state.clicks < cost) {
+      if (msgEl) { msgEl.textContent = 'Need ' + fmt(cost) + ' purrs!'; setTimeout(() => { if(msgEl) msgEl.textContent=''; }, 1200); }
+      return;
+    }
+    state.clicks -= cost;
+    state.owned[u.id] = count + 1;
+    recalcStats();
     updateHUD();
     renderUpgrades();
+    if (msgEl) { msgEl.textContent = u.name + ' ×' + (count+1); setTimeout(() => { if(msgEl) msgEl.textContent=''; }, 1000); }
   };
 
-  function spawnParticle(x, y) {
-    const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    particles.push({ x, y, emoji, vy: -2 - Math.random(), vx: (Math.random()-.5)*2, life: 40 });
+  // ── HUD ─────────────────────────────────────────────────
+  function updateHUD() {
+    if (pEl)   pEl.textContent  = fmt(state.clicks);
+    if (cpsEl) cpsEl.textContent = fmt(state.cps);
+    if (powEl) powEl.textContent = state.frenzyActive
+      ? fmt(state.clickPower * 3) + ' 🔥'
+      : fmt(state.clickPower);
+    // Prestige button
+    const pb = document.getElementById('cgPrestigeBtn');
+    if (pb) pb.style.display = state.totalEarned >= 500000 ? 'block' : 'none';
   }
 
+  // ── PARTICLE RENDER LOOP ────────────────────────────────
+  let rafCG = null;
   function animLoop() {
-    if(!document.getElementById('cgCanvas')) return;
-    ctx.clearRect(0, 0, 220, 200);
-    particles = particles.filter(p => p.life > 0);
-    particles.forEach(p => {
-      ctx.globalAlpha = p.life / 40;
-      ctx.font = '18px serif';
-      ctx.textAlign = 'center';
+    if (!document.getElementById('cgCanvas')) { cancelAnimationFrame(rafCG); return; }
+    ctx.clearRect(0, 0, 240, 210);
+    state.particles = state.particles.filter(p => p.life > 0);
+    state.particles.forEach(p => {
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.font        = `${Math.floor(16 * p.scale)}px serif`;
+      ctx.textAlign   = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(p.emoji, p.x, p.y);
-      p.x += p.vx; p.y += p.vy; p.life--;
+      p.x += p.vx; p.y += p.vy; p.vy *= 0.95; p.life--;
     });
     ctx.globalAlpha = 1;
-    requestAnimationFrame(animLoop);
+    rafCG = requestAnimationFrame(animLoop);
   }
 
-  catEl.addEventListener('click', function(e) {
-    const power = clickPower * (isAdmin ? 5 : 1);
-    clicks      += power;
-    totalClicks += power;
-    updateHUD();
-    renderUpgrades();
-    // pop animation
-    catEl.style.animation = 'none';
-    catEl.style.transform = 'scale(1.26)';
-    clearTimeout(popTO);
-    popTO = setTimeout(() => {
-      catEl.style.transform = '';
-      catEl.style.animation = 'cgSway 2s ease-in-out infinite';
-    }, 120);
-    // particles — position relative to canvas
-    const rect = catEl.getBoundingClientRect();
-    const cr   = canvas.getBoundingClientRect();
-    for(let i=0;i<4;i++) spawnParticle(
-      rect.left - cr.left + rect.width/2 + (Math.random()-.5)*40,
-      rect.top  - cr.top  + rect.height/2 + (Math.random()-.5)*30
-    );
-  });
-
-  // passive income 20fps
+  // ── PASSIVE TICK @ 20fps ────────────────────────────────
   const passiveTick = setInterval(() => {
-    if(!document.getElementById('cgCat')) { clearInterval(passiveTick); return; }
-    const gain = cps / 20;
-    clicks      += gain;
-    totalClicks += gain;
+    if (!document.getElementById('cgCat')) { clearInterval(passiveTick); return; }
+
+    const gain     = state.cps / 20;
+    state.clicks      += gain;
+    state.totalEarned += gain;
+
+    // Frenzy timer
+    if (state.frenzyActive) {
+      state.frenzyTimer -= 50;
+      const rem = Math.ceil(state.frenzyTimer / 1000);
+      const fs  = document.getElementById('cgFrenzyStatus');
+      if (fs) fs.textContent = `🔥 FRENZY ${rem}s remaining`;
+      if (state.frenzyTimer <= 0) {
+        state.frenzyActive = false;
+        state.frenzy       = 0;
+        catEl.style.filter = '';
+        const fb = document.getElementById('cgFrenzyBar');
+        if (fb) fb.style.width = '0%';
+        const fl = document.getElementById('cgFrenzyLabel');
+        if (fl) fl.textContent = '0%';
+        if (fs) fs.textContent = '';
+        if (msgEl) { msgEl.textContent = 'Frenzy ended.'; setTimeout(() => { if(msgEl) msgEl.textContent=''; }, 1500); }
+      }
+    }
+
+    // Frenzy meter decay when idle
+    if (!state.frenzyActive) {
+      const idleGap = Date.now() - state.lastClickTime;
+      if (idleGap > 2000) state.frenzy = Math.max(0, state.frenzy - 0.3);
+      const fb = document.getElementById('cgFrenzyBar');
+      if (fb) fb.style.width = state.frenzy + '%';
+    }
+
+    checkMilestones();
     updateHUD();
   }, 50);
 
+  // ── LEADERBOARD ─────────────────────────────────────────
   window.cgShowLeaderboard = async function() {
     let entries = [];
     try {
-      const {data} = await db.from('cat_leaderboard').select('*').order('total_clicks',{ascending:false}).limit(15);
-      if(data) entries = data;
-    } catch(e){}
+      const { data } = await db.from('cat_leaderboard')
+        .select('*')
+        .order('total_clicks', { ascending: false })
+        .limit(15);
+      if (data) entries = data;
+    } catch(e) {}
+
     const ov = document.createElement('div');
     ov.className = 'lb-overlay'; ov.id = 'cgLBOv';
-    ov.innerHTML = `<div class="lb-modal"><button class="lb-close" onclick="document.getElementById('cgLBOv').remove()">✕</button>
+    ov.innerHTML = `<div class="lb-modal" style="max-width:520px;">
+      <button class="lb-close" onclick="document.getElementById('cgLBOv').remove()">✕</button>
       <div style="text-align:center;margin-bottom:24px;">
-        <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🐱 Cat Game</div>
+        <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🐱 Cat Clicker</div>
         <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);">Leaderboard</div>
       </div>
-      ${entries.length ? entries.map((e,i) => {
+      ${entries.length ? entries.map((e, i) => {
         const rc = i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':'';
         const md = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-        return `<div class="lb-row"><div class="lb-rank ${rc}">${i+1}</div>
-          <div style="flex:1;font-size:10px;letter-spacing:.12em;color:var(--cream);text-transform:uppercase;">${e.player_name||'Anonymous'} ${md}</div>
-          <div><span class="lb-score">${fmt(e.total_clicks||0)}</span>
-          <span class="lb-wave"> ${(e.cps||0).toFixed(1)} cps</span></div></div>`;
-      }).join('') : '<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No scores yet — be the first!</div>'}
+        return `<div class="lb-row">
+          <div class="lb-rank ${rc}">${i+1}</div>
+          <div style="flex:1;">
+            <div style="font-size:10px;letter-spacing:.12em;color:var(--cream);text-transform:uppercase;">${e.player_name||'Anonymous'} ${md}</div>
+            <div style="font-size:9px;letter-spacing:.1em;color:var(--text-muted);">${e.cps||0} /s · P${e.prestige_level||0}</div>
+          </div>
+          <div><span class="lb-score">${fmt(e.total_clicks||0)}</span></div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;padding:32px;font-size:11px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;">No scores yet!</div>'}
     </div>`;
     document.body.appendChild(ov);
   };
 
   window.cgSubmitScore = async function() {
-    const name = currentUserName || prompt('Your name?') || 'Anonymous';
+    const name = currentUserName || 'Anonymous';
     try {
       await db.from('cat_leaderboard').upsert({
-        player_name: name, total_clicks: Math.floor(totalClicks), cps: parseFloat(cps.toFixed(2)), user_id: currentUser?.id
+        player_name:    name,
+        total_clicks:   Math.floor(state.totalEarned),
+        cps:            parseFloat(state.cps.toFixed(2)),
+        prestige_level: state.prestige,
+        user_id:        currentUser?.id,
+        updated_at:     new Date().toISOString(),
       }, { onConflict: 'player_name' });
-      if(msgEl) msgEl.textContent = 'Score submitted — ' + fmt(totalClicks) + ' purrs!';
+      if (msgEl) msgEl.textContent = 'Score submitted — ' + fmt(state.totalEarned) + ' purrs!';
       toast('Score submitted!');
-    } catch(e) { if(msgEl) msgEl.textContent = 'Submit failed.'; }
+    } catch(e) {
+      if (msgEl) msgEl.textContent = 'Submit failed.';
+    }
   };
 
+  // ── INIT ────────────────────────────────────────────────
+  recalcStats();
   renderUpgrades();
   updateHUD();
   animLoop();
