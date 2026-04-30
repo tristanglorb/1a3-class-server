@@ -422,6 +422,7 @@
         <span class="nav-link" onclick="goto('chameleon')">Code</span>
         <span class="nav-link admin-nav" id="adminNavLink" style="display:none;" onclick="goto('admin')">⚡ Admin</span>
       </div>
+      <span class="nav-link" id="ownerNavLink" style="display:none;color:gold;" onclick="goto('owner')">👑 Owner</span>
       <div class="topbar-right">
         <div class="badge" id="dashBadge">1A3</div>
         <button class="signout-btn" onclick="signOut()">Sign Out</button>
@@ -742,18 +743,32 @@
     let currentUser     = null;
     let currentUserName = null;
     let isAdmin         = false;
-
+    let isOwner         = false;
     async function checkAdmin(name) {
-  // Ask the database — not the source code
-  const { data, error } = await db.from('admins').select('user_id').eq('user_id', currentUser.id).single();
-  isAdmin = !!data && !error;
+  const [adminRes, ownerRes] = await Promise.all([
+    db.from('admins').select('user_id').eq('user_id', currentUser.id).single(),
+    db.from('owners').select('user_id').eq('user_id', currentUser.id).single()
+  ]);
+
+  isAdmin = !!adminRes.data && !adminRes.error;
+  isOwner = !!ownerRes.data && !ownerRes.error;
+  if (isOwner) isAdmin = true; // owners have all admin powers too
 
   document.querySelectorAll('[id^="adminNavLink"]').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
+  document.querySelectorAll('[id^="ownerNavLink"]').forEach(el => {
+    el.style.display = isOwner ? '' : 'none';
+  });
+
   const badge = document.getElementById('dashBadge');
   if (badge) {
-    if (isAdmin) {
+    if (isOwner) {
+      badge.textContent = '👑 OWNER';
+      badge.classList.add('admin-badge');
+      badge.style.borderColor = 'gold';
+      badge.style.color = 'gold';
+    } else if (isAdmin) {
       badge.textContent = '⚡ ADMIN';
       badge.classList.add('admin-badge');
     } else {
@@ -763,12 +778,13 @@
   }
 }
     /* ── ROUTER ── */
-    const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin'];
-
+    const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin', 'owner'];
     function goto(id) {
       // Block non-admins from admin page
       if (id === 'admin' && !isAdmin) { toast('Access denied.'); return; }
       if (id !== 'games') activeGame = null;
+      if (id === 'owner' && !isOwner) { toast('Access denied.'); return; }
+      if (id === 'owner') initOwnerPanel();
       PAGES.forEach(p => document.getElementById('page-' + p).classList.toggle('active', p === id));
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       window.scrollTo(0, 0);
@@ -994,12 +1010,30 @@
         return;
       }
       currentUser = user;
+      // Inside handleSubmit(), after: currentUser = user;
+      if (loginMode === 'login') {
+      await db.from('login_log').insert({
+      user_id: user.id,
+      email: user.email,
+      user_agent: navigator.userAgent
+    });
+}
+      // Check if blacklisted before letting them in
+const { data: banned } = await db.from('blacklist').select('reason').eq('user_id', user.id).single();
+if (banned) {
+  await db.auth.signOut();
+  showMsg('Your account has been suspended' + (banned.reason ? ': ' + banned.reason : '.'), 'error');
+  btn.disabled = false;
+  btnText.textContent = 'Sign In';
+  return;
+}
       btn.classList.add('success');
       btnText.textContent = loginMode === 'login' ? '✓  Access Granted' : '✓  Account Created';
       showMsg(loginMode === 'login' ? `Welcome back, ${email}` : `Account created! Check your email to confirm, then sign in.`, 'success-msg');
       if (loginMode === 'login') setTimeout(() => goToNamePicker(), 1200);
       else { btn.disabled = false; btnText.textContent = 'Create Account'; btn.classList.remove('success'); }
     }
+    
 
     ['email', 'password', 'confirmPassword'].forEach(id => {
       const el = document.getElementById(id);
@@ -3509,6 +3543,49 @@ async function pickName(name){if(!currentUser)return;const sub=document.getEleme
   if(session?.user){currentUser=session.user;const{data:claimed}=await db.from('names').select('display_name').eq('user_id',currentUser.id).single();if(claimed?.display_name){currentUserName=claimed.display_name;checkAdmin(claimed.display_name);goto('dashboard');}else{goToNamePicker();}}
   db.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!currentUser){currentUserName=null;goto('login');}});
 })();
+<div id="page-owner" class="page-view">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
+    <div class="topbar-right"><div class="badge admin-badge" style="color:gold;border-color:gold;">👑 OWNER</div><button class="signout-btn" onclick="signOut()">Sign Out</button></div>
+  </nav>
+  <div class="page-body" style="max-width:1100px;">
+    <div class="page-header">
+      <div class="divider-line"><div class="divider-gem"></div></div>
+      <h1 class="page-title">Owner <em>Panel</em></h1>
+      <p class="page-subtitle">Full server control — restricted to owners only</p>
+    </div>
+
+    <!-- Manage Admins -->
+    <div class="admin-section" style="margin-bottom:32px;border-color:gold;">
+      <div class="admin-section-title" style="color:gold;">Manage Admins</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input class="f-input" id="ownerAdminEmail" placeholder="User email to promote to admin" style="flex:1;">
+        <button class="btn-gold" onclick="ownerAddAdmin()" style="border-color:gold;"><span style="color:gold;">Add Admin</span></button>
+      </div>
+      <div id="ownerAdminList"></div>
+    </div>
+
+    <!-- Blacklist -->
+    <div class="admin-section" style="margin-bottom:32px;border-color:#d97070;">
+      <div class="admin-section-title" style="color:#d97070;">Blacklist</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input class="f-input" id="ownerBanEmail" placeholder="User email to blacklist" style="flex:1;">
+        <input class="f-input" id="ownerBanReason" placeholder="Reason (optional)" style="flex:1;">
+        <button class="btn-gold" onclick="ownerBanUser()" style="border-color:#d97070;"><span style="color:#d97070;">Blacklist</span></button>
+      </div>
+      <div id="ownerBanList"></div>
+    </div>
+
+    <!-- Login Logs -->
+    <div class="admin-section" style="border-color:rgba(201,169,110,.3);">
+      <div class="admin-section-title" style="justify-content:space-between;">
+        <span>Login Activity Log</span>
+        <button class="btn-action" onclick="loadOwnerLogs()">↻ Refresh</button>
+      </div>
+      <div id="ownerLogList"></div>
+    </div>
+  </div>
+</div>
 </script>
 </body>
 </html>
