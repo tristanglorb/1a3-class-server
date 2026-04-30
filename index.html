@@ -738,31 +738,30 @@
 
     // ── ADMIN CONFIG ──────────────────────────────────────────
     // Names here must exactly match the display name claimed in the name picker (lowercase)
-    const ADMIN_NAMES = ['tristan','marshall','dimitris'];
 
     let currentUser     = null;
     let currentUserName = null;
     let isAdmin         = false;
 
-    function checkAdmin(name) {
-      isAdmin = ADMIN_NAMES.includes((name || '').toLowerCase());
-      // Show/hide admin nav links on all pages
-      document.querySelectorAll('[id^="adminNavLink"]').forEach(el => {
-        el.style.display = isAdmin ? '' : 'none';
-      });
-      // Update dashboard badge
-      const badge = document.getElementById('dashBadge');
-      if (badge) {
-        if (isAdmin) {
-          badge.textContent = '⚡ ADMIN';
-          badge.classList.add('admin-badge');
-        } else {
-          badge.textContent = '1A3';
-          badge.classList.remove('admin-badge');
-        }
-      }
-    }
+    async function checkAdmin(name) {
+  // Ask the database — not the source code
+  const { data, error } = await db.from('admins').select('user_id').eq('user_id', currentUser.id).single();
+  isAdmin = !!data && !error;
 
+  document.querySelectorAll('[id^="adminNavLink"]').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+  const badge = document.getElementById('dashBadge');
+  if (badge) {
+    if (isAdmin) {
+      badge.textContent = '⚡ ADMIN';
+      badge.classList.add('admin-badge');
+    } else {
+      badge.textContent = '1A3';
+      badge.classList.remove('admin-badge');
+    }
+  }
+}
     /* ── ROUTER ── */
     const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin'];
 
