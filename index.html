@@ -1578,10 +1578,10 @@ async function postAdminAnnouncement() {
 function loadGame(id) {
   const arena = document.getElementById('gameArena');
   document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active-game'));
-  const gc = document.getElementById('gc-' + id.replace('g2048','2048').replace('td','td'));
+  const gc = document.getElementById('gc-' + (id === 'g2048' ? '2048' : id));
   if (gc) gc.classList.add('active-game');
   document.getElementById('gameArenaTitle').textContent = {
-    chess:'Chess', snake:'Snake', tetris:'Tetris', g2048:'2048',
+    cat: 'Cat Game', chess:'Chess', snake:'Snake', tetris:'Tetris', g2048:'2048',
     minesweeper:'Minesweeper', fishing:'Fishing', td:'Tower Defence', wordle:'Wordle'
   }[id] || id;
   activeGame = id;
@@ -2483,7 +2483,12 @@ function loadFishing(arena) {
 
     // Admin: undo last move
     function chessUndo() {
-      if (!isAdmin || !window.CH || !CH.history?.length) { chessStatus('Nothing to undo!'); return; }
+  if (!isAdmin || !window.CH || !window.CH.history?.length) {
+    chessStatus('Nothing to undo!'); return;
+  }
+  const snap = window.CH.history.pop();
+  window.CH.board = snap.board.map(r => [...r]);
+  // etc — replace all CH. with window.CH.
       const snap = CH.history.pop();
       CH.board    = snap.board.map(r => [...r]);
       CH.turn     = snap.turn;
@@ -3536,8 +3541,6 @@ function loadCatGame(arena) {
       if (msgEl) msgEl.textContent = 'Submit failed.';
     }
   };
-
-  // ── INIT ────────────────────────────────────────────────
   recalcStats();
   renderUpgrades();
   updateHUD();
@@ -3575,7 +3578,7 @@ const CLASS_NAMES=['lifei','guanghan','dimitris','ean','ethan loo','yuanbin','da
 async function goToNamePicker(){goto('namepicker');await loadNameGrid();}
 async function loadNameGrid(){const grid=document.getElementById('nameGrid');const sub=document.getElementById('namePickerSub');grid.innerHTML='<div class="empty-state"><p class="empty-label">Loading names…</p></div>';const{data:claimed}=await db.from('names').select('display_name,user_id');const claimedMap={};(claimed||[]).forEach(r=>claimedMap[r.display_name]=r.user_id);const myName=Object.keys(claimedMap).find(n=>claimedMap[n]===currentUser?.id);if(myName){currentUserName=myName;checkAdmin(myName);
 goto('dashboard');return;}grid.innerHTML=CLASS_NAMES.map(name=>{const isTaken=!!claimedMap[name];return`<button class="name-btn ${isTaken?'taken':''}" onclick="${isTaken?'':`pickName('${name.replace(/'/,"\\'")}')`}" ${isTaken?'disabled':''}><span>${name}</span></button>`;}).join('');sub.textContent=`${Object.keys(claimedMap).length} of ${CLASS_NAMES.length} names taken`;}
-async function pickName(name){if(!currentUser)return;const sub=document.getElementById('namePickerSub');sub.textContent='Claiming name…';const{data:existing}=await db.from('names').select('id').eq('display_name',name).single();if(existing){sub.textContent='That name was just taken! Please choose another.';await loadNameGrid();return;}const{error}=await db.from('names').insert({display_name:name,user_id:currentUser.id});if(error){sub.textContent='Could not claim name. Try again.';await loadNameGrid();return;}currentUserName=name;checkAdmin(name);toast('Welcome, '+name+'!');goto('dashboard');}
+async function pickName(name){if(!currentUser)return;const sub=document.getElementById('namePickerSub');sub.textContent='Claiming name…';const{data:existing}=await db.from('names').select('id').eq('display_name',name).single();if(existing){sub.textContent='That name was just taken! Please choose another.';await loadNameGrid();return;}const{error}=await db.from('names').insert({display_name:name,user_id:currentUser.id});if(error){sub.textContent='Could not claim name. Try again.';await loadNameGrid();return;}currentUserName=name;await checkAdmin(name);toast('Welcome, '+name+'!');goto('dashboard');}
 
 /* ── INIT ── */
 (async()=>{
