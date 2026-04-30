@@ -2487,18 +2487,15 @@ function loadFishing(arena) {
     chessStatus('Nothing to undo!'); return;
   }
   const snap = window.CH.history.pop();
-  window.CH.board = snap.board.map(r => [...r]);
-  // etc — replace all CH. with window.CH.
-      const snap = CH.history.pop();
-      CH.board    = snap.board.map(r => [...r]);
-      CH.turn     = snap.turn;
-      CH.castling = { ...snap.castling };
-      CH.enPassant = snap.enPassant;
-      CH.captured = { w: [...snap.capturedW], b: [...snap.capturedB] };
-      CH.gameOver = false;
-      chessDraw();
-      chessStatus('Move undone — your turn');
-    }
+  window.CH.board     = snap.board.map(r => [...r]);
+  window.CH.turn      = snap.turn;
+  window.CH.castling  = { ...snap.castling };
+  window.CH.enPassant = snap.enPassant;
+  window.CH.captured  = { w: [...snap.capturedW], b: [...snap.capturedB] };
+  window.CH.gameOver  = false;
+  chessDraw();
+  chessStatus('Move undone — your turn');
+}
 
     const PIECE_UNICODE = { kw:'♔', qw:'♕', rw:'♖', bw:'♗', nw:'♘', pw:'♙', kb:'♚', qb:'♛', rb:'♜', bb:'♝', nb:'♞', pb:'♟' };
 
