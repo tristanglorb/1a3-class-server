@@ -786,6 +786,23 @@
     let currentUserName = null;
     let isAdmin         = false;
     let isOwner         = false;
+    async function verifyAdminFromDB() {
+  const { data, error } = await db
+    .from('admins')
+    .select('user_id')
+    .eq('user_id', currentUser?.id)
+    .single();
+  return !!data && !error;
+}
+
+async function verifyOwnerFromDB() {
+  const { data, error } = await db
+    .from('owners')
+    .select('user_id')
+    .eq('user_id', currentUser?.id)
+    .single();
+  return !!data && !error;
+}
 async function checkAdmin(name) {
   const [adminRes, ownerRes] = await Promise.all([
     db.from('admins').select('user_id').eq('user_id', currentUser.id).single(),
@@ -818,23 +835,7 @@ async function checkAdmin(name) {
     }
   }
 }
-async function verifyAdminFromDB() {
-  const { data, error } = await db
-    .from('admins')
-    .select('user_id')
-    .eq('user_id', currentUser?.id)
-    .single();
-  return !!data && !error;
-}
 
-async function verifyOwnerFromDB() {
-  const { data, error } = await db
-    .from('owners')
-    .select('user_id')
-    .eq('user_id', currentUser?.id)
-    .single();
-  return !!data && !error;
-}
     /* ── ROUTER ── */
     const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin', 'owner'];
     function goto(id) {
