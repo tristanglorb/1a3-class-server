@@ -1092,13 +1092,12 @@ async function handleSubmit() {
       });
     }
 
-    const { data: banned } = await db.from('blacklist').select('reason').eq('user_id', user.id).single();
-    if (banned) {
-      await db.auth.signOut();
-      showMsg('Your account has been suspended' + (banned.reason ? ': ' + banned.reason : '.'), 'error');
-      return;
-    }
-
+    const { data: banned, error: banError } = await db.from('blacklist').select('reason').eq('user_id', user.id).maybeSingle();
+if (banned) {
+  await db.auth.signOut();
+  showMsg('Your account has been suspended' + (banned.reason ? ': ' + banned.reason : '.'), 'error');
+  return;
+}
     btn.classList.add('success');
     btnText.textContent = loginMode === 'login' ? '✓  Access Granted' : '✓  Account Created';
     showMsg(loginMode === 'login' ? `Welcome back, ${email}` : `Account created! Check your email to confirm, then sign in.`, 'success-msg');
