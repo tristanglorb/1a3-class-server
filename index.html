@@ -992,17 +992,6 @@ let lockInput = '';
       else if (e.key === 'Backspace') { e.preventDefault(); lockDel(); }
       else if (e.key === 'Escape')    { e.preventDefault(); lockClear(); }
     });
-   
-    // Keyboard input for lock
-    document.addEventListener('keydown', e => {
-      const gamesPage = document.getElementById('page-games');
-      const lockOv    = document.getElementById('gameLockOverlay');
-      if (!gamesPage?.classList.contains('active')) return;
-      if (!lockOv || lockOv.style.display === 'none') return;
-      if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lockPress(e.key); }
-      else if (e.key === 'Backspace') { e.preventDefault(); lockDel(); }
-      else if (e.key === 'Escape')    { e.preventDefault(); lockClear(); }
-    });
 
     /* ══════════════════════════════════════
        AUTH
