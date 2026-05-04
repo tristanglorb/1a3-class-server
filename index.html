@@ -1559,6 +1559,9 @@ async function adminKickPlayer(id) {
   toast('Name released.');
   await loadAdminSessions();
 }
+async function initAdminPanel() {
+  isAdmin = await verifyAdminFromDB(); // re-check, don't trust the flag
+  if (!isAdmin) { goto('dashboard'); toast('Access denied.'); return; }
 async function postAdminAnnouncement() {
   const confirmed = await verifyAdminFromDB();
   if (!confirmed) { toast('Not authorised.'); return; }
@@ -1578,7 +1581,7 @@ async function postAdminAnnouncement() {
   document.getElementById('adminAnnBody').value  = '';
   toast('Announcement posted!');
 }
-
+    }
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
     ══════════════════════════════════════════════════════════ */
