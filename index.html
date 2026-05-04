@@ -786,15 +786,14 @@
     let currentUserName = null;
     let isAdmin         = false;
     let isOwner         = false;
-    async function checkAdmin(name) {
+async function checkAdmin(name) {
   const [adminRes, ownerRes] = await Promise.all([
     db.from('admins').select('user_id').eq('user_id', currentUser.id).single(),
     db.from('owners').select('user_id').eq('user_id', currentUser.id).single()
   ]);
-
   isAdmin = !!adminRes.data && !adminRes.error;
   isOwner = !!ownerRes.data && !ownerRes.error;
-  if (isOwner) isAdmin = true; // owners have all admin powers too
+  if (isOwner) isAdmin = true;
 
   document.querySelectorAll('[id^="adminNavLink"]').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
@@ -818,6 +817,23 @@
       badge.classList.remove('admin-badge');
     }
   }
+}
+async function verifyAdminFromDB() {
+  const { data, error } = await db
+    .from('admins')
+    .select('user_id')
+    .eq('user_id', currentUser?.id)
+    .single();
+  return !!data && !error;
+}
+
+async function verifyOwnerFromDB() {
+  const { data, error } = await db
+    .from('owners')
+    .select('user_id')
+    .eq('user_id', currentUser?.id)
+    .single();
+  return !!data && !error;
 }
     /* ── ROUTER ── */
     const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin', 'owner'];
@@ -1542,24 +1558,24 @@ function renderTimetable() {
   </div>`;
 }).join('');
     }
-
-  async function adminKickPlayer(id) {
-  if (!confirm(`Release this name? They will need to re-select.`)) return;
+async function adminKickPlayer(id) {
+  const confirmed = await verifyAdminFromDB();
+  if (!confirmed) { toast('Not authorised.'); return; }
+  if (!confirm('Release this name?')) return;
   const { error } = await db.from('names').delete().eq('id', id);
   if (error) { toast('Error: ' + error.message); return; }
   toast('Name released.');
   await loadAdminSessions();
 }
 async function postAdminAnnouncement() {
-  if (!isAdmin) { toast('Not authorised.'); return; }
+  const confirmed = await verifyAdminFromDB();
+  if (!confirmed) { toast('Not authorised.'); return; }
   const title = document.getElementById('adminAnnTitle').value.trim();
   const tag   = document.getElementById('adminAnnTag').value;
   const body  = document.getElementById('adminAnnBody').value.trim();
   if (!title || !body) { toast('Please fill in the title and message.'); return; }
   const { error } = await db.from('events').insert({
-    title,
-    category: tag,
-    body,
+    title, category: tag, body,
     priority: 'critical',
     author: '⚡ ' + currentUserName,
     user_id: currentUser.id,
@@ -1570,7 +1586,6 @@ async function postAdminAnnouncement() {
   document.getElementById('adminAnnBody').value  = '';
   toast('Announcement posted!');
 }
-  
 
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
@@ -3573,9 +3588,89 @@ async function leaveChameleonRoom(){stopChameleonPolling();if(chRoomCode&&curren
 /* ── NAME PICKER ── */
 const CLASS_NAMES=['lifei','guanghan','dimitris','ean','ethan loo','yuanbin','daniel','yuwen','jack','jason','javier lim','boyan','kayden','joshua','ethan low','lucas goh','mazhiyuan','marshall','lucas ng','tristan','rayner','bright','pm tan','sze kai','trevan','javier tan','timothy','chenglin','zixuan','evan','jingzhe','junhang','lucas zhao'].sort();
 async function goToNamePicker(){goto('namepicker');await loadNameGrid();}
-async function loadNameGrid(){const grid=document.getElementById('nameGrid');const sub=document.getElementById('namePickerSub');grid.innerHTML='<div class="empty-state"><p class="empty-label">Loading names…</p></div>';const{data:claimed}=await db.from('names').select('display_name,user_id');const claimedMap={};(claimed||[]).forEach(r=>claimedMap[r.display_name]=r.user_id);const myName=Object.keys(claimedMap).find(n=>claimedMap[n]===currentUser?.id);if(myName){currentUserName=myName;checkAdmin(myName);
-goto('dashboard');return;}grid.innerHTML=CLASS_NAMES.map(name=>{const isTaken=!!claimedMap[name];return`<button class="name-btn ${isTaken?'taken':''}" onclick="${isTaken?'':`pickName('${name.replace(/'/,"\\'")}')`}" ${isTaken?'disabled':''}><span>${name}</span></button>`;}).join('');sub.textContent=`${Object.keys(claimedMap).length} of ${CLASS_NAMES.length} names taken`;}
-async function pickName(name){if(!currentUser)return;const sub=document.getElementById('namePickerSub');sub.textContent='Claiming name…';const{data:existing}=await db.from('names').select('id').eq('display_name',name).single();if(existing){sub.textContent='That name was just taken! Please choose another.';await loadNameGrid();return;}const{error}=await db.from('names').insert({display_name:name,user_id:currentUser.id});if(error){sub.textContent='Could not claim name. Try again.';await loadNameGrid();return;}currentUserName=name;await checkAdmin(name);toast('Welcome, '+name+'!');goto('dashboard');}
+async function loadNameGrid() {
+  const grid = document.getElementById('nameGrid');
+  const sub  = document.getElementById('namePickerSub');
+  grid.innerHTML = '<div class="empty-state"><p class="empty-label">Loading…</p></div>';
+
+  // Already claimed a name?
+  const { data: claimed } = await db
+    .from('names')
+    .select('display_name')
+    .eq('user_id', currentUser.id)
+    .single();
+
+  if (claimed?.display_name) {
+    currentUserName = claimed.display_name;
+    await checkAdmin(claimed.display_name);
+    goto('dashboard');
+    return;
+  }
+
+  // Look up which name this email is allowed to claim
+  const { data: allowed } = await db
+    .from('allowed_emails')
+    .select('display_name')
+    .eq('email', currentUser.email.toLowerCase())
+    .single();
+
+  if (!allowed) {
+    sub.textContent = 'Your email is not recognised. Contact the server owner.';
+    grid.innerHTML  = '<div class="empty-state"><p class="empty-label">No name assigned to your email.</p></div>';
+    return;
+  }
+
+  // Is their assigned name already taken by someone else?
+  const { data: takenBy } = await db
+    .from('names')
+    .select('user_id')
+    .eq('display_name', allowed.display_name)
+    .single();
+
+  if (takenBy && takenBy.user_id !== currentUser.id) {
+    sub.textContent = 'Your name was already claimed. Contact the server owner.';
+    grid.innerHTML  = `<div class="empty-state"><p class="empty-label">${allowed.display_name} is already taken.</p></div>`;
+    return;
+  }
+
+  // Show only their one assigned name
+  sub.textContent = 'This is your assigned name — tap to enter.';
+  grid.innerHTML  = `
+    <button class="name-btn" onclick="pickName('${allowed.display_name.replace(/'/g, "\\'")}')">
+      <span>${allowed.display_name}</span>
+    </button>`;
+}
+async function pickName(name) {
+  if (!currentUser) return;
+  const sub = document.getElementById('namePickerSub');
+  sub.textContent = 'Claiming name…';
+
+  // Verify this name actually belongs to their email
+  const { data: allowed } = await db
+    .from('allowed_emails')
+    .select('display_name')
+    .eq('email', currentUser.email.toLowerCase())
+    .single();
+
+  if (!allowed || allowed.display_name.toLowerCase() !== name.toLowerCase()) {
+    sub.textContent = 'Name mismatch — contact the server owner.';
+    return;
+  }
+
+  const { error } = await db
+    .from('names')
+    .insert({ display_name: name, user_id: currentUser.id });
+
+  if (error) {
+    sub.textContent = 'Could not claim name: ' + error.message;
+    return;
+  }
+
+  currentUserName = name;
+  await checkAdmin(name);
+  toast('Welcome, ' + name + '!');
+  goto('dashboard');
+}
 
 /* ── INIT ── */
 (async()=>{
@@ -3607,6 +3702,8 @@ async function loadOwnerAdmins() {
 }
 
 async function ownerAddAdmin() {
+  const confirmed = await verifyOwnerFromDB();
+  if (!confirmed) { toast('Not authorised.'); return; }
   const email = document.getElementById('ownerAdminEmail').value.trim();
   if (!email) { toast('Enter an email.'); return; }
   const { data: logs } = await db.from('login_log').select('user_id').eq('email', email).limit(1);
@@ -3640,6 +3737,8 @@ async function loadOwnerBans() {
 }
 
 async function ownerBanUser() {
+  const confirmed = await verifyOwnerFromDB();
+  if (!confirmed) { toast('Not authorised.'); return; }
   const email = document.getElementById('ownerBanEmail').value.trim();
   const reason = document.getElementById('ownerBanReason').value.trim();
   if (!email) { toast('Enter an email.'); return; }
