@@ -884,34 +884,114 @@ async function verifyOwnerFromDB() {
     ══════════════════════════════════════════════════════════ */
     let activeGame = null;
     // Store a SHA-256 hash instead of the plaintext code
-const GAME_CODE_HASH = '6947f46155543e51845e4e5cc21368bb975052077183ac36eff44447db6ab11c';
-
-async function checkLockCode() {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(lockInput);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  
-  if (hashHex === GAME_CODE_HASH) {
-    // success path (keep your existing success code)
-    let lockInput    = '';
+let lockInput = '';
     let gamesUnlocked = sessionStorage.getItem('gamesUnlocked') === '1';
+    const GAME_CODE_HASH = '6947f46155543e51845e4e5cc21368bb975052077183ac36eff44447db6ab11c';
 
     function initGamesPage() {
-      // Update subtitle with admin flair
       const sub = document.getElementById('gamesSubtitle');
       if (sub && isAdmin) {
         sub.textContent = '⚡ Admin access — enhanced game perks active';
         sub.style.color = 'var(--admin)';
       }
-      if (gamesUnlocked) {
-        showGamesContent();
-      } else {
-        showGameLock();
+      if (gamesUnlocked) showGamesContent();
+      else showGameLock();
+    }
+
+    function showGameLock() {
+      const ov = document.getElementById('gameLockOverlay');
+      const gc = document.getElementById('gamesContent');
+      if (ov) ov.style.display = 'flex';
+      if (gc) gc.style.display = 'none';
+      lockInput = '';
+      updateLockDots();
+      const errEl = document.getElementById('lockErrMsg');
+      if (errEl) errEl.textContent = '';
+    }
+
+    function showGamesContent() {
+      const ov = document.getElementById('gameLockOverlay');
+      const gc = document.getElementById('gamesContent');
+      if (ov) ov.style.display = 'none';
+      if (gc) gc.style.display = 'block';
+      if (!activeGame) {
+        const arena = document.getElementById('gameArena');
+        if (arena) arena.innerHTML = '<div class="game-placeholder"><div class="game-placeholder-icon">♟🐍🟦🎣</div><p class="game-placeholder-text">Choose a game above to start playing</p></div>';
+        const title = document.getElementById('gameArenaTitle');
+        if (title) title.textContent = 'Select a game above';
+      }
+      if (isAdmin) setTimeout(() => toast('⚡ Admin perks active — enhanced game advantages enabled!'), 400);
+    }
+
+    function lockPress(digit) {
+      if (lockInput.length >= 8) return;
+      lockInput += digit;
+      updateLockDots();
+      if (lockInput.length === 8) setTimeout(checkLockCode, 100);
+    }
+
+    function lockDel() {
+      lockInput = lockInput.slice(0, -1);
+      updateLockDots();
+      const e = document.getElementById('lockErrMsg');
+      if (e) e.textContent = '';
+    }
+
+    function lockClear() {
+      lockInput = '';
+      updateLockDots();
+      const e = document.getElementById('lockErrMsg');
+      if (e) e.textContent = '';
+    }
+
+    function updateLockDots() {
+      for (let i = 0; i < 8; i++) {
+        const dot = document.getElementById('ld' + i);
+        if (!dot) continue;
+        dot.classList.remove('filled', 'error');
+        dot.style.background = '';
+        dot.style.borderColor = '';
+        if (i < lockInput.length) dot.classList.add('filled');
       }
     }
 
+    async function checkLockCode() {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(lockInput);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (hashHex === GAME_CODE_HASH) {
+        for (let i = 0; i < 8; i++) {
+          const dot = document.getElementById('ld' + i);
+          if (dot) { dot.classList.remove('filled'); dot.style.background = '#5a9e6f'; dot.style.borderColor = '#5a9e6f'; }
+        }
+        gamesUnlocked = true;
+        sessionStorage.setItem('gamesUnlocked', '1');
+        setTimeout(() => showGamesContent(), 500);
+      } else {
+        for (let i = 0; i < 8; i++) {
+          const dot = document.getElementById('ld' + i);
+          if (dot) { dot.classList.remove('filled'); dot.classList.add('error'); }
+        }
+        const inner = document.querySelector('.game-lock-inner');
+        if (inner) { inner.style.animation = ''; void inner.offsetWidth; inner.style.animation = 'lockShake .4s ease'; setTimeout(() => inner.style.animation = '', 400); }
+        const errEl = document.getElementById('lockErrMsg');
+        if (errEl) errEl.textContent = 'Incorrect code — try again';
+        setTimeout(() => { lockInput = ''; updateLockDots(); if (errEl) errEl.textContent = ''; }, 1400);
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      const gamesPage = document.getElementById('page-games');
+      const lockOv    = document.getElementById('gameLockOverlay');
+      if (!gamesPage?.classList.contains('active')) return;
+      if (!lockOv || lockOv.style.display === 'none') return;
+      if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lockPress(e.key); }
+      else if (e.key === 'Backspace') { e.preventDefault(); lockDel(); }
+      else if (e.key === 'Escape')    { e.preventDefault(); lockClear(); }
+    });
     function showGameLock() {
       const ov = document.getElementById('gameLockOverlay');
       const gc = document.getElementById('gamesContent');
