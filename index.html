@@ -420,6 +420,7 @@
         <span class="nav-link" onclick="goto('events')">Events</span>
         <span class="nav-link" onclick="goto('games')"> Secret Logs</span>
         <span class="nav-link" onclick="goto('chameleon')">Code</span>
+        <span class="nav-link" onclick="goto('chessmulti')">Chess ♟ Live</span>
         <span class="nav-link admin-nav" id="adminNavLink" style="display:none;" onclick="goto('admin')">⚡ Admin</span>
       </div>
       <span class="nav-link" id="ownerNavLink" style="display:none;color:gold;" onclick="goto('owner')">👑 Owner</span>
@@ -837,7 +838,7 @@ async function checkAdmin(name) {
 }
 
     /* ── ROUTER ── */
-    const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin', 'owner'];
+    const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin', 'owner','chessmulti'];
     function goto(id) {
       // Block non-admins from admin page
       if (id === 'admin' && !isAdmin) { toast('Access denied.'); return; }
@@ -3767,6 +3768,889 @@ async function loadOwnerLogs() {
       </div>
     </div>`).join('') + '</div>';
 }
+    <!-- ═══════════════════════════════════════════════════════════════
+     CHESS MULTIPLAYER — drop into your existing 1A3 Class Server
+     
+     STEP 1: Create the 2 Supabase tables shown above
+     STEP 2: Add   <span class="nav-link" onclick="goto('chessmulti')">Chess ♟ Live</span>
+             to BOTH navbar <div class="topbar-nav"> blocks
+     STEP 3: Add 'chessmulti' to the PAGES array in your JS
+     STEP 4: Paste the <div id="page-chessmulti"> block into your HTML
+     STEP 5: Paste the <script> block anywhere after your existing scripts
+═══════════════════════════════════════════════════════════════ -->
+
+
+<!-- ═══ HTML PAGE BLOCK — paste inside <body>, alongside other page divs ═══ -->
+<div id="page-chessmulti" class="page-view">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="goto('dashboard')">
+      <div class="brand-icon"><span></span></div>
+      <div class="brand-name">1A3 Class Server</div>
+    </div>
+    <div class="topbar-nav">
+      <span class="nav-link" onclick="goto('dashboard')">Dashboard</span>
+      <span class="nav-link" onclick="goto('games')">Secret Logs</span>
+      <span class="nav-link active">Chess Live</span>
+    </div>
+    <div class="topbar-right">
+      <div class="badge">Live</div>
+      <button class="signout-btn" onclick="cmLeave();goto('dashboard')">Leave</button>
+    </div>
+  </nav>
+
+  <div class="page-body" style="max-width:960px;">
+    <div class="page-header">
+      <div class="divider-line"><div class="divider-gem"></div></div>
+      <h1 class="page-title">Chess <em>Live</em></h1>
+      <p class="page-subtitle">Multiplayer chess with ELO rankings — challenge a classmate</p>
+    </div>
+
+    <!-- LOBBY -->
+    <div id="cm-lobby">
+      <!-- ELO badge for current user -->
+      <div id="cm-my-elo" style="text-align:center;margin-bottom:32px;">
+        <div style="display:inline-block;background:var(--dark-2);border:1px solid rgba(201,169,110,.2);padding:20px 40px;">
+          <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Your Rating</div>
+          <div id="cm-elo-display" style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--gold);line-height:1;">—</div>
+          <div id="cm-elo-record" style="font-size:10px;letter-spacing:.15em;color:var(--text-muted);margin-top:6px;">— W / — L / — D</div>
+        </div>
+      </div>
+
+      <!-- Create / Join -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(201,169,110,.08);margin-bottom:32px;">
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Create a new room</div>
+          <div style="margin-bottom:12px;">
+            <div class="f-label" style="margin-bottom:8px;">Play as</div>
+            <div style="display:flex;gap:8px;">
+              <button class="filter-btn active" id="cmColorW" onclick="cmSetColor('w')">White</button>
+              <button class="filter-btn" id="cmColorB" onclick="cmSetColor('b')">Black</button>
+              <button class="filter-btn" id="cmColorR" onclick="cmSetColor('r')">Random</button>
+            </div>
+          </div>
+          <button class="btn-gold" onclick="cmCreate()" style="width:100%;margin-top:8px;"><span>Create Room</span></button>
+        </div>
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Join with room code</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input class="f-input" id="cmJoinCode" placeholder="e.g. XKPQ" maxlength="4"
+              style="text-transform:uppercase;letter-spacing:.3em;font-size:18px;text-align:center;flex:1;">
+            <button class="btn-gold" onclick="cmJoin()"><span>Join</span></button>
+          </div>
+          <div id="cm-join-msg" style="font-size:10px;letter-spacing:.15em;color:#d97070;min-height:16px;text-transform:uppercase;"></div>
+        </div>
+      </div>
+
+      <div id="cm-msg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);text-align:center;min-height:20px;text-transform:uppercase;margin-bottom:28px;"></div>
+
+      <!-- Leaderboard -->
+      <div class="section-head"><h2 class="section-title">ELO Leaderboard</h2><div class="section-line"></div></div>
+      <div id="cm-leaderboard" style="margin-bottom:48px;"></div>
+    </div>
+
+    <!-- GAME ROOM -->
+    <div id="cm-room" style="display:none;">
+      <!-- Room header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="f-label" style="margin-bottom:4px;">Room Code</div>
+          <div id="cm-room-code" style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:var(--gold);letter-spacing:.3em;">—</div>
+        </div>
+        <div id="cm-room-info" style="text-align:right;">
+          <div id="cm-room-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;"></div>
+          <div id="cm-player-tags" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+
+      <!-- Captured pieces -->
+      <div id="cm-captured-b" style="font-size:16px;min-height:24px;margin-bottom:6px;letter-spacing:2px;"></div>
+
+      <!-- Board + sidebar -->
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+        <div style="position:relative;">
+          <canvas id="cm-board" width="480" height="480"
+            style="border:1px solid rgba(201,169,110,.2);cursor:pointer;display:block;max-width:100%;"></canvas>
+          <!-- Promotion picker -->
+          <div id="cm-promo" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+            background:var(--dark-2);border:1px solid rgba(201,169,110,.3);padding:20px 24px;z-index:50;text-align:center;">
+            <div style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">Promote pawn to</div>
+            <div style="display:flex;gap:10px;justify-content:center;">
+              <button class="btn-action" onclick="cmPromote('q')">♛ Queen</button>
+              <button class="btn-action" onclick="cmPromote('r')">♜ Rook</button>
+              <button class="btn-action" onclick="cmPromote('b')">♝ Bishop</button>
+              <button class="btn-action" onclick="cmPromote('n')">♞ Knight</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:14px;">
+          <div id="cm-turn-display" style="background:var(--dark-2);border:1px solid rgba(201,169,110,.1);padding:18px 20px;">
+            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Turn</div>
+            <div id="cm-turn-text" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--cream);">—</div>
+          </div>
+          <div id="cm-check-banner" style="display:none;background:rgba(217,112,112,.08);border:1px solid rgba(217,112,112,.3);
+            padding:12px 16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#d97070;">
+            ⚠ Check!
+          </div>
+          <div id="cm-move-list-wrap" style="background:var(--dark-2);border:1px solid rgba(201,169,110,.1);padding:16px 18px;max-height:280px;overflow-y:auto;">
+            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Move history</div>
+            <div id="cm-move-list" style="font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--text-soft);line-height:2;"></div>
+          </div>
+          <button class="btn-gold" id="cm-draw-btn" onclick="cmOfferDraw()" style="width:100%;"><span>Offer Draw</span></button>
+          <button class="btn-gold" onclick="cmResign()" style="width:100%;border-color:#d97070;"><span style="color:#d97070;">Resign</span></button>
+        </div>
+      </div>
+
+      <div id="cm-captured-w" style="font-size:16px;min-height:24px;margin-top:6px;letter-spacing:2px;"></div>
+
+      <!-- Game over panel -->
+      <div id="cm-gameover" style="display:none;margin-top:28px;background:var(--dark-2);border:1px solid rgba(201,169,110,.2);padding:32px;text-align:center;">
+        <div id="cm-gameover-title" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);margin-bottom:10px;"></div>
+        <div id="cm-gameover-sub" style="font-size:11px;letter-spacing:.15em;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;"></div>
+        <div id="cm-elo-change" style="font-size:13px;letter-spacing:.1em;color:var(--gold);margin-bottom:24px;"></div>
+        <button class="btn-gold" onclick="cmLeave();goto('chessmulti')"><span>Back to Lobby</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ═══ END HTML PAGE BLOCK ═══ -->
+
+
+<!-- ═══ SCRIPT BLOCK — paste at the end of your existing <script> tag, before </script> ═══ -->
+<script id="chess-multi-script">
+/* ══════════════════════════════════════════════════════════════
+   MULTIPLAYER CHESS ENGINE — 1A3 Class Server
+   Requires: chess_rooms and chess_elo tables in Supabase
+             Realtime enabled on chess_rooms
+══════════════════════════════════════════════════════════════ */
+
+/* ── CONSTANTS ── */
+const CM_SZ = 60; // square size px
+const CM_PIECE_UNICODE = {
+  kw:'♔', qw:'♕', rw:'♖', bw:'♗', nw:'♘', pw:'♙',
+  kb:'♚', qb:'♛', rb:'♜', bb:'♝', nb:'♞', pb:'♟'
+};
+
+/* ── STATE ── */
+let cm = {
+  roomCode: null,
+  myColor: null,        // 'w' or 'b'
+  hostColor: 'w',       // color host chose
+  isHost: false,
+  board: null,
+  turn: 'w',
+  sel: null,
+  validMoves: [],
+  captured: { w: [], b: [] },
+  moveHistory: [],      // algebraic-ish strings
+  castling: { wK:true, wQ:true, bK:true, bQ:true },
+  enPassant: null,
+  gameOver: false,
+  drawOffered: false,
+  pendingPromo: null,   // { r1,f1,r2,f2 } awaiting promotion choice
+  sub: null,            // realtime subscription
+  colorChoice: 'w',     // lobby color preference
+};
+
+/* ── ROUTER HOOK ── initialised when goto('chessmulti') is called ── */
+const _origGoto = typeof goto === 'function' ? goto : null;
+// We monkey-patch goto to init this page
+(function patchGoto() {
+  if (typeof goto !== 'function') { setTimeout(patchGoto, 200); return; }
+  const original = goto;
+  window.goto = function(id) {
+    original(id);
+    if (id === 'chessmulti') cmInit();
+    if (id !== 'chessmulti') cmStopSub();
+  };
+})();
+
+/* ── INIT ── */
+async function cmInit() {
+  cm.roomCode = null; cm.myColor = null; cm.isHost = false;
+  cm.gameOver = false; cm.pendingPromo = null;
+  document.getElementById('cm-lobby').style.display = 'block';
+  document.getElementById('cm-room').style.display = 'none';
+  cmMsg('');
+  cmSetColor('w');
+  await cmLoadMyElo();
+  await cmLoadLeaderboard();
+}
+
+function cmMsg(txt, color) {
+  const el = document.getElementById('cm-msg');
+  if (el) { el.textContent = txt; el.style.color = color || 'var(--gold)'; }
+}
+
+function cmSetColor(c) {
+  cm.colorChoice = c;
+  ['w','b','r'].forEach(x => {
+    const b = document.getElementById('cmColor' + x.toUpperCase());
+    if (b) b.classList.toggle('active', x === c);
+  });
+}
+
+/* ── ELO HELPERS ── */
+function cmExpected(ra, rb) { return 1 / (1 + Math.pow(10, (rb - ra) / 400)); }
+function cmNewElo(r, exp, score, k=32) { return Math.round(r + k * (score - exp)); }
+
+async function cmLoadMyElo() {
+  if (!currentUser) return;
+  const { data } = await db.from('chess_elo').select('*').eq('user_id', currentUser.id).single();
+  const elo = data?.elo ?? 1000;
+  const w = data?.wins ?? 0, l = data?.losses ?? 0, d = data?.draws ?? 0;
+  const el = document.getElementById('cm-elo-display');
+  const re = document.getElementById('cm-elo-record');
+  if (el) el.textContent = elo;
+  if (re) re.textContent = `${w} W / ${l} L / ${d} D`;
+}
+
+async function cmLoadLeaderboard() {
+  const el = document.getElementById('cm-leaderboard'); if (!el) return;
+  el.innerHTML = '<div class="empty-label" style="text-align:center;padding:20px;">Loading…</div>';
+  const { data } = await db.from('chess_elo')
+    .select('*').order('elo', { ascending: false }).limit(20);
+  if (!data?.length) {
+    el.innerHTML = '<div class="empty-label" style="text-align:center;padding:20px;">No games played yet — be the first!</div>';
+    return;
+  }
+  el.innerHTML = '<div class="file-list">' + data.map((p, i) => {
+    const rc = i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':'';
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    const total = (p.wins||0)+(p.losses||0)+(p.draws||0);
+    const wr = total ? Math.round((p.wins/total)*100) : 0;
+    return `<div class="file-item">
+      <div class="lb-rank ${rc}" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;width:36px;text-align:center;flex-shrink:0;">${i+1}</div>
+      <div class="file-info">
+        <div class="file-name">${p.display_name || 'Unknown'} ${medal}</div>
+        <div class="file-meta">${p.wins}W / ${p.losses}L / ${p.draws}D · ${wr}% win rate · ${total} game${total!==1?'s':''}</div>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--gold);flex-shrink:0;">${p.elo}</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+/* ── ELO UPSERT ── */
+async function cmEnsureEloRow(userId, displayName) {
+  await db.from('chess_elo').upsert(
+    { user_id: userId, display_name: displayName, elo: 1000, wins: 0, losses: 0, draws: 0 },
+    { onConflict: 'user_id', ignoreDuplicates: true }
+  );
+}
+
+async function cmApplyEloResult(winnerId, loserId, isDraw, hostId, guestId, hostName, guestName) {
+  // Ensure rows exist
+  await cmEnsureEloRow(hostId, hostName);
+  await cmEnsureEloRow(guestId, guestName);
+
+  const { data: hr } = await db.from('chess_elo').select('*').eq('user_id', hostId).single();
+  const { data: gr } = await db.from('chess_elo').select('*').eq('user_id', guestId).single();
+  const rH = hr?.elo ?? 1000, rG = gr?.elo ?? 1000;
+  const expH = cmExpected(rH, rG);
+
+  let sH, sG;
+  if (isDraw)           { sH = 0.5; sG = 0.5; }
+  else if (winnerId === hostId) { sH = 1;   sG = 0;   }
+  else                  { sH = 0;   sG = 1;   }
+
+  const newH = cmNewElo(rH, expH, sH);
+  const newG = cmNewElo(rG, 1-expH, sG);
+
+  await db.from('chess_elo').update({
+    elo: newH,
+    wins:   (hr?.wins   || 0) + (sH === 1 ? 1 : 0),
+    losses: (hr?.losses || 0) + (sH === 0 ? 1 : 0),
+    draws:  (hr?.draws  || 0) + (isDraw   ? 1 : 0),
+    updated_at: new Date().toISOString(),
+  }).eq('user_id', hostId);
+
+  await db.from('chess_elo').update({
+    elo: newG,
+    wins:   (gr?.wins   || 0) + (sG === 1 ? 1 : 0),
+    losses: (gr?.losses || 0) + (sG === 0 ? 1 : 0),
+    draws:  (gr?.draws  || 0) + (isDraw   ? 1 : 0),
+    updated_at: new Date().toISOString(),
+  }).eq('user_id', guestId);
+
+  return { newH, newG, diffH: newH - rH, diffG: newG - rG };
+}
+
+/* ── ROOM CODE ── */
+function cmGenCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  return Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+/* ── CREATE ROOM ── */
+async function cmCreate() {
+  if (!currentUser) { cmMsg('Sign in first.', '#d97070'); return; }
+  cmMsg('Creating room…');
+  let code, tries = 0;
+  while (tries < 10) {
+    code = cmGenCode();
+    const { data } = await db.from('chess_rooms').select('code').eq('code', code).single();
+    if (!data) break;
+    tries++;
+  }
+  // Decide color
+  let hostColor = cm.colorChoice;
+  if (hostColor === 'r') hostColor = Math.random() < 0.5 ? 'w' : 'b';
+
+  const initBoard = cmStartBoard();
+  const { error } = await db.from('chess_rooms').insert({
+    code,
+    host_id: currentUser.id,
+    status: 'waiting',
+    board_state: JSON.stringify({
+      board: initBoard,
+      turn: 'w',
+      castling: { wK:true, wQ:true, bK:true, bQ:true },
+      enPassant: null,
+      captured: { w:[], b:[] },
+      moveHistory: [],
+      hostColor,
+      drawOffer: null,
+    }),
+    move_count: 0,
+  });
+  if (error) { cmMsg('Error: ' + error.message, '#d97070'); return; }
+  cm.roomCode = code;
+  cm.isHost = true;
+  cm.hostColor = hostColor;
+  cm.myColor = hostColor;
+  cmMsg('');
+  cmEnterRoom();
+}
+
+/* ── JOIN ROOM ── */
+async function cmJoin() {
+  if (!currentUser) { cmMsg('Sign in first.', '#d97070'); return; }
+  const code = document.getElementById('cmJoinCode').value.trim().toUpperCase();
+  const jMsg = el => { const e = document.getElementById('cm-join-msg'); if(e) e.textContent = el; };
+  if (code.length !== 4) { jMsg('Enter a 4-letter code.'); return; }
+  jMsg('Joining…');
+  const { data: room } = await db.from('chess_rooms').select('*').eq('code', code).single();
+  if (!room) { jMsg('Room not found.'); return; }
+  if (room.status === 'playing') { jMsg('Game already in progress.'); return; }
+  if (room.status === 'done')    { jMsg('Game already finished.'); return; }
+  if (room.host_id === currentUser.id) { jMsg("That's your own room!"); return; }
+
+  const state = JSON.parse(room.board_state || '{}');
+  const hostColor = state.hostColor || 'w';
+  cm.roomCode = code;
+  cm.isHost = false;
+  cm.hostColor = hostColor;
+  cm.myColor = hostColor === 'w' ? 'b' : 'w';
+
+  // Update room to playing + set guest
+  const { error } = await db.from('chess_rooms').update({
+    guest_id: currentUser.id,
+    status: 'playing',
+  }).eq('code', code);
+  if (error) { jMsg('Error joining: ' + error.message); return; }
+  jMsg('');
+  cmEnterRoom();
+}
+
+/* ── ENTER ROOM ── */
+function cmEnterRoom() {
+  document.getElementById('cm-lobby').style.display = 'none';
+  document.getElementById('cm-room').style.display  = 'block';
+  document.getElementById('cm-room-code').textContent = cm.roomCode;
+  document.getElementById('cm-gameover').style.display = 'none';
+  cm.gameOver = false;
+  cm.sel = null; cm.validMoves = [];
+  cmLoadRoomState();
+  cmSubscribe();
+}
+
+/* ── REALTIME SUBSCRIPTION ── */
+function cmSubscribe() {
+  cmStopSub();
+  cm.sub = db.channel('chess-room-' + cm.roomCode)
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'chess_rooms',
+      filter: `code=eq.${cm.roomCode}`
+    }, payload => {
+      cmHandleUpdate(payload.new);
+    })
+    .subscribe();
+}
+
+function cmStopSub() {
+  if (cm.sub) { db.removeChannel(cm.sub); cm.sub = null; }
+}
+
+/* ── LOAD & HANDLE STATE ── */
+async function cmLoadRoomState() {
+  const { data: room } = await db.from('chess_rooms').select('*').eq('code', cm.roomCode).single();
+  if (room) cmHandleUpdate(room);
+}
+
+async function cmHandleUpdate(room) {
+  if (!room) return;
+  const state = JSON.parse(room.board_state || '{}');
+
+  cm.board       = state.board       || cmStartBoard();
+  cm.turn        = state.turn        || 'w';
+  cm.castling    = state.castling    || { wK:true, wQ:true, bK:true, bQ:true };
+  cm.enPassant   = state.enPassant   ?? null;
+  cm.captured    = state.captured    || { w:[], b:[] };
+  cm.moveHistory = state.moveHistory || [];
+  cm.drawOffer   = state.drawOffer   ?? null;
+
+  // Player tags
+  const me   = currentUserName || currentUser?.email || '?';
+  const them = cm.isHost ? (room.guest_id  ? 'Opponent' : 'Waiting…') : (room.host_id ? 'Host' : '?');
+  const myTag   = `<div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;border:1px solid rgba(201,169,110,.3);color:var(--gold);">${me} (${cm.myColor==='w'?'White':'Black'})</div>`;
+  const themTag = `<div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;border:1px solid rgba(201,169,110,.1);color:var(--text-muted);">${them} (${cm.myColor==='w'?'Black':'White'})</div>`;
+  const ptEl = document.getElementById('cm-player-tags');
+  if (ptEl) ptEl.innerHTML = myTag + themTag;
+
+  // Status
+  const statusEl = document.getElementById('cm-room-status');
+  if (statusEl) {
+    if (room.status === 'waiting') statusEl.textContent = 'Waiting for opponent…';
+    else if (room.status === 'playing') statusEl.textContent = 'Game in progress';
+    else statusEl.textContent = 'Game over';
+  }
+
+  // Draw offer UI
+  const drawBtn = document.getElementById('cm-draw-btn');
+  if (cm.drawOffer && cm.drawOffer !== currentUser.id) {
+    if (drawBtn) drawBtn.querySelector('span').textContent = 'Accept Draw';
+    if (drawBtn) drawBtn.onclick = cmAcceptDraw;
+  } else {
+    if (drawBtn) drawBtn.querySelector('span').textContent = 'Offer Draw';
+    if (drawBtn) drawBtn.onclick = cmOfferDraw;
+  }
+
+  cmDrawBoard();
+  cmUpdateSidebar();
+
+  // Game over
+  if (room.status === 'done' && !cm.gameOver) {
+    cm.gameOver = true;
+    cmShowGameOver(room);
+  }
+}
+
+/* ── BOARD INITIALISATION ── */
+function cmStartBoard() {
+  return [
+    ['rb','nb','bb','qb','kb','bb','nb','rb'],
+    ['pb','pb','pb','pb','pb','pb','pb','pb'],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    ['pw','pw','pw','pw','pw','pw','pw','pw'],
+    ['rw','nw','bw','qw','kw','bw','nw','rw'],
+  ];
+}
+
+/* ── DRAW BOARD ── */
+function cmDrawBoard() {
+  const canvas = document.getElementById('cm-board'); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const SZ = CM_SZ;
+  // Flip board for black
+  const flip = cm.myColor === 'b';
+
+  for (let r = 0; r < 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const dr = flip ? 7 - r : r;
+      const df = flip ? 7 - f : f;
+      const light = (r + f) % 2 === 0;
+      ctx.fillStyle = light ? '#2a2420' : '#1a1410';
+      ctx.fillRect(f * SZ, r * SZ, SZ, SZ);
+
+      // Highlight selected
+      if (cm.sel && cm.sel[0] === dr && cm.sel[1] === df) {
+        ctx.fillStyle = 'rgba(201,169,110,.38)';
+        ctx.fillRect(f * SZ, r * SZ, SZ, SZ);
+      }
+      // Valid moves
+      if (cm.validMoves.some(m => m[0] === dr && m[1] === df)) {
+        const hasPiece = cm.board[dr][df];
+        if (hasPiece) {
+          ctx.strokeStyle = 'rgba(201,169,110,.6)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(f * SZ + 2, r * SZ + 2, SZ - 4, SZ - 4);
+        } else {
+          ctx.fillStyle = 'rgba(201,169,110,.22)';
+          ctx.beginPath();
+          ctx.arc(f * SZ + SZ/2, r * SZ + SZ/2, SZ/5, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+
+      // Piece
+      const p = cm.board[dr][df];
+      if (p) {
+        ctx.font = `${SZ * 0.72}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = p[1] === 'w' ? '#e8d5a3' : '#2a1a0a';
+        if (p[1] === 'b') {
+          ctx.strokeStyle = '#c9a96e'; ctx.lineWidth = 0.4;
+          ctx.strokeText(CM_PIECE_UNICODE[p], f * SZ + SZ/2, r * SZ + SZ/2 + 1);
+        }
+        ctx.fillText(CM_PIECE_UNICODE[p], f * SZ + SZ/2, r * SZ + SZ/2 + 1);
+      }
+    }
+  }
+
+  // Rank / file labels
+  ctx.font = '10px Josefin Sans,sans-serif';
+  ctx.fillStyle = 'rgba(201,169,110,.4)';
+  for (let i = 0; i < 8; i++) {
+    const rankLabel = flip ? (i + 1) : (8 - i);
+    const fileLabel = String.fromCharCode(flip ? (104 - i) : (97 + i));
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(rankLabel, 2, i * SZ + 2);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText(fileLabel, (i + 1) * SZ - 2, 480 - 2);
+  }
+
+  // Captured pieces display
+  const capB = document.getElementById('cm-captured-b');
+  const capW = document.getElementById('cm-captured-w');
+  if (capB) capB.textContent = cm.captured.b.map(p => CM_PIECE_UNICODE[p]).join('');
+  if (capW) capW.textContent = cm.captured.w.map(p => CM_PIECE_UNICODE[p]).join('');
+}
+
+function cmUpdateSidebar() {
+  const isMyTurn = cm.turn === cm.myColor && !cm.gameOver;
+  const turnEl = document.getElementById('cm-turn-text');
+  if (turnEl) {
+    turnEl.textContent = cm.turn === cm.myColor
+      ? 'Your turn'
+      : "Opponent's turn";
+    turnEl.style.color = cm.turn === cm.myColor ? 'var(--gold)' : 'var(--text-muted)';
+  }
+  const checkBanner = document.getElementById('cm-check-banner');
+  if (checkBanner) checkBanner.style.display = cmInCheck(cm.turn) ? 'block' : 'none';
+
+  const mlEl = document.getElementById('cm-move-list');
+  if (mlEl) {
+    mlEl.innerHTML = '';
+    for (let i = 0; i < cm.moveHistory.length; i += 2) {
+      const w = cm.moveHistory[i] || '';
+      const b = cm.moveHistory[i+1] || '';
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;gap:12px;';
+      div.innerHTML = `<span style="color:rgba(138,128,112,.5);min-width:20px;">${Math.floor(i/2)+1}.</span><span style="color:var(--cream);">${w}</span><span style="color:var(--text-soft);">${b}</span>`;
+      mlEl.appendChild(div);
+    }
+    mlEl.scrollTop = mlEl.scrollHeight;
+  }
+}
+
+/* ── CLICK HANDLER ── */
+(function attachBoardClick() {
+  function tryAttach() {
+    const canvas = document.getElementById('cm-board');
+    if (!canvas) { setTimeout(tryAttach, 300); return; }
+    canvas.addEventListener('click', function(e) {
+      if (!cm.board || cm.gameOver || cm.turn !== cm.myColor || cm.pendingPromo) return;
+      const rect = canvas.getBoundingClientRect();
+      const scale = canvas.width / rect.width;
+      const mx = (e.clientX - rect.left) * scale;
+      const my = (e.clientY - rect.top)  * scale;
+      const flip = cm.myColor === 'b';
+      const f = Math.floor(mx / CM_SZ);
+      const r = Math.floor(my / CM_SZ);
+      const dr = flip ? 7 - r : r;
+      const df = flip ? 7 - f : f;
+      if (dr < 0 || dr > 7 || df < 0 || df > 7) return;
+
+      if (cm.sel) {
+        const mv = cm.validMoves.find(m => m[0] === dr && m[1] === df);
+        if (mv) {
+          // Check pawn promotion
+          const p = cm.board[cm.sel[0]][cm.sel[1]];
+          if (p && p[0] === 'p' && (dr === 0 || dr === 7)) {
+            cm.pendingPromo = { r1: cm.sel[0], f1: cm.sel[1], r2: dr, f2: df };
+            document.getElementById('cm-promo').style.display = 'block';
+            return;
+          }
+          cmApplyAndPush(cm.sel[0], cm.sel[1], dr, df, null);
+          cm.sel = null; cm.validMoves = [];
+          return;
+        }
+      }
+      const p = cm.board[dr][df];
+      if (p && p[1] === cm.myColor) {
+        cm.sel = [dr, df];
+        cm.validMoves = cmGetMoves(dr, df, true);
+      } else {
+        cm.sel = null; cm.validMoves = [];
+      }
+      cmDrawBoard();
+    });
+  }
+  tryAttach();
+})();
+
+/* ── PROMOTION ── */
+function cmPromote(piece) {
+  if (!cm.pendingPromo) return;
+  const { r1, f1, r2, f2 } = cm.pendingPromo;
+  cm.pendingPromo = null;
+  document.getElementById('cm-promo').style.display = 'none';
+  cmApplyAndPush(r1, f1, r2, f2, piece);
+}
+
+/* ── APPLY MOVE & PUSH TO SUPABASE ── */
+async function cmApplyAndPush(r1, f1, r2, f2, promo) {
+  // Build algebraic notation before mutating board
+  const pieceCode = cm.board[r1][f1] || '';
+  const isCapture = !!cm.board[r2][f2];
+  const files = 'abcdefgh';
+  let notation = (pieceCode[0] !== 'p' ? CM_PIECE_UNICODE[pieceCode] : '') +
+    files[f1] + (8-r1) + (isCapture ? '×' : '') + files[f2] + (8-r2) +
+    (promo ? '=' + promo.toUpperCase() : '');
+
+  // Apply locally
+  cmApplyMoveLocal(r1, f1, r2, f2, promo);
+  cm.moveHistory.push(notation);
+
+  // Check for game-ending conditions
+  const inCheck  = cmInCheck(cm.turn);
+  const hasMoves = cmHasAnyMoves(cm.turn);
+  let status = 'playing', winnerId = null;
+
+  if (!hasMoves) {
+    status = 'done';
+    if (inCheck) {
+      // Checkmate
+      notation += '#';
+      winnerId = currentUser.id;
+    } else {
+      // Stalemate — draw
+      notation += ' ½-½';
+    }
+    cm.moveHistory[cm.moveHistory.length - 1] = notation;
+  } else if (inCheck) {
+    notation += '+';
+    cm.moveHistory[cm.moveHistory.length - 1] = notation;
+  }
+
+  // Push state
+  const state = {
+    board: cm.board,
+    turn: cm.turn,
+    castling: cm.castling,
+    enPassant: cm.enPassant,
+    captured: cm.captured,
+    moveHistory: cm.moveHistory,
+    hostColor: cm.hostColor,
+    drawOffer: null,
+  };
+  const update = { board_state: JSON.stringify(state), turn: cm.turn, move_count: cm.moveHistory.length };
+  if (status === 'done') { update.status = 'done'; update.winner_id = winnerId; }
+  await db.from('chess_rooms').update(update).eq('code', cm.roomCode);
+
+  if (status === 'done') {
+    await cmFinaliseGame(winnerId);
+  }
+
+  cmDrawBoard();
+  cmUpdateSidebar();
+}
+
+/* ── LOCAL MOVE APPLICATION ── */
+function cmApplyMoveLocal(r1, f1, r2, f2, promo) {
+  const p = cm.board[r1][f1];
+  const captured = cm.board[r2][f2];
+  if (captured) cm.captured[p[1]].push(captured);
+
+  // En passant capture
+  if (p[0] === 'p' && f1 !== f2 && !cm.board[r2][f2]) {
+    cm.captured[p[1]].push(cm.board[r1][f2]);
+    cm.board[r1][f2] = null;
+  }
+
+  // Castling rook move
+  if (p[0] === 'k') {
+    if (f2 - f1 === 2) { cm.board[r1][5] = cm.board[r1][7]; cm.board[r1][7] = null; }
+    if (f1 - f2 === 2) { cm.board[r1][3] = cm.board[r1][0]; cm.board[r1][0] = null; }
+    if (p[1] === 'w') { cm.castling.wK = false; cm.castling.wQ = false; }
+    else              { cm.castling.bK = false; cm.castling.bQ = false; }
+  }
+
+  // Rook move removes castling rights
+  if (p[0] === 'r') {
+    if (r1===7&&f1===0) cm.castling.wQ=false; if (r1===7&&f1===7) cm.castling.wK=false;
+    if (r1===0&&f1===0) cm.castling.bQ=false; if (r1===0&&f1===7) cm.castling.bK=false;
+  }
+
+  // En passant target
+  cm.enPassant = (p[0]==='p' && Math.abs(r2-r1)===2) ? [r1+(r2-r1)/2, f1] : null;
+
+  cm.board[r2][f2] = p; cm.board[r1][f1] = null;
+
+  // Promotion
+  if (p[0] === 'p' && (r2 === 0 || r2 === 7)) {
+    cm.board[r2][f2] = (promo || 'q') + p[1];
+  }
+
+  cm.turn = cm.turn === 'w' ? 'b' : 'w';
+}
+
+/* ── MOVE GENERATION (same engine as solo chess, adapted) ── */
+function cmGetMoves(r, f, filterCheck) {
+  const p = cm.board[r][f]; if (!p) return [];
+  const [type, color] = [p[0], p[1]];
+  const opp = color === 'w' ? 'b' : 'w';
+  const moves = [];
+  const add = (tr, tf) => { if (tr>=0&&tr<8&&tf>=0&&tf<8) { const t=cm.board[tr][tf]; if (!t||t[1]===opp) moves.push([tr,tf]); } };
+  const slide = (dr, df) => { let tr=r+dr,tf=f+df; while(tr>=0&&tr<8&&tf>=0&&tf<8){ const t=cm.board[tr][tf]; if(t){if(t[1]===opp)moves.push([tr,tf]);break;} moves.push([tr,tf]); tr+=dr; tf+=df; } };
+
+  if (type==='p') {
+    const dir=color==='w'?-1:1, start=color==='w'?6:1;
+    if (!cm.board[r+dir]?.[f]) { moves.push([r+dir,f]); if(r===start&&!cm.board[r+2*dir]?.[f]) moves.push([r+2*dir,f]); }
+    for (const df of [-1,1]) { const tr=r+dir,tf=f+df; if(tr>=0&&tr<8&&tf>=0&&tf<8){ if(cm.board[tr][tf]?.[1]===opp) moves.push([tr,tf]); if(cm.enPassant&&cm.enPassant[0]===tr&&cm.enPassant[1]===tf) moves.push([tr,tf]); } }
+  } else if (type==='n') {
+    for (const [dr,df] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) add(r+dr,f+df);
+  } else if (type==='b') { for (const [dr,df] of [[-1,-1],[-1,1],[1,-1],[1,1]]) slide(dr,df); }
+    else if (type==='r') { for (const [dr,df] of [[-1,0],[1,0],[0,-1],[0,1]]) slide(dr,df); }
+    else if (type==='q') { for (const [dr,df] of [[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]]) slide(dr,df); }
+    else if (type==='k') {
+    for (const [dr,df] of [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]) add(r+dr,f+df);
+    const rank = color==='w'?7:0;
+    if (r===rank&&f===4) {
+      if (color==='w'&&cm.castling.wK&&!cm.board[rank][5]&&!cm.board[rank][6]&&!cmSquareAttacked(rank,4,opp)&&!cmSquareAttacked(rank,5,opp)&&!cmSquareAttacked(rank,6,opp)) moves.push([rank,6]);
+      if (color==='w'&&cm.castling.wQ&&!cm.board[rank][3]&&!cm.board[rank][2]&&!cm.board[rank][1]&&!cmSquareAttacked(rank,4,opp)&&!cmSquareAttacked(rank,3,opp)) moves.push([rank,2]);
+      if (color==='b'&&cm.castling.bK&&!cm.board[rank][5]&&!cm.board[rank][6]&&!cmSquareAttacked(rank,4,opp)&&!cmSquareAttacked(rank,5,opp)&&!cmSquareAttacked(rank,6,opp)) moves.push([rank,6]);
+      if (color==='b'&&cm.castling.bQ&&!cm.board[rank][3]&&!cm.board[rank][2]&&!cm.board[rank][1]&&!cmSquareAttacked(rank,4,opp)&&!cmSquareAttacked(rank,3,opp)) moves.push([rank,2]);
+    }
+  }
+
+  if (!filterCheck) return moves;
+  return moves.filter(([tr,tf]) => {
+    const save=cm.board[tr][tf],saveEP=cm.enPassant; let epR=null,epSave=null;
+    if(type==='p'&&f!==tf&&!cm.board[tr][tf]){epR=r;epSave=cm.board[r][tf];cm.board[r][tf]=null;}
+    cm.board[tr][tf]=p; cm.board[r][f]=null;
+    const safe=!cmInCheck(color);
+    cm.board[r][f]=p; cm.board[tr][tf]=save;
+    if(epR!==null)cm.board[epR][tf]=epSave;
+    cm.enPassant=saveEP; return safe;
+  });
+}
+
+function cmSquareAttacked(r,f,byColor) {
+  for(let pr=0;pr<8;pr++) for(let pf=0;pf<8;pf++){
+    const p=cm.board[pr][pf];
+    if(p&&p[1]===byColor&&cmGetMoves(pr,pf,false).some(m=>m[0]===r&&m[1]===f)) return true;
+  }
+  return false;
+}
+
+function cmInCheck(color) {
+  let kr=-1,kf=-1;
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++) if(cm.board[r][f]===(color==='w'?'kw':'kb')){kr=r;kf=f;}
+  return cmSquareAttacked(kr,kf,color==='w'?'b':'w');
+}
+
+function cmHasAnyMoves(color) {
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const p=cm.board[r][f];
+    if(p&&p[1]===color&&cmGetMoves(r,f,true).length>0) return true;
+  }
+  return false;
+}
+
+/* ── RESIGN / DRAW ── */
+async function cmResign() {
+  if (!cm.roomCode || cm.gameOver) return;
+  if (!confirm('Resign this game?')) return;
+  cm.gameOver = true;
+  await db.from('chess_rooms').update({ status:'done', winner_id: null }).eq('code', cm.roomCode);
+  // winner is opponent
+  const { data: room } = await db.from('chess_rooms').select('*').eq('code', cm.roomCode).single();
+  const opponentId = cm.isHost ? room.guest_id : room.host_id;
+  await db.from('chess_rooms').update({ winner_id: opponentId }).eq('code', cm.roomCode);
+  await cmFinaliseGame(opponentId);
+}
+
+async function cmOfferDraw() {
+  if (!cm.roomCode || cm.gameOver) return;
+  const { data: room } = await db.from('chess_rooms').select('board_state').eq('code', cm.roomCode).single();
+  const state = JSON.parse(room?.board_state || '{}');
+  state.drawOffer = currentUser.id;
+  await db.from('chess_rooms').update({ board_state: JSON.stringify(state) }).eq('code', cm.roomCode);
+  toast('Draw offered — waiting for opponent…');
+}
+
+async function cmAcceptDraw() {
+  if (!cm.roomCode || cm.gameOver) return;
+  cm.gameOver = true;
+  await db.from('chess_rooms').update({ status:'done', winner_id: null }).eq('code', cm.roomCode);
+  await cmFinaliseGame(null); // null = draw
+}
+
+/* ── GAME OVER + ELO ── */
+async function cmFinaliseGame(winnerId) {
+  const { data: room } = await db.from('chess_rooms').select('*').eq('code', cm.roomCode).single();
+  if (!room?.guest_id) return; // no opponent joined yet — skip ELO
+  const hostName  = cm.isHost ? (currentUserName||currentUser.email) : 'Host';
+  const guestName = !cm.isHost ? (currentUserName||currentUser.email) : 'Guest';
+  const isDraw = winnerId === null;
+  const result = await cmApplyEloResult(
+    winnerId, isDraw ? null : (winnerId===room.host_id?room.guest_id:room.host_id),
+    isDraw, room.host_id, room.guest_id, hostName, guestName
+  );
+  // Determine my ELO change
+  const iAmHost = cm.isHost;
+  const myDiff  = iAmHost ? result?.diffH : result?.diffG;
+  const newMyElo = iAmHost ? result?.newH : result?.newG;
+  cmShowGameOver(room, myDiff, newMyElo, winnerId, isDraw);
+}
+
+function cmShowGameOver(room, myDiff, newMyElo, winnerId, isDraw) {
+  const el = document.getElementById('cm-gameover'); if (!el) return;
+  el.style.display = 'block';
+  const title = document.getElementById('cm-gameover-title');
+  const sub   = document.getElementById('cm-gameover-sub');
+  const eloEl = document.getElementById('cm-elo-change');
+
+  const iWon  = winnerId === currentUser.id;
+  const isDrawResult = isDraw || (!winnerId && room?.status === 'done');
+
+  if (isDrawResult) {
+    title.textContent = '½ — ½ Draw';
+    title.style.color = 'var(--text-soft)';
+    sub.textContent   = 'The game ended in a draw';
+  } else if (iWon) {
+    title.textContent = 'Victory';
+    title.style.color = '#5a9e6f';
+    sub.textContent   = 'Checkmate — you won!';
+  } else {
+    title.textContent = 'Defeat';
+    title.style.color = '#d97070';
+    sub.textContent   = room?.winner_id ? 'Checkmate — opponent won' : 'You resigned';
+  }
+
+  if (myDiff !== undefined && newMyElo !== undefined) {
+    const sign = myDiff >= 0 ? '+' : '';
+    eloEl.textContent = `ELO: ${newMyElo} (${sign}${myDiff})`;
+    eloEl.style.color = myDiff >= 0 ? '#5a9e6f' : '#d97070';
+  } else {
+    eloEl.textContent = '';
+  }
+}
+
+/* ── LEAVE ── */
+async function cmLeave() {
+  cmStopSub();
+  cm.roomCode = null; cm.myColor = null;
+  cm.board = null; cm.gameOver = false;
+}
+/* ── END CHESS MULTIPLAYER SCRIPT ── */
+</script>
 </script>
 </body>
 </html>
