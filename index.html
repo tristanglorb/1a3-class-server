@@ -838,7 +838,7 @@ async function checkAdmin(name) {
 }
 
     /* ── ROUTER ── */
-    const PAGES = ['login', 'namepicker', 'dashboard', 'notes', 'homework', 'events', 'games', 'chameleon', 'admin', 'owner','chessmulti'];
+   const PAGES = ['login','namepicker','dashboard','notes','homework','events','games','chameleon','admin','owner','chessmulti'];
     function goto(id) {
       // Block non-admins from admin page
       if (id === 'admin' && !isAdmin) { toast('Access denied.'); return; }
@@ -856,7 +856,9 @@ async function checkAdmin(name) {
       if (id === 'admin')     initAdminPanel();
       if (id !== 'chameleon') stopChameleonPolling();
       if (id === 'games')     initGamesPage();
-    }
+      if (id === 'chessmulti') { cmInit(); }          // ADD THIS
+      if (id !== 'chessmulti' && typeof cmStopSub === 'function') cmStopSub();
+      }
 
     function toast(msg) {
       const el = document.getElementById('toast');
@@ -1606,6 +1608,7 @@ function loadGame(id) {
   else if (id === 'wordle')      loadWordle(arena);
   else if (id === 'cat') loadCatGame(arena);
 }
+  
   
 const ROD_DEFS = [
   {
@@ -3917,8 +3920,6 @@ async function loadOwnerLogs() {
 <!-- ═══ END HTML PAGE BLOCK ═══ -->
 
 
-<!-- ═══ SCRIPT BLOCK — paste at the end of your existing <script> tag, before </script> ═══ -->
-<script id="chess-multi-script">
 /* ══════════════════════════════════════════════════════════════
    MULTIPLAYER CHESS ENGINE — 1A3 Class Server
    Requires: chess_rooms and chess_elo tables in Supabase
@@ -3955,16 +3956,6 @@ let cm = {
 
 /* ── ROUTER HOOK ── initialised when goto('chessmulti') is called ── */
 const _origGoto = typeof goto === 'function' ? goto : null;
-// We monkey-patch goto to init this page
-(function patchGoto() {
-  if (typeof goto !== 'function') { setTimeout(patchGoto, 200); return; }
-  const original = goto;
-  window.goto = function(id) {
-    original(id);
-    if (id === 'chessmulti') cmInit();
-    if (id !== 'chessmulti') cmStopSub();
-  };
-})();
 
 /* ── INIT ── */
 async function cmInit() {
@@ -4650,7 +4641,6 @@ async function cmLeave() {
   cm.board = null; cm.gameOver = false;
 }
 /* ── END CHESS MULTIPLAYER SCRIPT ── */
-</script>
 </script>
 </body>
 </html>
