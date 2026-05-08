@@ -1562,9 +1562,15 @@ async function adminKickPlayer(id) {
   toast('Name released.');
   await loadAdminSessions();
 }
+
 async function initAdminPanel() {
-  isAdmin = await verifyAdminFromDB(); // re-check, don't trust the flag
+  isAdmin = await verifyAdminFromDB();
   if (!isAdmin) { goto('dashboard'); toast('Access denied.'); return; }
+  document.getElementById('adminSubtitle').textContent =
+    `Signed in as ⚡ ${currentUserName} · Full admin access`;
+  await loadAdminSessions();
+}
+
 async function postAdminAnnouncement() {
   const confirmed = await verifyAdminFromDB();
   if (!confirmed) { toast('Not authorised.'); return; }
@@ -1584,7 +1590,6 @@ async function postAdminAnnouncement() {
   document.getElementById('adminAnnBody').value  = '';
   toast('Announcement posted!');
 }
-    }
     /* ══════════════════════════════════════════════════════════
        GAMES ENGINE
     ══════════════════════════════════════════════════════════ */
@@ -3771,19 +3776,7 @@ async function loadOwnerLogs() {
       </div>
     </div>`).join('') + '</div>';
 }
-    <!-- ═══════════════════════════════════════════════════════════════
-     CHESS MULTIPLAYER — drop into your existing 1A3 Class Server
-     
-     STEP 1: Create the 2 Supabase tables shown above
-     STEP 2: Add   <span class="nav-link" onclick="goto('chessmulti')">Chess ♟ Live</span>
-             to BOTH navbar <div class="topbar-nav"> blocks
-     STEP 3: Add 'chessmulti' to the PAGES array in your JS
-     STEP 4: Paste the <div id="page-chessmulti"> block into your HTML
-     STEP 5: Paste the <script> block anywhere after your existing scripts
-═══════════════════════════════════════════════════════════════ -->
 
-
-<!-- ═══ HTML PAGE BLOCK — paste inside <body>, alongside other page divs ═══ -->
 <div id="page-chessmulti" class="page-view">
   <nav class="topbar">
     <div class="topbar-brand" onclick="goto('dashboard')">
@@ -3920,13 +3913,7 @@ async function loadOwnerLogs() {
 <!-- ═══ END HTML PAGE BLOCK ═══ -->
 
 
-/* ══════════════════════════════════════════════════════════════
-   MULTIPLAYER CHESS ENGINE — 1A3 Class Server
-   Requires: chess_rooms and chess_elo tables in Supabase
-             Realtime enabled on chess_rooms
-══════════════════════════════════════════════════════════════ */
 
-/* ── CONSTANTS ── */
 const CM_SZ = 60; // square size px
 const CM_PIECE_UNICODE = {
   kw:'♔', qw:'♕', rw:'♖', bw:'♗', nw:'♘', pw:'♙',
