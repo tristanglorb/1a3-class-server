@@ -1147,7 +1147,7 @@
         .limit(3);
 
       if (data && data.length > 0) {
-        document.getElementById('dashAnnouncements').innerText = data.map(e => `
+        document.getElementById('dashAnnouncements').innerhtml = data.map(e => `
           <div class="ann-card" style="border-top:2px solid var(--admin);">
             <div class="ann-tag" style="color:var(--admin);">${e.category || '⚡ Admin Notice'}</div>
             <h3 class="ann-heading">${e.title}</h3>
