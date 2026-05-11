@@ -2134,12 +2134,11 @@
           goToNamePicker();
         }
       }
-      db.auth.onAuthStateChange((_event, session) => {
+ db.auth.onAuthStateChange((_event, session) => {
         currentUser = session?.user || null;
         if (!currentUser) { currentUserName = null; goto('login'); }
       });
-      
-  })();
+    })();
   </script>
 </body>
 </html>
