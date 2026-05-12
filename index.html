@@ -560,6 +560,11 @@
           <div class="game-card" id="gc-td"          onclick="loadGame('td')"><span class="game-icon">🏰</span><div class="game-title">Tower Defence</div><div class="game-desc">Unlock towers from chests · 7 rarities · survive 20 waves</div></div>
           <div class="game-card" id="gc-wordle"      onclick="loadGame('wordle')"><span class="game-icon">🔤</span><div class="game-title">Wordle</div><div class="game-desc">Guess the 5-letter word in 6 tries</div></div>
           <div class="game-card" id="gc-cat"         onclick="loadGame('cat')"><span class="game-icon">🐱</span><div class="game-title">Cat Game</div><div class="game-desc">Click the cat · collect purrs · unlock upgrades · top the leaderboard</div></div>
+          <div class="game-card" id="gc-impostor" onclick="goto('impostor')" style="border-left:2px solid rgba(255,70,70,.4);">
+  <span class="game-icon">🚀</span>
+  <div class="game-title">Impostor</div>
+  <div class="game-desc">Multiplayer — Skield map · complete tasks, find the impostor</div>
+</div>
         </div>
         <div class="section-head"><h2 class="section-title" id="gameArenaTitle">Select a game above</h2><div class="section-line"></div></div>
         <div class="game-arena" id="gameArena">
@@ -871,7 +876,7 @@
     }
 
     /* ── ROUTER ── */
-    const PAGES = ['login','namepicker','dashboard','notes','homework','events','games','chameleon','admin','owner','chessmulti'];
+    const PAGES = ['login','namepicker','dashboard','notes','homework','events','games','chameleon','admin','owner','chessmulti','impostor'];
 
     function goto(id) {
       if (id === 'admin' && !isAdmin) { toast('Access denied.'); return; }
@@ -890,6 +895,8 @@
       if (id !== 'chameleon') stopChameleonPolling();
       if (id === 'games')     initGamesPage();
       if (id === 'chessmulti') { cmInit(); }
+      if (id === 'impostor') { imInit(); }
+      if (id !== 'impostor' && typeof imStopSub === 'function') imStopSub();
       // FIX: guard cmStopSub — it may not be defined when goto() first runs
       if (id !== 'chessmulti' && typeof cmStopSub === 'function') cmStopSub();
     }
@@ -1725,7 +1732,47 @@
            loadTetris, load2048, loadMinesweeper, loadWordle, loadTD, loadCatGame,
            Chameleon functions, Name Picker functions, Chess Multiplayer functions)
            They are unchanged from the original and can be copied verbatim. --- */
+-- Impostor rooms
+create table impostor_rooms (
+  id uuid primary key default gen_random_uuid(),
+  code text unique not null,
+  host_id uuid not null,
+  state jsonb not null default '{}',
+  created_at timestamptz default now()
+);
 
+-- Impostor players (per room session)
+create table impostor_players (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null references impostor_rooms(code) on delete cascade,
+  user_id uuid not null,
+  display_name text not null,
+  color_idx int default 0,
+  created_at timestamptz default now(),
+  unique(room_code, user_id)
+);
+
+-- Impostor stats (persistent)
+create table impostor_stats (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid unique not null,
+  display_name text,
+  games_played int default 0,
+  crew_wins int default 0,
+  imp_wins int default 0,
+  updated_at timestamptz default now()
+);
+
+-- Enable realtime on impostor_rooms
+alter publication supabase_realtime add table impostor_rooms;
+
+-- RLS (allow all authenticated users)
+alter table impostor_rooms   enable row level security;
+alter table impostor_players enable row level security;
+alter table impostor_stats   enable row level security;
+create policy "allow all" on impostor_rooms   for all using (true) with check (true);
+create policy "allow all" on impostor_players for all using (true) with check (true);
+create policy "allow all" on impostor_stats   for all using (true) with check (true);
     /* ══════════════════════════════════════
        NAME PICKER
     ══════════════════════════════════════ */
@@ -2118,6 +2165,224 @@
     async function chNewRound(){if(!chIsHost){toast('Only the host can start a new round.');return;}chHasSubmittedClue=false;chHasVoted=false;chMyRole=null;document.getElementById('ch-results').style.display='none';document.getElementById('ch-clues-list').innerHTML='';document.getElementById('ch-vote-area').style.display='none';document.getElementById('ch-vote-btns').innerHTML='';document.getElementById('ch-board-area').style.display='none';document.getElementById('ch-game-area').style.display='none';document.getElementById('ch-role-reveal').style.display='none';document.getElementById('ch-guess-area').style.display='none';document.getElementById('ch-final-result').textContent='';const gi=document.getElementById('ch-guess-input');if(gi)gi.value='';document.getElementById('ch-clue-area').innerHTML=`<div class="f-label" style="margin-bottom:12px;">Your Clue Word</div><div style="display:flex;gap:8px;"><input class="f-input" id="ch-clue-input" placeholder="One word only…" maxlength="20"><button class="btn-gold" onclick="chSubmitClue()"><span>Submit</span></button></div>`;await db.from('chameleon_players').update({is_ready:false}).eq('room_code',chRoomCode);await chStartGame();}
     async function leaveChameleonRoom(){stopChameleonPolling();if(chRoomCode&&currentUser){await db.from('chameleon_players').delete().eq('room_code',chRoomCode).eq('user_id',currentUser.id);if(chIsHost)await db.from('chameleon_rooms').delete().eq('code',chRoomCode);}chRoomCode=null;chIsHost=false;chMyRole=null;chHasSubmittedClue=false;chHasVoted=false;}
 
+    <!-- IMPOSTOR -->
+<div id="page-impostor" class="page-view">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
+    <div class="topbar-nav">
+      <span class="nav-link" onclick="goto('dashboard')">Dashboard</span>
+      <span class="nav-link" onclick="goto('games')">Secret Logs</span>
+      <span class="nav-link active">Impostor</span>
+    </div>
+    <div class="topbar-right"><div class="badge" style="color:#ff4646;border-color:rgba(255,70,70,.4);">Among Us</div><button class="signout-btn" onclick="imLeave();goto('games')">Leave</button></div>
+  </nav>
+  <div class="page-body" style="max-width:1100px;">
+    <div class="page-header">
+      <div class="divider-line"><div class="divider-gem"></div></div>
+      <h1 class="page-title">The <em>Impostor</em></h1>
+      <p class="page-subtitle">Skield map · Complete tasks · Find the impostor before it's too late</p>
+    </div>
+
+    <!-- LOBBY -->
+    <div id="im-lobby">
+      <div id="im-my-stats" style="text-align:center;margin-bottom:32px;">
+        <div style="display:inline-flex;gap:1px;background:rgba(255,70,70,.08);">
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Games Won</div>
+            <div id="im-wins" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#5a9e6f;">—</div>
+          </div>
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Impostor Wins</div>
+            <div id="im-imp-wins" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#ff4646;">—</div>
+          </div>
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Games Played</div>
+            <div id="im-played" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,70,70,.08);margin-bottom:32px;">
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Create a new room</div>
+          <div style="margin-bottom:12px;">
+            <div class="f-label" style="margin-bottom:8px;">Impostors</div>
+            <div style="display:flex;gap:8px;">
+              <button class="filter-btn active" id="imImpCount1" onclick="imSetImpostors(1)">1</button>
+              <button class="filter-btn" id="imImpCount2" onclick="imSetImpostors(2)">2</button>
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <div class="f-label" style="margin-bottom:8px;">Kill Cooldown</div>
+            <div style="display:flex;gap:8px;">
+              <button class="filter-btn active" id="imKill15" onclick="imSetKillCD(15)">15s</button>
+              <button class="filter-btn" id="imKill30" onclick="imSetKillCD(30)">30s</button>
+              <button class="filter-btn" id="imKill45" onclick="imSetKillCD(45)">45s</button>
+            </div>
+          </div>
+          <button class="btn-gold" onclick="imCreate()" style="width:100%;border-color:#ff4646;"><span style="color:#ff4646;">Create Room</span></button>
+        </div>
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Join with room code</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input class="f-input" id="imJoinCode" placeholder="e.g. XKPQ" maxlength="4" style="text-transform:uppercase;letter-spacing:.3em;font-size:18px;text-align:center;flex:1;">
+            <button class="btn-gold" onclick="imJoin()"><span>Join</span></button>
+          </div>
+          <div id="im-join-msg" style="font-size:10px;letter-spacing:.15em;color:#d97070;min-height:16px;text-transform:uppercase;"></div>
+          <div style="margin-top:20px;font-size:10px;letter-spacing:.1em;color:var(--text-muted);line-height:1.9;">
+            <span style="color:#ff4646;display:block;margin-bottom:6px;font-size:9px;letter-spacing:.25em;text-transform:uppercase;">How to Play</span>
+            Crewmates complete tasks on Skield. Impostors sabotage and eliminate crewmates. Call emergency meetings to discuss and vote out suspects. Crewmates win by finishing all tasks or voting out all impostors. Impostors win by outnumbering crewmates.
+          </div>
+        </div>
+      </div>
+
+      <div id="im-lobby-msg" style="font-size:11px;letter-spacing:.15em;color:#ff4646;text-align:center;min-height:20px;text-transform:uppercase;margin-bottom:28px;"></div>
+
+      <div class="section-head"><h2 class="section-title">Leaderboard</h2><div class="section-line"></div></div>
+      <div id="im-leaderboard" style="margin-bottom:48px;"></div>
+    </div>
+
+    <!-- WAITING ROOM -->
+    <div id="im-waiting" style="display:none;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="f-label" style="margin-bottom:4px;">Room Code</div>
+          <div id="im-room-code-display" style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:#ff4646;letter-spacing:.3em;">—</div>
+        </div>
+        <div id="im-wait-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);text-align:right;margin-top:12px;"></div>
+      </div>
+      <div style="margin-bottom:28px;">
+        <div class="section-head" style="margin-bottom:12px;"><h2 class="section-title">Players</h2><div class="section-line"></div></div>
+        <div id="im-player-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+        <div style="font-size:10px;letter-spacing:.12em;color:var(--text-muted);">Need 4–10 players · Minimum 4 to start</div>
+      </div>
+      <div id="im-host-start" style="display:none;">
+        <button id="im-start-btn" class="btn-gold" onclick="imStartGame()" style="width:100%;border-color:#ff4646;opacity:.5;cursor:not-allowed;" disabled>
+          <span>Waiting for 4+ players…</span>
+        </button>
+      </div>
+      <div id="im-wait-msg" style="font-size:11px;letter-spacing:.15em;color:#ff4646;text-align:center;min-height:20px;text-transform:uppercase;margin-top:16px;"></div>
+    </div>
+
+    <!-- GAME AREA -->
+    <div id="im-game" style="display:none;">
+      <!-- Role reveal banner -->
+      <div id="im-role-banner" style="text-align:center;padding:20px;margin-bottom:16px;border:1px solid rgba(255,70,70,.2);background:var(--dark-2);display:none;">
+        <div id="im-role-label" style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;margin-bottom:6px;"></div>
+        <div id="im-role-text" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;"></div>
+        <div id="im-role-sub" style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+        <!-- MAP -->
+        <div style="flex:0 0 auto;">
+          <canvas id="im-canvas" width="660" height="440" style="border:1px solid rgba(255,70,70,.2);cursor:crosshair;display:block;max-width:100%;image-rendering:pixelated;"></canvas>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+            <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Move: WASD / Arrow keys</div>
+            <button class="g-btn" id="im-kill-btn" onclick="imKill()" style="display:none;font-size:9px;padding:8px 16px;border-color:#ff4646;color:#ff4646;">⚔ Kill</button>
+            <button class="g-btn" id="im-report-btn" onclick="imReport()" style="display:none;font-size:9px;padding:8px 16px;border-color:#e8d5a3;color:#e8d5a3;">📢 Report</button>
+            <button class="g-btn" id="im-task-btn" onclick="imDoTask()" style="display:none;font-size:9px;padding:8px 16px;">⚙ Use / Task</button>
+            <button class="g-btn" id="im-vent-btn" onclick="imVent()" style="display:none;font-size:9px;padding:8px 16px;border-color:#b07ec9;color:#b07ec9;">💨 Vent</button>
+            <button class="g-btn" id="im-sabotage-btn" onclick="imOpenSabotage()" style="display:none;font-size:9px;padding:8px 16px;border-color:#ff4646;color:#ff4646;">💥 Sabotage</button>
+            <button class="g-btn" onclick="imCallMeeting()" style="font-size:9px;padding:8px 16px;border-color:#e8d5a3;color:#e8d5a3;" id="im-meeting-btn">🆘 Emergency</button>
+          </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px;">
+          <!-- HUD -->
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.15);padding:16px;">
+            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Status</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">Tasks</div><div id="im-task-bar-wrap" style="margin-top:4px;height:6px;background:rgba(201,169,110,.1);"><div id="im-task-bar" style="height:100%;width:0%;background:#5a9e6f;transition:width .4s;"></div></div><div id="im-task-count" style="font-size:10px;color:#5a9e6f;margin-top:3px;">0 / 0</div></div>
+              <div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">Kill CD</div><div id="im-kill-cd" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:#ff4646;">—</div></div>
+            </div>
+          </div>
+
+          <!-- Sabotage panel -->
+          <div id="im-sabotage-panel" style="display:none;background:rgba(255,70,70,.06);border:1px solid rgba(255,70,70,.3);padding:16px;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#ff4646;margin-bottom:12px;">Sabotage</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-gold" onclick="imSabotage('lights')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">💡 Lights Out</span></button>
+              <button class="btn-gold" onclick="imSabotage('o2')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">☠ O2 Depleting</span></button>
+              <button class="btn-gold" onclick="imSabotage('reactor')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">⚡ Reactor Meltdown</span></button>
+              <button class="btn-gold" onclick="imSabotage('comms')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">📡 Comms Sabotaged</span></button>
+              <button class="filter-btn" onclick="imCloseSabotage()" style="font-size:9px;">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Sabotage fix prompt -->
+          <div id="im-sabofix-panel" style="display:none;background:rgba(255,70,70,.08);border:1px solid rgba(255,70,70,.4);padding:16px;animation:adminPulse 1s ease-in-out infinite;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#ff4646;margin-bottom:8px;">⚠ SABOTAGE ACTIVE</div>
+            <div id="im-sabofix-label" style="font-size:11px;letter-spacing:.1em;color:var(--cream);margin-bottom:12px;line-height:1.8;"></div>
+            <div id="im-sabofix-timer" style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#ff4646;margin-bottom:12px;"></div>
+            <button class="btn-gold" id="im-sabofix-btn" onclick="imFixSabotage()" style="display:none;width:100%;border-color:#5a9e6f;"><span style="color:#5a9e6f;">🔧 Fix It</span></button>
+          </div>
+
+          <!-- Player list -->
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.1);padding:16px;flex:1;">
+            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Players</div>
+            <div id="im-alive-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="im-game-msg" style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:12px;min-height:18px;"></div>
+    </div>
+
+    <!-- MEETING / VOTE OVERLAY -->
+    <div id="im-meeting" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:40px;text-align:center;max-width:700px;margin:0 auto;">
+        <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:#ff4646;margin-bottom:12px;" id="im-meeting-reason">Emergency Meeting</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);margin-bottom:8px;">Discussion</div>
+        <div id="im-discuss-timer" style="font-family:'Cormorant Garamond',serif;font-size:48px;color:#ff4646;margin-bottom:20px;"></div>
+        <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:24px;">Discuss who the impostor is — voting opens when timer ends</div>
+        <div id="im-chat-area" style="background:var(--dark-3);border:1px solid rgba(201,169,110,.1);padding:16px;max-height:180px;overflow-y:auto;margin-bottom:16px;text-align:left;"></div>
+        <div style="display:flex;gap:8px;margin-bottom:0;">
+          <input class="f-input" id="im-chat-input" placeholder="Say something… (Enter to send)" maxlength="120" style="flex:1;">
+          <button class="btn-gold" onclick="imSendChat()"><span>Send</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOTE OVERLAY -->
+    <div id="im-vote" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:40px;max-width:700px;margin:0 auto;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);margin-bottom:8px;">Vote</div>
+        <div id="im-vote-timer" style="font-family:'Cormorant Garamond',serif;font-size:48px;color:#ff4646;margin-bottom:20px;"></div>
+        <div id="im-vote-btns" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:20px;"></div>
+        <div id="im-vote-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);"></div>
+      </div>
+    </div>
+
+    <!-- VOTE RESULT OVERLAY -->
+    <div id="im-vote-result" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:48px;max-width:600px;margin:0 auto;text-align:center;">
+        <div id="im-ejected-text" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);margin-bottom:12px;"></div>
+        <div id="im-ejected-sub" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);"></div>
+      </div>
+    </div>
+
+    <!-- TASK MINIGAME OVERLAY -->
+    <div id="im-task-overlay" style="display:none;position:fixed;inset:0;background:rgba(14,12,9,.95);z-index:600;display:none;align-items:center;justify-content:center;">
+      <div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.25);padding:40px;max-width:460px;width:90%;text-align:center;position:relative;">
+        <button class="lb-close" onclick="imCloseTask()" style="position:absolute;top:12px;right:16px;">✕</button>
+        <div id="im-task-title" style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;"></div>
+        <div id="im-task-body" style=""></div>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="im-gameover" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.3);padding:60px 40px;max-width:600px;margin:0 auto;text-align:center;">
+        <div id="im-go-title" style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;margin-bottom:12px;"></div>
+        <div id="im-go-sub" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:32px;"></div>
+        <div id="im-go-roles" style="margin-bottom:32px;"></div>
+        <button class="btn-gold" onclick="imLeave();goto('impostor')" style="border-color:#ff4646;"><span style="color:#ff4646;">Back to Lobby</span></button>
+      </div>
+    </div>
+  </div>
+</div>
     /* ══════════════════════════════════════
        INIT — session check on load
     ══════════════════════════════════════ */
