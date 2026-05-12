@@ -815,7 +815,225 @@
       </div>
     </div>
   </div>
-  <!-- END HTML — all page divs closed before script tag -->
+
+      <!-- IMPOSTOR -->
+<div id="page-impostor" class="page-view">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
+    <div class="topbar-nav">
+      <span class="nav-link" onclick="goto('dashboard')">Dashboard</span>
+      <span class="nav-link" onclick="goto('games')">Secret Logs</span>
+      <span class="nav-link active">Impostor</span>
+    </div>
+    <div class="topbar-right"><div class="badge" style="color:#ff4646;border-color:rgba(255,70,70,.4);">Among Us</div><button class="signout-btn" onclick="imLeave();goto('games')">Leave</button></div>
+  </nav>
+  <div class="page-body" style="max-width:1100px;">
+    <div class="page-header">
+      <div class="divider-line"><div class="divider-gem"></div></div>
+      <h1 class="page-title">The <em>Impostor</em></h1>
+      <p class="page-subtitle">Skield map · Complete tasks · Find the impostor before it's too late</p>
+    </div>
+
+    <!-- LOBBY -->
+    <div id="im-lobby">
+      <div id="im-my-stats" style="text-align:center;margin-bottom:32px;">
+        <div style="display:inline-flex;gap:1px;background:rgba(255,70,70,.08);">
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Games Won</div>
+            <div id="im-wins" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#5a9e6f;">—</div>
+          </div>
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Impostor Wins</div>
+            <div id="im-imp-wins" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#ff4646;">—</div>
+          </div>
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Games Played</div>
+            <div id="im-played" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,70,70,.08);margin-bottom:32px;">
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Create a new room</div>
+          <div style="margin-bottom:12px;">
+            <div class="f-label" style="margin-bottom:8px;">Impostors</div>
+            <div style="display:flex;gap:8px;">
+              <button class="filter-btn active" id="imImpCount1" onclick="imSetImpostors(1)">1</button>
+              <button class="filter-btn" id="imImpCount2" onclick="imSetImpostors(2)">2</button>
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <div class="f-label" style="margin-bottom:8px;">Kill Cooldown</div>
+            <div style="display:flex;gap:8px;">
+              <button class="filter-btn active" id="imKill15" onclick="imSetKillCD(15)">15s</button>
+              <button class="filter-btn" id="imKill30" onclick="imSetKillCD(30)">30s</button>
+              <button class="filter-btn" id="imKill45" onclick="imSetKillCD(45)">45s</button>
+            </div>
+          </div>
+          <button class="btn-gold" onclick="imCreate()" style="width:100%;border-color:#ff4646;"><span style="color:#ff4646;">Create Room</span></button>
+        </div>
+        <div style="background:var(--dark-2);padding:32px;">
+          <div class="f-label" style="margin-bottom:16px;">Join with room code</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input class="f-input" id="imJoinCode" placeholder="e.g. XKPQ" maxlength="4" style="text-transform:uppercase;letter-spacing:.3em;font-size:18px;text-align:center;flex:1;">
+            <button class="btn-gold" onclick="imJoin()"><span>Join</span></button>
+          </div>
+          <div id="im-join-msg" style="font-size:10px;letter-spacing:.15em;color:#d97070;min-height:16px;text-transform:uppercase;"></div>
+          <div style="margin-top:20px;font-size:10px;letter-spacing:.1em;color:var(--text-muted);line-height:1.9;">
+            <span style="color:#ff4646;display:block;margin-bottom:6px;font-size:9px;letter-spacing:.25em;text-transform:uppercase;">How to Play</span>
+            Crewmates complete tasks on Skield. Impostors sabotage and eliminate crewmates. Call emergency meetings to discuss and vote out suspects. Crewmates win by finishing all tasks or voting out all impostors. Impostors win by outnumbering crewmates.
+          </div>
+        </div>
+      </div>
+
+      <div id="im-lobby-msg" style="font-size:11px;letter-spacing:.15em;color:#ff4646;text-align:center;min-height:20px;text-transform:uppercase;margin-bottom:28px;"></div>
+
+      <div class="section-head"><h2 class="section-title">Leaderboard</h2><div class="section-line"></div></div>
+      <div id="im-leaderboard" style="margin-bottom:48px;"></div>
+    </div>
+
+    <!-- WAITING ROOM -->
+    <div id="im-waiting" style="display:none;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="f-label" style="margin-bottom:4px;">Room Code</div>
+          <div id="im-room-code-display" style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:#ff4646;letter-spacing:.3em;">—</div>
+        </div>
+        <div id="im-wait-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);text-align:right;margin-top:12px;"></div>
+      </div>
+      <div style="margin-bottom:28px;">
+        <div class="section-head" style="margin-bottom:12px;"><h2 class="section-title">Players</h2><div class="section-line"></div></div>
+        <div id="im-player-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+        <div style="font-size:10px;letter-spacing:.12em;color:var(--text-muted);">Need 4–10 players · Minimum 4 to start</div>
+      </div>
+      <div id="im-host-start" style="display:none;">
+        <button id="im-start-btn" class="btn-gold" onclick="imStartGame()" style="width:100%;border-color:#ff4646;opacity:.5;cursor:not-allowed;" disabled>
+          <span>Waiting for 4+ players…</span>
+        </button>
+      </div>
+      <div id="im-wait-msg" style="font-size:11px;letter-spacing:.15em;color:#ff4646;text-align:center;min-height:20px;text-transform:uppercase;margin-top:16px;"></div>
+    </div>
+
+    <!-- GAME AREA -->
+    <div id="im-game" style="display:none;">
+      <!-- Role reveal banner -->
+      <div id="im-role-banner" style="text-align:center;padding:20px;margin-bottom:16px;border:1px solid rgba(255,70,70,.2);background:var(--dark-2);display:none;">
+        <div id="im-role-label" style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;margin-bottom:6px;"></div>
+        <div id="im-role-text" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;"></div>
+        <div id="im-role-sub" style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+        <!-- MAP -->
+        <div style="flex:0 0 auto;">
+          <canvas id="im-canvas" width="660" height="440" style="border:1px solid rgba(255,70,70,.2);cursor:crosshair;display:block;max-width:100%;image-rendering:pixelated;"></canvas>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+            <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Move: WASD / Arrow keys</div>
+            <button class="g-btn" id="im-kill-btn" onclick="imKill()" style="display:none;font-size:9px;padding:8px 16px;border-color:#ff4646;color:#ff4646;">⚔ Kill</button>
+            <button class="g-btn" id="im-report-btn" onclick="imReport()" style="display:none;font-size:9px;padding:8px 16px;border-color:#e8d5a3;color:#e8d5a3;">📢 Report</button>
+            <button class="g-btn" id="im-task-btn" onclick="imDoTask()" style="display:none;font-size:9px;padding:8px 16px;">⚙ Use / Task</button>
+            <button class="g-btn" id="im-vent-btn" onclick="imVent()" style="display:none;font-size:9px;padding:8px 16px;border-color:#b07ec9;color:#b07ec9;">💨 Vent</button>
+            <button class="g-btn" id="im-sabotage-btn" onclick="imOpenSabotage()" style="display:none;font-size:9px;padding:8px 16px;border-color:#ff4646;color:#ff4646;">💥 Sabotage</button>
+            <button class="g-btn" onclick="imCallMeeting()" style="font-size:9px;padding:8px 16px;border-color:#e8d5a3;color:#e8d5a3;" id="im-meeting-btn">🆘 Emergency</button>
+          </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px;">
+          <!-- HUD -->
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.15);padding:16px;">
+            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Status</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">Tasks</div><div id="im-task-bar-wrap" style="margin-top:4px;height:6px;background:rgba(201,169,110,.1);"><div id="im-task-bar" style="height:100%;width:0%;background:#5a9e6f;transition:width .4s;"></div></div><div id="im-task-count" style="font-size:10px;color:#5a9e6f;margin-top:3px;">0 / 0</div></div>
+              <div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">Kill CD</div><div id="im-kill-cd" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:#ff4646;">—</div></div>
+            </div>
+          </div>
+
+          <!-- Sabotage panel -->
+          <div id="im-sabotage-panel" style="display:none;background:rgba(255,70,70,.06);border:1px solid rgba(255,70,70,.3);padding:16px;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#ff4646;margin-bottom:12px;">Sabotage</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-gold" onclick="imSabotage('lights')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">💡 Lights Out</span></button>
+              <button class="btn-gold" onclick="imSabotage('o2')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">☠ O2 Depleting</span></button>
+              <button class="btn-gold" onclick="imSabotage('reactor')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">⚡ Reactor Meltdown</span></button>
+              <button class="btn-gold" onclick="imSabotage('comms')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">📡 Comms Sabotaged</span></button>
+              <button class="filter-btn" onclick="imCloseSabotage()" style="font-size:9px;">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Sabotage fix prompt -->
+          <div id="im-sabofix-panel" style="display:none;background:rgba(255,70,70,.08);border:1px solid rgba(255,70,70,.4);padding:16px;animation:adminPulse 1s ease-in-out infinite;">
+            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#ff4646;margin-bottom:8px;">⚠ SABOTAGE ACTIVE</div>
+            <div id="im-sabofix-label" style="font-size:11px;letter-spacing:.1em;color:var(--cream);margin-bottom:12px;line-height:1.8;"></div>
+            <div id="im-sabofix-timer" style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#ff4646;margin-bottom:12px;"></div>
+            <button class="btn-gold" id="im-sabofix-btn" onclick="imFixSabotage()" style="display:none;width:100%;border-color:#5a9e6f;"><span style="color:#5a9e6f;">🔧 Fix It</span></button>
+          </div>
+
+          <!-- Player list -->
+          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.1);padding:16px;flex:1;">
+            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Players</div>
+            <div id="im-alive-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="im-game-msg" style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:12px;min-height:18px;"></div>
+    </div>
+
+    <!-- MEETING / VOTE OVERLAY -->
+    <div id="im-meeting" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:40px;text-align:center;max-width:700px;margin:0 auto;">
+        <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:#ff4646;margin-bottom:12px;" id="im-meeting-reason">Emergency Meeting</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);margin-bottom:8px;">Discussion</div>
+        <div id="im-discuss-timer" style="font-family:'Cormorant Garamond',serif;font-size:48px;color:#ff4646;margin-bottom:20px;"></div>
+        <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:24px;">Discuss who the impostor is — voting opens when timer ends</div>
+        <div id="im-chat-area" style="background:var(--dark-3);border:1px solid rgba(201,169,110,.1);padding:16px;max-height:180px;overflow-y:auto;margin-bottom:16px;text-align:left;"></div>
+        <div style="display:flex;gap:8px;margin-bottom:0;">
+          <input class="f-input" id="im-chat-input" placeholder="Say something… (Enter to send)" maxlength="120" style="flex:1;">
+          <button class="btn-gold" onclick="imSendChat()"><span>Send</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOTE OVERLAY -->
+    <div id="im-vote" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:40px;max-width:700px;margin:0 auto;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);margin-bottom:8px;">Vote</div>
+        <div id="im-vote-timer" style="font-family:'Cormorant Garamond',serif;font-size:48px;color:#ff4646;margin-bottom:20px;"></div>
+        <div id="im-vote-btns" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:20px;"></div>
+        <div id="im-vote-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);"></div>
+      </div>
+    </div>
+
+    <!-- VOTE RESULT OVERLAY -->
+    <div id="im-vote-result" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:48px;max-width:600px;margin:0 auto;text-align:center;">
+        <div id="im-ejected-text" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);margin-bottom:12px;"></div>
+        <div id="im-ejected-sub" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);"></div>
+      </div>
+    </div>
+
+    <!-- TASK MINIGAME OVERLAY -->
+    <div id="im-task-overlay" style="display:none;position:fixed;inset:0;background:rgba(14,12,9,.95);z-index:600;display:none;align-items:center;justify-content:center;">
+      <div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.25);padding:40px;max-width:460px;width:90%;text-align:center;position:relative;">
+        <button class="lb-close" onclick="imCloseTask()" style="position:absolute;top:12px;right:16px;">✕</button>
+        <div id="im-task-title" style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;"></div>
+        <div id="im-task-body" style=""></div>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="im-gameover" style="display:none;">
+      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.3);padding:60px 40px;max-width:600px;margin:0 auto;text-align:center;">
+        <div id="im-go-title" style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;margin-bottom:12px;"></div>
+        <div id="im-go-sub" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:32px;"></div>
+        <div id="im-go-roles" style="margin-bottom:32px;"></div>
+        <button class="btn-gold" onclick="imLeave();goto('impostor')" style="border-color:#ff4646;"><span style="color:#ff4646;">Back to Lobby</span></button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -1728,51 +1946,996 @@
          4. loadOwnerLogs defined before initOwnerPanel calls it (done above)
     ══════════════════════════════════════════════════════════════════════════════════════════ */
 
-    /* --- PASTE ALL ORIGINAL GAME FUNCTIONS HERE (loadFishing, loadChess, loadSnake,
-           loadTetris, load2048, loadMinesweeper, loadWordle, loadTD, loadCatGame,
-           Chameleon functions, Name Picker functions, Chess Multiplayer functions)
-           They are unchanged from the original and can be copied verbatim. --- */
--- Impostor rooms
-create table impostor_rooms (
-  id uuid primary key default gen_random_uuid(),
-  code text unique not null,
-  host_id uuid not null,
-  state jsonb not null default '{}',
-  created_at timestamptz default now()
-);
+   /* ══════════════════════════════════════════════════════════════════════
+   PASTE THIS ENTIRE BLOCK into your <script> tag, replacing the comment:
+   /* --- PASTE ALL ORIGINAL GAME FUNCTIONS HERE ... --- * /
+   ══════════════════════════════════════════════════════════════════════ */
 
--- Impostor players (per room session)
-create table impostor_players (
-  id uuid primary key default gen_random_uuid(),
-  room_code text not null references impostor_rooms(code) on delete cascade,
-  user_id uuid not null,
-  display_name text not null,
-  color_idx int default 0,
-  created_at timestamptz default now(),
-  unique(room_code, user_id)
-);
+/* ══════════════════════════════════════
+   CHESS (vs AI)
+══════════════════════════════════════ */
+function loadChess(arena) {
+  const adminBonus = isAdmin;
+  arena.innerHTML = `
+    <div style="width:100%;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center;">
+        <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">You: <span style="color:var(--cream);">White ♙</span></div>
+        ${adminBonus ? '<div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ Weaker AI + Undo active</div>' : ''}
+        ${adminBonus ? '<button class="btn-action" id="chessUndoBtn" onclick="chessUndo()" style="display:none;">↩ Undo</button>' : ''}
+        <div id="chessStatus" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);">Your turn</div>
+      </div>
+      <canvas id="chessCanvas" width="480" height="480" style="border:1px solid rgba(201,169,110,.2);cursor:pointer;max-width:100%;"></canvas>
+      <button class="g-btn" onclick="loadChess(document.getElementById('gameArena'))">New Game</button>
+    </div>`;
 
--- Impostor stats (persistent)
-create table impostor_stats (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid unique not null,
-  display_name text,
-  games_played int default 0,
-  crew_wins int default 0,
-  imp_wins int default 0,
-  updated_at timestamptz default now()
-);
+  const PIECES = {kw:'♔',qw:'♕',rw:'♖',bw:'♗',nw:'♘',pw:'♙',kb:'♚',qb:'♛',rb:'♜',bb:'♝',nb:'♞',pb:'♟'};
+  let board = [
+    ['rb','nb','bb','qb','kb','bb','nb','rb'],
+    ['pb','pb','pb','pb','pb','pb','pb','pb'],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    ['pw','pw','pw','pw','pw','pw','pw','pw'],
+    ['rw','nw','bw','qw','kw','bw','nw','rw']
+  ];
+  let sel = null, validMoves = [], turn = 'w', gameOver = false;
+  let castling = {wK:true,wQ:true,bK:true,bQ:true}, enPassant = null;
+  let history = [];
+  const SZ = 60;
+  const canvas = document.getElementById('chessCanvas');
+  const ctx = canvas.getContext('2d');
 
--- Enable realtime on impostor_rooms
-alter publication supabase_realtime add table impostor_rooms;
+  function draw() {
+    for (let r=0;r<8;r++) for (let f=0;f<8;f++) {
+      ctx.fillStyle = (r+f)%2===0 ? '#2a2420' : '#1a1410';
+      ctx.fillRect(f*SZ,r*SZ,SZ,SZ);
+      if (sel && sel[0]===r && sel[1]===f) { ctx.fillStyle='rgba(201,169,110,.38)'; ctx.fillRect(f*SZ,r*SZ,SZ,SZ); }
+      if (validMoves.some(m=>m[0]===r&&m[1]===f)) {
+        if (board[r][f]) { ctx.strokeStyle='rgba(201,169,110,.6)';ctx.lineWidth=2;ctx.strokeRect(f*SZ+2,r*SZ+2,SZ-4,SZ-4); }
+        else { ctx.fillStyle='rgba(201,169,110,.22)';ctx.beginPath();ctx.arc(f*SZ+SZ/2,r*SZ+SZ/2,SZ/5,0,Math.PI*2);ctx.fill(); }
+      }
+      const p = board[r][f];
+      if (p) { ctx.font=`${SZ*.7}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=p[1]==='w'?'#e8d5a3':'#2a1a0a';if(p[1]==='b'){ctx.strokeStyle='#c9a96e';ctx.lineWidth=0.4;ctx.strokeText(PIECES[p],f*SZ+SZ/2,r*SZ+SZ/2+1);}ctx.fillText(PIECES[p],f*SZ+SZ/2,r*SZ+SZ/2+1); }
+    }
+  }
 
--- RLS (allow all authenticated users)
-alter table impostor_rooms   enable row level security;
-alter table impostor_players enable row level security;
-alter table impostor_stats   enable row level security;
-create policy "allow all" on impostor_rooms   for all using (true) with check (true);
-create policy "allow all" on impostor_players for all using (true) with check (true);
-create policy "allow all" on impostor_stats   for all using (true) with check (true);
+  function getMoves(b,r,f,doFilter) {
+    const p=b[r][f]; if(!p) return [];
+    const [type,color]=[p[0],p[1]], opp=color==='w'?'b':'w', moves=[];
+    const add=(tr,tf)=>{if(tr>=0&&tr<8&&tf>=0&&tf<8){const t=b[tr][tf];if(!t||t[1]===opp)moves.push([tr,tf]);}};
+    const slide=(dr,df)=>{let tr=r+dr,tf=f+df;while(tr>=0&&tr<8&&tf>=0&&tf<8){const t=b[tr][tf];if(t){if(t[1]===opp)moves.push([tr,tf]);break;}moves.push([tr,tf]);tr+=dr;tf+=df;}};
+    if(type==='p'){const dir=color==='w'?-1:1,start=color==='w'?6:1;if(!b[r+dir]?.[f]){moves.push([r+dir,f]);if(r===start&&!b[r+2*dir]?.[f])moves.push([r+2*dir,f]);}for(const df2 of[-1,1]){const tr=r+dir,tf=f+df2;if(tr>=0&&tr<8&&tf>=0&&tf<8){if(b[tr][tf]?.[1]===opp)moves.push([tr,tf]);if(enPassant&&enPassant[0]===tr&&enPassant[1]===tf)moves.push([tr,tf]);}}}
+    else if(type==='n'){for(const[dr,df2]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]])add(r+dr,f+df2);}
+    else if(type==='b'){for(const[dr,df2]of[[-1,-1],[-1,1],[1,-1],[1,1]])slide(dr,df2);}
+    else if(type==='r'){for(const[dr,df2]of[[-1,0],[1,0],[0,-1],[0,1]])slide(dr,df2);}
+    else if(type==='q'){for(const[dr,df2]of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]])slide(dr,df2);}
+    else if(type==='k'){for(const[dr,df2]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]])add(r+dr,f+df2);const rank=color==='w'?7:0;if(r===rank&&f===4){if(color==='w'&&castling.wK&&!b[rank][5]&&!b[rank][6])moves.push([rank,6]);if(color==='w'&&castling.wQ&&!b[rank][3]&&!b[rank][2]&&!b[rank][1])moves.push([rank,2]);if(color==='b'&&castling.bK&&!b[rank][5]&&!b[rank][6])moves.push([rank,6]);if(color==='b'&&castling.bQ&&!b[rank][3]&&!b[rank][2]&&!b[rank][1])moves.push([rank,2]);}}
+    if(!doFilter) return moves;
+    return moves.filter(([tr,tf])=>{const nb2=board.map(row=>[...row]),save=nb2[tr][tf];nb2[tr][tf]=p;nb2[r][f]=null;return !inCheck(nb2,color);});
+  }
+
+  function inCheck(b,color){let kr=-1,kf=-1;for(let r=0;r<8;r++)for(let f=0;f<8;f++)if(b[r][f]===(color==='w'?'kw':'kb')){kr=r;kf=f;}const opp=color==='w'?'b':'w';for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=b[r][f];if(p&&p[1]===opp&&getMoves(b,r,f,false).some(m=>m[0]===kr&&m[1]===kf))return true;}return false;}
+
+  function applyMove(r1,f1,r2,f2,promo) {
+    history.push({board:board.map(row=>[...row]),castling:{...castling},enPassant});
+    const p=board[r1][f1];
+    if(p[0]==='p'&&f1!==f2&&!board[r2][f2]){board[r1][f2]=null;}
+    if(p[0]==='k'){if(f2-f1===2){board[r1][5]=board[r1][7];board[r1][7]=null;}if(f1-f2===2){board[r1][3]=board[r1][0];board[r1][0]=null;}if(p[1]==='w'){castling.wK=false;castling.wQ=false;}else{castling.bK=false;castling.bQ=false;}}
+    if(p[0]==='r'){if(r1===7&&f1===0)castling.wQ=false;if(r1===7&&f1===7)castling.wK=false;if(r1===0&&f1===0)castling.bQ=false;if(r1===0&&f1===7)castling.bK=false;}
+    enPassant=(p[0]==='p'&&Math.abs(r2-r1)===2)?[r1+(r2-r1)/2,f1]:null;
+    board[r2][f2]=p;board[r1][f1]=null;
+    if(p[0]==='p'&&(r2===0||r2===7))board[r2][f2]=(promo||'q')+p[1];
+  }
+
+  function hasAnyMoves(color){for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=board[r][f];if(p&&p[1]===color&&getMoves(board,r,f,true).length>0)return true;}return false;}
+
+  function setStatus(msg,color='var(--gold)'){const el=document.getElementById('chessStatus');if(el){el.textContent=msg;el.style.color=color;}}
+
+  function checkEnd(color){if(!hasAnyMoves(color)){if(inCheck(board,color)){setStatus(color==='w'?'Black wins — Checkmate!':'You win — Checkmate!',color==='w'?'#d97070':'#5a9e6f');}else{setStatus('Draw — Stalemate','var(--text-muted)');}gameOver=true;return true;}return false;}
+
+  function aiMove(){
+    if(gameOver)return;
+    const depth = adminBonus ? 1 : 2;
+    let best=null,bestScore=-Infinity;
+    for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=board[r][f];if(p&&p[1]==='b'){const moves=getMoves(board,r,f,true);for(const[tr,tf]of moves){const save=board[tr][tf];applyMove(r,f,tr,tf,null);const score=minimax(depth-1,'w',-Infinity,Infinity);board[tr][tf]=save;board[r][f]=p;if(score>bestScore){bestScore=score;best={r,f,tr,tf};}}}}
+    if(best){applyMove(best.r,best.f,best.tr,best.tf,null);turn='w';draw();if(!checkEnd('w'))setStatus('Your turn');}
+  }
+
+  const PIECE_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+  function evalBoard(){let s=0;for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=board[r][f];if(p){const v=PIECE_VAL[p[0]]||0;s+=p[1]==='b'?v:-v;}}return s;}
+  function minimax(depth,color,alpha,beta){if(depth===0)return evalBoard();const moves=[];for(let r=0;r<8;r++)for(let f=0;f<8;f++){const p=board[r][f];if(p&&p[1]===color)getMoves(board,r,f,true).forEach(m=>moves.push({r,f,tr:m[0],tf:m[1]}));}if(!moves.length)return color==='b'?-100:100;if(color==='b'){let best=-Infinity;for(const mv of moves){const save=board[mv.tr][mv.tf];applyMove(mv.r,mv.f,mv.tr,mv.tf,null);best=Math.max(best,minimax(depth-1,'w',alpha,beta));board[mv.tr][mv.tf]=save;board[mv.r][mv.f]=board[mv.tr][mv.tf]||null;board[mv.r][mv.f]=`${['p','n','b','r','q','k'].find(t=>t)||'p'}b`;alpha=Math.max(alpha,best);if(beta<=alpha)break;}return best;}else{let best=Infinity;for(const mv of moves){const save=board[mv.tr][mv.tf];applyMove(mv.r,mv.f,mv.tr,mv.tf,null);best=Math.min(best,minimax(depth-1,'b',alpha,beta));board[mv.tr][mv.tf]=save;beta=Math.min(beta,best);if(beta<=alpha)break;}return best;}}
+
+  window.chessUndo = function(){if(history.length<2)return;history.pop();history.pop();const state=history[history.length-1];if(state){board=state.board.map(r=>[...r]);castling={...state.castling};enPassant=state.enPassant;}else{board=[['rb','nb','bb','qb','kb','bb','nb','rb'],['pb','pb','pb','pb','pb','pb','pb','pb'],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],['pw','pw','pw','pw','pw','pw','pw','pw'],['rw','nw','bw','qw','kw','bw','nw','rw']];}turn='w';sel=null;validMoves=[];gameOver=false;draw();setStatus('Your turn');};
+
+  canvas.addEventListener('click', e => {
+    if(gameOver||turn!=='w')return;
+    const rect=canvas.getBoundingClientRect(),scale=canvas.width/rect.width;
+    const f=Math.floor((e.clientX-rect.left)*scale/SZ),r=Math.floor((e.clientY-rect.top)*scale/SZ);
+    if(r<0||r>7||f<0||f>7)return;
+    if(sel){const mv=validMoves.find(m=>m[0]===r&&m[1]===f);if(mv){applyMove(sel[0],sel[1],r,f,null);turn='b';sel=null;validMoves=[];draw();const undoBtn=document.getElementById('chessUndoBtn');if(undoBtn)undoBtn.style.display='inline-block';if(!checkEnd('b')){setStatus("AI thinking…",'var(--text-muted)');setTimeout(aiMove,350);}return;}}
+    const p=board[r][f];
+    if(p&&p[1]==='w'){sel=[r,f];validMoves=getMoves(board,r,f,true);}
+    else{sel=null;validMoves=[];}
+    draw();
+  });
+  draw();
+}
+
+/* ══════════════════════════════════════
+   SNAKE
+══════════════════════════════════════ */
+function loadSnake(arena) {
+  const adminBonus = isAdmin;
+  const COLS=20,ROWS=20,SZ=24;
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;">
+      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="snakeScore">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="snakeHigh">0</div><div class="g-hud-key">Best</div></div>
+        ${adminBonus?'<div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ Slow speed · 3 food · Walls wrap</div>':''}
+      </div>
+      <canvas id="snakeCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.2);max-width:100%;"></canvas>
+      <div style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);">Arrow keys or WASD to move</div>
+    </div>`;
+
+  const canvas=document.getElementById('snakeCanvas'),ctx=canvas.getContext('2d');
+  let snake=[{x:10,y:10}],dir={x:1,y:0},nextDir={x:1,y:0};
+  let foods=[];
+  const FOOD_COUNT=adminBonus?3:1;
+  let score=0,best=parseInt(localStorage.getItem('snakeBest')||'0'),gameRunning=true;
+  let interval=setInterval(tick,adminBonus?180:120);
+
+  function spawnFood(){while(foods.length<FOOD_COUNT){let pos;do{pos={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}while(snake.some(s=>s.x===pos.x&&s.y===pos.y)||foods.some(f=>f.x===pos.x&&f.y===pos.y));foods.push(pos);}}
+  spawnFood();
+
+  function tick(){
+    dir=nextDir;
+    let head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    if(adminBonus){head.x=(head.x+COLS)%COLS;head.y=(head.y+ROWS)%ROWS;}
+    else if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS){endGame();return;}
+    if(snake.some(s=>s.x===head.x&&s.y===head.y)){endGame();return;}
+    snake.unshift(head);
+    const fi=foods.findIndex(f=>f.x===head.x&&f.y===head.y);
+    if(fi>=0){score++;foods.splice(fi,1);spawnFood();document.getElementById('snakeScore').textContent=score;if(score>best){best=score;localStorage.setItem('snakeBest',best);document.getElementById('snakeHigh').textContent=best;}}
+    else snake.pop();
+    draw();
+  }
+
+  function draw(){
+    ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);
+    ctx.strokeStyle='rgba(201,169,110,.04)';
+    for(let x=0;x<COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}
+    for(let y=0;y<ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}
+    snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#c9a96e':'#8a6d3b';ctx.fillRect(s.x*SZ+1,s.y*SZ+1,SZ-2,SZ-2);});
+    foods.forEach(f=>{ctx.fillStyle='#5a9e6f';ctx.beginPath();ctx.arc(f.x*SZ+SZ/2,f.y*SZ+SZ/2,SZ/2-3,0,Math.PI*2);ctx.fill();});
+    document.getElementById('snakeHigh').textContent=best;
+  }
+
+  function endGame(){clearInterval(interval);gameRunning=false;ctx.fillStyle='rgba(14,12,9,.85)';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);ctx.fillStyle='#c9a96e';ctx.font='bold 20px Josefin Sans,sans-serif';ctx.textAlign='center';ctx.fillText('Game Over',COLS*SZ/2,ROWS*SZ/2-20);ctx.font='14px Josefin Sans,sans-serif';ctx.fillStyle='#8a8070';ctx.fillText('Score: '+score,COLS*SZ/2,ROWS*SZ/2+10);ctx.fillText('Click to play again',COLS*SZ/2,ROWS*SZ/2+35);}
+
+  canvas.addEventListener('click',()=>{if(!gameRunning)loadSnake(arena);});
+  document.addEventListener('keydown',function snakeKey(e){if(!document.getElementById('snakeCanvas'))return document.removeEventListener('keydown',snakeKey);const map={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};const nd=map[e.key]||map[e.key.toLowerCase()];if(nd&&!(nd.x===-dir.x&&nd.y===-dir.y)){e.preventDefault();nextDir=nd;}});
+  draw();
+}
+
+/* ══════════════════════════════════════
+   TETRIS
+══════════════════════════════════════ */
+function loadTetris(arena) {
+  const COLS=10,ROWS=20,SZ=30;
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;">
+      <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap;justify-content:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="tetScore">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tetLevel">1</div><div class="g-hud-key">Level</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tetLines">0</div><div class="g-hud-key">Lines</div></div>
+      </div>
+      <canvas id="tetCanvas" width="${COLS*SZ}" height="${ROWS*SZ}" style="border:1px solid rgba(201,169,110,.2);max-width:100%;"></canvas>
+      <div style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);">Arrow keys · Z to rotate</div>
+    </div>`;
+
+  const canvas=document.getElementById('tetCanvas'),ctx=canvas.getContext('2d');
+  const SHAPES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0],[1,0],[1,1]],[[0,1],[0,1],[1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]]];
+  const COLORS=['#6e9ec9','#c9a96e','#b07ec9','#9e6e6e','#5a9e6f','#d97070','#6e9ec9'];
+  let grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  let cur=null,score=0,level=1,lines=0,gameOver=false,dropTimer=null;
+
+  function newPiece(){const i=Math.floor(Math.random()*SHAPES.length);return{shape:SHAPES[i].map(r=>[...r]),color:COLORS[i],x:3,y:0};}
+  function rotate(s){return s[0].map((_,i)=>s.map(r=>r[i]).reverse());}
+  function fits(s,px,py){return s.every((row,r)=>row.every((v,c)=>!v||((py+r>=0)&&(py+r<ROWS)&&(px+c>=0)&&(px+c<COLS)&&!grid[py+r][px+c])));}
+
+  function place(){cur.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v)grid[cur.y+r][cur.x+c]=cur.color;}));let cleared=0;for(let r=ROWS-1;r>=0;r--){if(grid[r].every(v=>v)){grid.splice(r,1);grid.unshift(Array(COLS).fill(null));cleared++;r++;}}if(cleared){lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=Math.floor(lines/10)+1;document.getElementById('tetScore').textContent=score;document.getElementById('tetLines').textContent=lines;document.getElementById('tetLevel').textContent=level;}cur=newPiece();if(!fits(cur.shape,cur.x,cur.y)){gameOver=true;clearInterval(dropTimer);ctx.fillStyle='rgba(14,12,9,.85)';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);ctx.fillStyle='#c9a96e';ctx.font='bold 18px Josefin Sans';ctx.textAlign='center';ctx.fillText('Game Over',COLS*SZ/2,ROWS*SZ/2-16);ctx.font='13px Josefin Sans';ctx.fillStyle='#8a8070';ctx.fillText('Score: '+score,COLS*SZ/2,ROWS*SZ/2+10);ctx.fillText('Click to restart',COLS*SZ/2,ROWS*SZ/2+32);canvas.addEventListener('click',()=>loadTetris(arena),{once:true});}}
+
+  function draw(){ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,COLS*SZ,ROWS*SZ);grid.forEach((row,r)=>row.forEach((v,c)=>{if(v){ctx.fillStyle=v;ctx.fillRect(c*SZ+1,r*SZ+1,SZ-2,SZ-2);}}));if(cur){cur.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v&&cur.y+r>=0){ctx.fillStyle=cur.color;ctx.fillRect((cur.x+c)*SZ+1,(cur.y+r)*SZ+1,SZ-2,SZ-2);}}));}}
+
+  cur=newPiece();dropTimer=setInterval(()=>{if(fits(cur.shape,cur.x,cur.y+1))cur.y++;else place();draw();},Math.max(100,600-level*50));
+
+  document.addEventListener('keydown',function tetKey(e){if(!document.getElementById('tetCanvas'))return document.removeEventListener('keydown',tetKey);if(gameOver)return;if(e.key==='ArrowLeft'&&fits(cur.shape,cur.x-1,cur.y)){e.preventDefault();cur.x--;}if(e.key==='ArrowRight'&&fits(cur.shape,cur.x+1,cur.y)){e.preventDefault();cur.x++;}if(e.key==='ArrowDown'&&fits(cur.shape,cur.x,cur.y+1)){e.preventDefault();cur.y++;score++;document.getElementById('tetScore').textContent=score;}if((e.key==='ArrowUp'||e.key==='z'||e.key==='Z')){e.preventDefault();const r=rotate(cur.shape);if(fits(r,cur.x,cur.y))cur.shape=r;}if(e.key===' '){e.preventDefault();while(fits(cur.shape,cur.x,cur.y+1))cur.y++;place();}draw();});
+  draw();
+}
+
+/* ══════════════════════════════════════
+   2048
+══════════════════════════════════════ */
+function load2048(arena) {
+  const adminBonus = isAdmin;
+  const SZ=4;
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;">
+      <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap;justify-content:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="g2048Score">0</div><div class="g-hud-key">Score</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="g2048Best">0</div><div class="g-hud-key">Best</div></div>
+        ${adminBonus?'<div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ 4 tiles start · High values</div>':''}
+        <button class="g-btn" onclick="load2048(document.getElementById('gameArena'))">New Game</button>
+      </div>
+      <div id="g2048Board" style="display:grid;grid-template-columns:repeat(4,90px);grid-template-rows:repeat(4,90px);gap:8px;background:#1a1710;padding:8px;border:1px solid rgba(201,169,110,.2);"></div>
+      <div style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);">Arrow keys or WASD</div>
+    </div>`;
+
+  const TILE_COLORS={2:'#2a2218',4:'#3a3020',8:'#8a6d3b',16:'#b07e3b',32:'#d97060',64:'#d94040',128:'#c9a96e',256:'#e8d5a3',512:'#b07ec9',1024:'#6e9ec9',2048:'#5a9e6f'};
+  let grid=Array.from({length:SZ},()=>Array(SZ).fill(0)),score=0,best=parseInt(localStorage.getItem('2048best')||'0');
+
+  function addTile(n=1){for(let i=0;i<n;i++){const empty=[];for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)if(!grid[r][c])empty.push([r,c]);if(!empty.length)return;const[r,c]=empty[Math.floor(Math.random()*empty.length)];grid[r][c]=adminBonus&&Math.random()<0.3?4:2;}}
+
+  const startTiles=adminBonus?4:2;for(let i=0;i<startTiles;i++)addTile();
+
+  function render(){const board=document.getElementById('g2048Board');if(!board)return;board.innerHTML='';grid.forEach(row=>row.forEach(v=>{const cell=document.createElement('div');cell.style.cssText=`width:90px;height:90px;display:flex;align-items:center;justify-content:center;background:${TILE_COLORS[v]||'#252119'};font-family:'Cormorant Garamond',serif;font-size:${v>999?'24px':v>99?'32px':'40px'};font-weight:300;color:${v?'#faf7f2':'#2a2218'};`;cell.textContent=v||'';board.appendChild(cell);}));document.getElementById('g2048Score').textContent=score;document.getElementById('g2048Best').textContent=best;}
+
+  function slide(row){let r=row.filter(v=>v),merged=false;for(let i=0;i<r.length-1;i++){const bonus=adminBonus&&!merged&&Math.random()<0.1;if(r[i]===r[i+1]||(bonus&&r[i]&&r[i+1])){r[i]*=2;score+=r[i];r.splice(i+1,1);merged=true;}}while(r.length<SZ)r.push(0);return r;}
+
+  function move(dir){if(best<score){best=score;localStorage.setItem('2048best',best);}let moved=false;const g2=grid.map(r=>[...r]);if(dir==='l')grid=grid.map(r=>slide(r));if(dir==='r')grid=grid.map(r=>slide([...r].reverse()).reverse());if(dir==='u'){for(let c=0;c<SZ;c++){let col=grid.map(r=>r[c]);col=slide(col);grid.forEach((r,i)=>r[c]=col[i]);}}if(dir==='d'){for(let c=0;c<SZ;c++){let col=grid.map(r=>r[c]).reverse();col=slide(col).reverse();grid.forEach((r,i)=>r[c]=col[i]);}}if(JSON.stringify(grid)!==JSON.stringify(g2)){moved=true;addTile();}if(moved)render();}
+
+  document.addEventListener('keydown',function g2048Key(e){if(!document.getElementById('g2048Board'))return document.removeEventListener('keydown',g2048Key);const map={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',a:'l',d:'r',w:'u',s:'d'};const d=map[e.key];if(d){e.preventDefault();move(d);}});
+  render();
+}
+
+/* ══════════════════════════════════════
+   MINESWEEPER
+══════════════════════════════════════ */
+function loadMinesweeper(arena) {
+  const ROWS=16,COLS=16,MINES=40;
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;">
+      <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap;justify-content:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="msFlags">0</div><div class="g-hud-key">Flags</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="msTime">0</div><div class="g-hud-key">Time</div></div>
+        <button class="g-btn" onclick="loadMinesweeper(document.getElementById('gameArena'))">New Game</button>
+      </div>
+      <div id="msGrid" style="display:inline-grid;grid-template-columns:repeat(${COLS},28px);gap:2px;"></div>
+      <div style="font-size:10px;letter-spacing:.2em;color:var(--text-muted);">Left click: reveal · Right click: flag</div>
+    </div>`;
+
+  const NUM_COLORS=['','#6e9ec9','#5a9e6f','#d97070','#b07ec9','#c9a96e','#6e9ec9','#8a8070','#faf7f2'];
+  let grid=Array.from({length:ROWS},(_,r)=>Array.from({length:COLS},(_,c)=>({mine:false,revealed:false,flagged:false,count:0,r,c})));
+  let started=false,over=false,flags=0,timer=0,timerInterval=null;
+
+  function placeMines(sr,sc){let placed=0;while(placed<MINES){const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);if(!grid[r][c].mine&&!(Math.abs(r-sr)<=1&&Math.abs(c-sc)<=1)){grid[r][c].mine=true;placed++;}}for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(!grid[r][c].mine){let n=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&grid[nr][nc].mine)n++;}grid[r][c].count=n;}}
+
+  function reveal(r,c){if(r<0||r>=ROWS||c<0||c>=COLS)return;const cell=grid[r][c];if(cell.revealed||cell.flagged)return;cell.revealed=true;if(cell.count===0&&!cell.mine)for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);}
+
+  function checkWin(){const unrevealed=grid.flat().filter(c=>!c.revealed);return unrevealed.length===MINES&&unrevealed.every(c=>c.mine);}
+
+  function render(){const el=document.getElementById('msGrid');if(!el)return;el.innerHTML='';grid.flat().forEach(cell=>{const btn=document.createElement('div');btn.style.cssText=`width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:1px solid rgba(201,169,110,.15);background:${cell.revealed?'#0e0c09':'#1a1713'};color:${cell.revealed&&cell.mine?'#d97070':NUM_COLORS[cell.count]||'var(--cream)'};font-weight:600;`;btn.textContent=cell.revealed?(cell.mine?'💣':(cell.count||'')):(cell.flagged?'🚩':'');btn.addEventListener('click',()=>{if(over||cell.flagged)return;if(!started){started=true;placeMines(cell.r,cell.c);timerInterval=setInterval(()=>{timer++;const te=document.getElementById('msTime');if(te)te.textContent=timer;},1000);}if(cell.mine){cell.revealed=true;over=true;clearInterval(timerInterval);grid.flat().filter(c=>c.mine).forEach(c=>c.revealed=true);render();setTimeout(()=>toast('💥 Boom! Game over.'),100);return;}reveal(cell.r,cell.c);if(checkWin()){over=true;clearInterval(timerInterval);toast('🎉 You cleared the board!',);}render();});btn.addEventListener('contextmenu',e=>{e.preventDefault();if(over||cell.revealed)return;cell.flagged=!cell.flagged;flags+=cell.flagged?1:-1;document.getElementById('msFlags').textContent=flags;render();});el.appendChild(btn);});}
+  render();
+}
+
+/* ══════════════════════════════════════
+   WORDLE
+══════════════════════════════════════ */
+function loadWordle(arena) {
+  const adminBonus = isAdmin;
+  const WORDS=['crane','slate','trace','stare','snare','flare','glare','blare','share','spare','swear','smear','shear','clear','abase','abate','abide','abode','abhor','abler','abode','abled','abode','above','acorn','adult','afoot','after','again','agent','agile','aging','agony','agree','ahead','aimed','alike','align','alive','allay','alley','allot','allow','alloy','aloft','alone','along','aloof','aloud','alpha','alter','angel','anger','angle','angry','anime','ankle','annex','antic','anvil','aorta','apart','apathy','aping','apple','apply','apron','aptly','arbor','ardor','arena','argue','arise','armor','aroma','arose','array','arrow','askew','assay','atone','attic','audio','augur','avoid','awake','award','awash','awful','awoke','axial','azure','badge','badly','bagel','baggy','baize','baked','balmy','banal','banjo','baton','batty','bayou','beefy','began','beige','belly','bench','biome','bison','bland','blank','blast','blaze','bleak','bleat','blend','bless','blimp','blink','bloat','block','bloke','blood','bloom','bloon','blown','blues','bluff','blunt','blurb','blurt','blush','boggy','booze','botch','boxer','brace','braid','brash','brave','brawl','brawn','braze','break','breed','breve','brick','bride','brief','brine','brink','briny','brisk','broad','broke','brood','broom','broth','brown','brunt','bruit','brush','brute','budge','buggy','bulge','bulky','bumpy','bunny','buoy','burly','burnt','burst','buyer','byway','cabal','cache','cadet','cairn','camel','caper','carry','catch','cause','cavil','cedar','chafe','chain','chair','chalk','champ','chant','chaos','chasm','cheap','cheat','cheek','cheer','chess','chest','chide','chile','chill','chimp','choir','choke','chomp','chore','chose','civic','civil','clack','claim','clamp','clank','clash','clasp','class','cleat','cleft','clerk','click','cliff','clink','cloak','clone','clops','close','cloth','cloud','clout','cluck','clued','clump','coach','coast','cobra','comet','comic','conch','conga','conic','conjure','coops','coral','cords','corny','couch','cough','could','count','court','coven','cover','covet','cozy','crack','craft','cramp','crane','crank','crash','crass','crawl','creak','creed','crept','crest','crimp','crisp','crone','crook','cross','croup','crown','crude','crush','crust','crypt','cubic','curly','curry','curt','curve','cutie','cycle','cynic','daily','daisy','dance','diner','dingy','disco','ditty','dizzy','dodge','doing','domino','donor','dopey','doubt','dough','dowdy','dozen','draft','drain','drape','drawl','dread','dream','dregs','drift','drive','droop','drove','drown','druid','drunk','dryer','dunce','dusky','dusty','eager','early','earth','ebony','eerie','eject','elite','empty','endow','enjoy','epoch','equal','evade','event','every','exact','exert','exile','extra','faint','fairy','faith','fancy','farce','fatal','fault','fauna','favor','feast','feign','ferry','fetch','fever','fewer','fibro','fiend','fifth','fifty','finch','flair','flank','flap','flash','flask','fleet','flesh','flick','flinch','float','flock','flood','floor','floss','flour','flout','flown','fluke','flung','flunk','foamy','force','forge','forth','forum','found','frame','frank','fraud','freak','fresh','frond','front','frost','froth','froze','fudge','fungi','funny','gamer','gauze','gauzy','gavel','gawky','ghost','given','gland','glean','gleam','glide','gloom','gloss','glove','going','golly','goose','gorge','gourd','grace','grade','graft','grail','grail','grain','grand','grant','graph','grasp','grate','gravel','graze','greed','greet','grieve','grind','groan','groin','groom','grope','grout','grove','grown','gruff','grump','guava','guide','guild','guile','guise','gusto','gusty','gypsy','heist','hence','herbs','heron','hoist','holly','homer','honor','horny','hound','humor','husky','hydra','hyena','hyper','icing','idiot','image','imply','input','inter','infer','inane','inch','inlay','inset','inter','intro','issue','ivory','jaunt','jazzy','jelly','jewel','joint','joker','joust','judge','juicy','jumbo','jumpy','karma','kayak','kebab','khaki','knack','kneel','kneel','knife','knob','knock','known','kudos','knelt','lapel','large','laser','later','latch','lathe','latte','leapt','learn','leapt','least','legal','lemon','level','light','liner','liver','lodge','logic','loopy','lotus','lower','loyal','lucid','lucky','lumpy','lunge','lyric','magic','major','maker','mambo','mango','mania','manor','maple','march','masse','match','maxim','maybe','mayor','mealy','medal','mercy','merge','merit','merry','metal','micro','might','mimic','mince','minor','minus','mirth','miser','misty','mitre','vivid','mimic','mixer','mocha','mogul','money','month','moody','moral','morph','mossy','motel','motor','motto','mould','moult','mound','mount','mourn','mouth','mover','mucky','muddy','mulch','munch','murky','mushy','musty','naive','nasty','naval','nerve','newly','nexus','nifty','night','ninja','noble','noise','north','notch','novel','nurse','nymph','occur','ocean','odder','other','outer','outdo','outre','ovoid','ozone','oxide','pagan','pansy','panel','panic','panto','patch','pause','peach','petal','petty','pirate','pitch','pixel','pixie','pizza','plaid','plain','plait','plane','plank','plant','plasm','pleat','pledge','plier','plonk','pluck','plumb','plume','plump','plunk','plush','poach','point','poker','polar','polka','polyp','posse','potty','pouch','poult','pound','prank','prawn','press','prick','pride','primo','prism','probe','prone','prong','proof','prose','prowl','prude','prune','pulse','punch','pupil','pushy','pygmy','quack','qualm','queen','query','quest','queue','quick','quill','quirk','quota','quote','rabbi','radar','radix','ragga','raise','rally','ramen','ranch','rangy','rapid','raven','rayon','reach','realm','rebel','recur','repay','repel','retro','rhyme','rider','ripen','risky','rival','rivet','robot','rocky','rodeo','rogue','roman','roomy','roost','rough','rouge','rowdy','rover','ruled','rumba','rural','rugby','rustic','sadly','saint','sauce','sandy','sassy','saute','scale','scalp','scaly','scant','scarf','scary','scone','scoop','score','scorn','scout','scram','screw','scrub','seedy','sense','serum','shady','shake','shall','shame','shank','shape','shark','sharp','shave','shawl','shift','shine','shiny','shoal','shock','shone','shook','shore','shown','shrew','shrub','shrug','shunt','sigma','silky','silly','since','sixth','sixty','skate','skiff','skill','skimp','skirt','skunk','slain','slang','slash','sleep','sleet','slept','slice','slide','slime','slimy','slink','slope','slosh','sloth','slump','slunk','slurp','slyly','smack','small','smash','smear','smell','smelt','smile','smirk','smoke','smoky','snack','snail','snaky','snare','snarl','sneak','sneer','snide','sniff','snore','snort','snuck','solar','south','sooty','sorry','south','spark','spawn','speck','speed','spell','spend','spicy','spill','spine','spite','splat','spoil','spook','spore','sport','spray','squad','squat','squid','staid','stain','stale','stall','stamp','stand','stank','stark','start','stead','steak','steal','steel','steep','steer','stern','sting','stink','stock','stoic','stomp','stool','storm','story','stout','stove','strap','stray','stuck','study','stump','stung','stunk','stunt','suave','sulky','sunny','swamp','swarm','swath','sweet','swept','swill','swipe','swirl','swoon','sword','synod','syrup','tabby','tacit','taffy','tango','tangy','tawny','taboo','teary','tense','thank','thatch','their','thick','thief','thing','think','thorn','those','three','threw','throw','thud','thumb','thump','tiara','tiger','tight','timed','tipsy','titan','today','topaz','topic','topsy','total','touch','tough','towel','toxic','train','tramp','trash','trawl','tread','treat','tribe','trick','troop','trout','trove','truck','truly','trump','trunk','truss','trust','truth','tuber','tumor','tunic','tutor','twice','twirl','twist','tying','tzar','ulcer','ultra','uncut','undue','union','unity','until','unify','unwed','upper','upset','urban','usher','usurp','utter','vague','vaunt','vault','vigor','viral','visor','vista','vocab','vocal','vodka','vowel','wacky','waltz','waste','weary','wedge','weedy','wheat','whiff','while','whine','whoop','wield','wight','wince','witch','witty','woman','world','worry','worse','worst','wrack','wrath','wreak','wreck','wrest','wring','wrist','wrong','wrote','yacht','yearn','young','yours','zebra','zesty'];
+  const word=WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
+  const maxGuesses=adminBonus?7:6;
+  let guesses=[],current='',gameOver2=false,hintUsed=false;
+
+  arena.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;">
+      ${adminBonus?`<div style="display:flex;gap:12px;"><button class="g-btn" id="wordleHint" onclick="wordleHint()" style="font-size:9px;padding:8px 16px;">💡 Hint</button><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ ${maxGuesses} guesses</div></div>`:''}
+      <div id="wordleGrid" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:460px;" id="wordleKeys"></div>
+      <input id="wordleInput" class="f-input" maxlength="5" placeholder="Type 5-letter guess…" style="max-width:240px;text-transform:uppercase;letter-spacing:.3em;font-size:18px;text-align:center;" autocomplete="off">
+      <button class="g-btn" onclick="wordleSubmit()">Submit Guess</button>
+      <div id="wordleMsg" style="font-size:11px;letter-spacing:.15em;color:var(--gold);min-height:20px;text-transform:uppercase;"></div>
+    </div>`;
+
+  function renderGrid(){const el=document.getElementById('wordleGrid');if(!el)return;let html='';for(let g=0;g<maxGuesses;g++){html+='<div style="display:flex;gap:6px;">';const row=guesses[g];for(let c=0;c<5;c++){const letter=row?row[c]:'';const color=row?(row.colors[c]==='correct'?'#5a9e6f':row.colors[c]==='present'?'#c9a96e':'#2a2218'):'#1a1713';html+=`<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--cream);background:${color};border:1px solid rgba(201,169,110,${letter?'.3':'.08'});">${letter}</div>`;}html+='</div>';}el.innerHTML=html;}
+
+  function renderKeys(){const el=document.getElementById('wordleKeys');if(!el)return;const keys='QWERTYUIOPASDFGHJKLZXCVBNM'.split('');const used={};guesses.forEach(g=>g.split('').forEach((l,i)=>{const prev=used[l];const c=g.colors[i];if(!prev||(prev==='absent')||(prev==='present'&&c==='correct'))used[l]=c;}));el.innerHTML=keys.map(k=>{const c=used[k]==='correct'?'#5a9e6f':used[k]==='present'?'#c9a96e':used[k]==='absent'?'#252119':'#2a2218';return`<div style="width:32px;height:40px;display:flex;align-items:center;justify-content:center;background:${c};border:1px solid rgba(201,169,110,.12);font-size:12px;letter-spacing:.05em;color:var(--cream);cursor:pointer;" onclick="wordleKey('${k}')">${k}</div>`;}).join('');}
+
+  window.wordleKey=function(k){if(gameOver2)return;if(current.length<5){current+=k;document.getElementById('wordleInput').value=current;}};
+  window.wordleSubmit=function(){if(gameOver2)return;const inp=document.getElementById('wordleInput');current=(inp.value||current).toUpperCase().trim();if(current.length!==5){document.getElementById('wordleMsg').textContent='Must be 5 letters';return;}const g={};const wArr=word.split(''),gArr=current.split(''),colors=Array(5).fill('absent');wArr.forEach((l,i)=>{g[l]=(g[l]||0)+1;});gArr.forEach((l,i)=>{if(l===wArr[i]){colors[i]='correct';g[l]--;}});gArr.forEach((l,i)=>{if(colors[i]!=='correct'&&g[l]>0){colors[i]='present';g[l]--;}});const row=current.split('');row.colors=colors;guesses.push(row);current='';inp.value='';renderGrid();renderKeys();if(colors.every(c=>c==='correct')){gameOver2=true;document.getElementById('wordleMsg').textContent='🎉 Brilliant!';}else if(guesses.length>=maxGuesses){gameOver2=true;document.getElementById('wordleMsg').textContent=`The word was ${word}`;}};
+  window.wordleHint=function(){if(!adminBonus||hintUsed||gameOver2)return;const missing=word.split('').find(l=>!guesses.flat().some(g=>typeof g==='string'&&g===l));if(missing)document.getElementById('wordleMsg').textContent=`Hint: The word contains "${missing}"`;hintUsed=true;document.getElementById('wordleHint').disabled=true;document.getElementById('wordleHint').style.opacity='.4';};
+
+  document.addEventListener('keydown',function wKey(e){if(!document.getElementById('wordleInput'))return document.removeEventListener('keydown',wKey);if(gameOver2)return;if(e.key==='Enter')window.wordleSubmit();else if(e.key==='Backspace'){current=current.slice(0,-1);document.getElementById('wordleInput').value=current;}else if(/^[a-zA-Z]$/.test(e.key)&&current.length<5){current+=e.key.toUpperCase();document.getElementById('wordleInput').value=current;}});
+  renderGrid();renderKeys();
+}
+
+/* ══════════════════════════════════════
+   FISHING
+══════════════════════════════════════ */
+function loadFishing(arena) {
+  const adminBonus = isAdmin;
+
+  let fishingState = {
+    phase: 'idle', // idle | casting | waiting | minigame | caught | failed
+    score: 0,
+    casts: 0,
+    inventory: [],
+    rod: ROD_DEFS[0],
+    craftingOpen: false,
+    lbOpen: false,
+    currentFish: null,
+    barPos: 0,
+    barDir: 1,
+    zonePos: 0.3,
+    zoneFrozen: 0,
+    catchProgress: 0,
+    animFrame: null,
+    waitTimer: null,
+    biteTimeout: null,
+  };
+
+  function getBarSpeed() { const rm=RARITY_META[fishingState.currentFish?.rarity||'common']; return (rm.barSpeed - fishingState.rod.bonuses.tensionReduction*0.01) * (1 - fishingState.rod.bonuses.rareBoost*0.04); }
+  function getZoneSize() { const rm=RARITY_META[fishingState.currentFish?.rarity||'common']; return rm.barSize + fishingState.rod.bonuses.zoneSizeBonus; }
+
+  function pickFish() {
+    const table = adminBonus
+      ? FISH_TABLE.map(f => ({...f, adjWeight: (RARITY_META[f.rarity].weight * fishingState.rod.bonuses.rareBoost)}))
+      : FISH_TABLE.map(f => ({...f, adjWeight: RARITY_META[f.rarity].weight * fishingState.rod.bonuses.rareBoost}));
+    const total = table.reduce((s,f)=>s+f.adjWeight,0);
+    let r = Math.random()*total;
+    for (const f of table) { r-=f.adjWeight; if(r<=0) return f; }
+    return table[0];
+  }
+
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;width:100%;max-width:700px;margin:0 auto;">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="fishScore">0</div><div class="g-hud-key">Points</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="fishCasts">0</div><div class="g-hud-key">Casts</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="fishCaught">0</div><div class="g-hud-key">Caught</div></div>
+        ${adminBonus?'<div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--admin);">⚡ 2× weight · Rare boost · Auto-bite</div>':''}
+      </div>
+      <div id="fishRodDisplay" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);">Rod: Starter Rod 🎣</div>
+      <div id="fishScene" style="width:100%;height:200px;background:linear-gradient(to bottom,#0e1a2a 40%,#0a2236 100%);border:1px solid rgba(201,169,110,.15);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:70px;background:#0e1a2a;"></div>
+        <div style="position:absolute;top:70px;left:0;right:0;bottom:0;background:#0a2236;opacity:.8;"></div>
+        <div id="fishBobber" style="position:absolute;top:60px;left:50%;transform:translateX(-50%);font-size:20px;display:none;">🎣</div>
+        <div id="fishMsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);">Press Cast to start fishing</div>
+      </div>
+      <div id="fishMiniGame" style="display:none;width:100%;max-width:400px;">
+        <div id="fishFishName" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;text-align:center;margin-bottom:8px;"></div>
+        <div style="position:relative;height:40px;background:#1a1713;border:1px solid rgba(201,169,110,.2);border-radius:4px;overflow:hidden;">
+          <div id="fishZone" style="position:absolute;top:0;bottom:0;background:rgba(90,158,111,.35);transition:left .05s;"></div>
+          <div id="fishBar" style="position:absolute;top:4px;bottom:4px;width:18px;background:var(--gold);border-radius:3px;transition:left .05s;"></div>
+        </div>
+        <div style="margin-top:8px;background:#1a1713;height:8px;border-radius:4px;overflow:hidden;border:1px solid rgba(201,169,110,.1);">
+          <div id="fishProgress" style="height:100%;width:0%;background:#5a9e6f;transition:width .1s;"></div>
+        </div>
+        <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;text-align:center;margin-top:6px;color:var(--text-muted);">Click / Tap the bar to keep fish in zone!</div>
+        <button class="g-btn" id="fishClickArea" onclick="fishTap()" style="width:100%;margin-top:8px;padding:16px;font-size:14px;">⬆ HOLD / TAP</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <button class="g-btn" id="fishCastBtn" onclick="fishCast()">🎣 Cast</button>
+        <button class="g-btn" onclick="fishOpenLB()" style="font-size:10px;padding:8px 16px;">🏆 Leaderboard</button>
+        <button class="g-btn" onclick="fishOpenCraft()" style="font-size:10px;padding:8px 16px;">🔨 Craft Rod</button>
+      </div>
+      <div id="fishInventory" style="width:100%;max-height:220px;overflow-y:auto;"></div>
+      <div id="fishOverlay" style="display:none;position:fixed;inset:0;background:rgba(14,12,9,.95);z-index:600;align-items:center;justify-content:center;"></div>
+    </div>`;
+
+  function setMsg(msg){const el=document.getElementById('fishMsg');if(el)el.textContent=msg;}
+  function setFishMsg(msg,color){const el=document.getElementById('fishMsg');if(el){el.textContent=msg;el.style.color=color||'var(--cream)';}}
+
+  function renderInventory(){
+    const el=document.getElementById('fishInventory');if(!el)return;
+    if(!fishingState.inventory.length){el.innerHTML='<div style="text-align:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(138,128,112,.4);padding:12px;">No fish caught yet</div>';return;}
+    const grouped={};
+    fishingState.inventory.forEach(f=>{if(!grouped[f.name])grouped[f.name]={...f,count:0,totalWeight:0};grouped[f.name].count++;grouped[f.name].totalWeight+=f.weight;});
+    el.innerHTML='<div style="display:flex;flex-direction:column;gap:4px;">'+Object.values(grouped).map(f=>{const rm=RARITY_META[f.rarity];return`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--dark-2);border:1px solid ${rm.border};"><span style="font-size:18px;">${f.emoji}</span><div style="flex:1;"><div style="font-size:11px;letter-spacing:.1em;color:${rm.color};">${f.name} × ${f.count}</div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">${rm.label} · Avg ${(f.totalWeight/f.count).toFixed(2)} kg</div></div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);">${(f.totalWeight*f.mult*fishingState.rod.bonuses.weightMult*(adminBonus?2:1)).toFixed(0)} pts</div></div>`;}).join('')+'</div>';}
+
+  window.fishCast = function(){
+    if(fishingState.phase!=='idle')return;
+    fishingState.phase='waiting';
+    fishingState.casts++;
+    document.getElementById('fishCasts').textContent=fishingState.casts;
+    document.getElementById('fishCastBtn').disabled=true;
+    const bobber=document.getElementById('fishBobber');
+    if(bobber)bobber.style.display='block';
+    setFishMsg('Waiting for a bite…','var(--text-muted)');
+    const biteDelay=adminBonus?500+Math.random()*1500:2000+Math.random()*4000;
+    fishingState.biteTimeout=setTimeout(()=>{
+      if(fishingState.phase!=='waiting')return;
+      setFishMsg('🎣 BITE! Click the bar!','var(--gold)');
+      fishingState.currentFish=pickFish();
+      fishingState.phase='minigame';
+      startMinigame();
+    }, biteDelay-fishingState.rod.bonuses.biteSpeedBonus);
+  };
+
+  function startMinigame(){
+    const mg=document.getElementById('fishMiniGame');if(mg)mg.style.display='block';
+    const fn=document.getElementById('fishFishName');if(fn){const rm=RARITY_META[fishingState.currentFish.rarity];fn.textContent=`${fishingState.currentFish.emoji} ${fishingState.currentFish.name}`;fn.style.color=rm.color;}
+    fishingState.barPos=0.5;fishingState.barDir=1;fishingState.zonePos=0.3;fishingState.catchProgress=0;fishingState.zoneFrozen=0;
+    updateMiniGameUI();
+    if(fishingState.animFrame)cancelAnimationFrame(fishingState.animFrame);
+    if(fishingState.rod.bonuses.reelSpeedBonus>0.01){document.getElementById('fishClickArea').textContent='AUTO-REEL ACTIVE';}
+    let last=null;
+    function frame(ts){
+      if(!document.getElementById('fishMiniGame')||fishingState.phase!=='minigame')return;
+      if(!last)last=ts;
+      const dt=Math.min((ts-last)/16,3);last=ts;
+      if(fishingState.zoneFrozen>0)fishingState.zoneFrozen-=dt;
+      if(fishingState.zoneFrozen<=0){fishingState.barPos+=fishingState.barDir*getBarSpeed()*dt;if(fishingState.barPos<=0||fishingState.barPos>=1)fishingState.barDir*=-1;fishingState.barPos=Math.max(0,Math.min(1,fishingState.barPos));}
+      const zs=getZoneSize();
+      const inZone=fishingState.barPos>=fishingState.zonePos&&fishingState.barPos<=(fishingState.zonePos+zs);
+      if(inZone)fishingState.catchProgress=Math.min(1,fishingState.catchProgress+0.006*dt);
+      else fishingState.catchProgress=Math.max(0,fishingState.catchProgress-0.009*dt);
+      if(fishingState.rod.bonuses.reelSpeedBonus>0)fishingState.catchProgress=Math.min(1,fishingState.catchProgress+fishingState.rod.bonuses.reelSpeedBonus*dt*0.5);
+      updateMiniGameUI();
+      if(fishingState.catchProgress>=1){fishCaughtSuccess();return;}
+      if(fishingState.catchProgress<=0&&fishingState.casts>1){fishFailed();return;}
+      fishingState.animFrame=requestAnimationFrame(frame);
+    }
+    fishingState.animFrame=requestAnimationFrame(frame);
+  }
+
+  function updateMiniGameUI(){
+    const bar=document.getElementById('fishBar'),zone=document.getElementById('fishZone'),prog=document.getElementById('fishProgress');
+    if(!bar||!zone||!prog)return;
+    bar.style.left=(fishingState.barPos*100)+'%';
+    const zs=getZoneSize()*100;
+    zone.style.left=(fishingState.zonePos*100)+'%';zone.style.width=zs+'%';
+    prog.style.width=(fishingState.catchProgress*100)+'%';
+  }
+
+  window.fishTap=function(){
+    if(fishingState.phase!=='minigame')return;
+    const zs=getZoneSize();
+    if(fishingState.currentFish?.power==='freezeBar')fishingState.zoneFrozen=60;
+    if(fishingState.currentFish?.power==='widenZone')fishingState.zonePos=Math.max(0,fishingState.barPos-zs/2);
+    fishingState.zonePos=Math.max(0,Math.min(1-zs,fishingState.zonePos+(Math.random()-0.5)*0.08));
+  };
+
+  function fishCaughtSuccess(){
+    if(fishingState.animFrame)cancelAnimationFrame(fishingState.animFrame);
+    const f=fishingState.currentFish;
+    const w=parseFloat((f.wMin+(Math.random()*(f.wMax-f.wMin))).toFixed(2));
+    const wAdj=adminBonus?w*2:w;
+    const pts=Math.round(wAdj*f.mult*fishingState.rod.bonuses.weightMult);
+    let bonus=0;
+    if(f.power==='bonusScore')bonus=Math.round(pts*(f.rarity==='legendary'?1:0.3));
+    fishingState.score+=pts+bonus;
+    fishingState.inventory.push({...f,weight:wAdj});
+    document.getElementById('fishScore').textContent=fishingState.score;
+    document.getElementById('fishCaught').textContent=fishingState.inventory.length;
+    const rm=RARITY_META[f.rarity];
+    setFishMsg(`${f.emoji} ${f.name} — ${wAdj.toFixed(2)} kg · +${pts+bonus} pts`,rm.color);
+    toast(`${f.emoji} Caught: ${f.name} (${wAdj.toFixed(2)} kg) +${pts+bonus} pts`);
+    resetFishing();
+    renderInventory();
+    saveFishingLB(pts+bonus,f.rarity);
+  }
+
+  function fishFailed(){
+    if(fishingState.animFrame)cancelAnimationFrame(fishingState.animFrame);
+    setFishMsg('The fish got away!','#d97070');
+    resetFishing();
+  }
+
+  function resetFishing(){
+    const mg=document.getElementById('fishMiniGame');if(mg)mg.style.display='none';
+    const bobber=document.getElementById('fishBobber');if(bobber)bobber.style.display='none';
+    const btn=document.getElementById('fishCastBtn');if(btn)btn.disabled=false;
+    fishingState.phase='idle';fishingState.currentFish=null;
+  }
+
+  async function saveFishingLB(score,rarity){
+    if(!currentUser||!currentUserName)return;
+    const{data:existing}=await db.from('fishing_lb').select('*').eq('user_id',currentUser.id).single();
+    if(!existing||score>existing.best_score){await db.from('fishing_lb').upsert({user_id:currentUser.id,display_name:currentUserName,best_score:score,best_rarity:rarity,updated_at:new Date().toISOString()},{onConflict:'user_id'});}
+  }
+
+  window.fishOpenLB=async function(){
+    const ov=document.getElementById('fishOverlay');if(!ov)return;
+    ov.style.display='flex';ov.innerHTML='<div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.2);padding:32px;max-width:480px;width:90%;max-height:70vh;overflow-y:auto;position:relative;"><button onclick="document.getElementById(\'fishOverlay\').style.display=\'none\'" style="position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;">✕</button><div style="font-family:\'Cormorant Garamond\',serif;font-size:24px;font-weight:300;color:var(--gold);margin-bottom:20px;">🏆 Fishing Leaderboard</div><div id="fishLBContent">Loading…</div></div>';
+    const{data}=await db.from('fishing_lb').select('*').order('best_score',{ascending:false}).limit(20);
+    const el=document.getElementById('fishLBContent');if(!el)return;
+    if(!data?.length){el.textContent='No entries yet.';return;}
+    el.innerHTML=data.map((p,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,169,110,.06);"><div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:${i===0?'#c9a96e':i===1?'#b0b0b0':i===2?'#8a6d3b':'var(--text-muted)'};width:28px;">${i+1}</div><div style="flex:1;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);">${p.display_name}</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);">${p.best_score}</div></div>`).join('');
+  };
+
+  window.fishOpenCraft=function(){
+    const ov=document.getElementById('fishOverlay');if(!ov)return;
+    ov.style.display='flex';
+    const craftable=ROD_DEFS.filter(r=>r.craftable&&!r.unlocked);
+    ov.innerHTML=`<div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.2);padding:32px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;position:relative;"><button onclick="document.getElementById('fishOverlay').style.display='none'" style="position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;">✕</button><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--gold);margin-bottom:20px;">🔨 Rod Crafting</div>${craftable.map(rod=>{const canCraft=rod.recipe.every(req=>{const inv=fishingState.inventory.filter(f=>f.name===req.fish);return inv.length>=req.count;});return`<div style="background:var(--dark-3);border:1px solid rgba(201,169,110,.12);padding:16px;margin-bottom:12px;"><div style="font-size:12px;letter-spacing:.15em;color:${rod.color};margin-bottom:6px;">${rod.emoji} ${rod.name}</div><div style="font-size:10px;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px;line-height:1.8;">${rod.desc}</div><div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Recipe:</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">${rod.recipe.map(req=>{const have=fishingState.inventory.filter(f=>f.name===req.fish).length;return`<div style="font-size:9px;padding:4px 10px;border:1px solid rgba(201,169,110,.15);color:${have>=req.count?'#5a9e6f':'#d97070'};">${req.fish} ${have}/${req.count}</div>`;}).join('')}</div><button class="g-btn" onclick="fishCraftRod('${rod.id}')" ${canCraft?'':'disabled'} style="font-size:9px;padding:8px 16px;${canCraft?'':'opacity:.4;cursor:not-allowed;'}">${canCraft?'Craft':'Missing fish'}</button></div>`;}).join('')}</div>`;
+  };
+
+  window.fishCraftRod=function(rodId){
+    const rod=ROD_DEFS.find(r=>r.id===rodId);if(!rod)return;
+    if(!rod.recipe.every(req=>{const inv=fishingState.inventory.filter(f=>f.name===req.fish);return inv.length>=req.count;})){toast('Missing fish!');return;}
+    rod.recipe.forEach(req=>{let rem=req.count;fishingState.inventory=fishingState.inventory.filter(f=>{if(f.name===req.fish&&rem>0){rem--;return false;}return true;});});
+    rod.unlocked=true;fishingState.rod=rod;
+    document.getElementById('fishRodDisplay').textContent=`Rod: ${rod.name} ${rod.emoji}`;
+    toast(`🎉 Crafted ${rod.name}!`);
+    document.getElementById('fishOverlay').style.display='none';
+    renderInventory();
+  };
+
+  renderInventory();
+}
+
+/* ══════════════════════════════════════
+   TOWER DEFENCE
+══════════════════════════════════════ */
+function loadTD(arena) {
+  const adminBonus = isAdmin;
+  arena.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+        <div class="g-hud-item"><div class="g-hud-val" id="tdGold">${adminBonus?500:150}</div><div class="g-hud-key">Gold</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tdLives">${adminBonus?25:15}</div><div class="g-hud-key">Lives</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tdWave">0</div><div class="g-hud-key">Wave</div></div>
+        <div class="g-hud-item"><div class="g-hud-val" id="tdScore">0</div><div class="g-hud-key">Score</div></div>
+      </div>
+      <canvas id="tdCanvas" width="640" height="400" style="border:1px solid rgba(201,169,110,.2);cursor:pointer;max-width:100%;"></canvas>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <button class="g-btn" id="tdArrow" onclick="tdSelect('arrow')">🏹 Arrow (50g)</button>
+        <button class="g-btn" id="tdCannon" onclick="tdSelect('cannon')">💣 Cannon (100g)</button>
+        <button class="g-btn" id="tdMage" onclick="tdSelect('mage')">🔮 Mage (150g)</button>
+        <button class="g-btn" id="tdWaveBtn" onclick="tdStartWave()" style="border-color:#5a9e6f;color:#5a9e6f;">▶ Start Wave</button>
+      </div>
+      <div id="tdMsg" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Click the grid to place towers, then start wave</div>
+    </div>`;
+
+  const canvas=document.getElementById('tdCanvas'),ctx=canvas.getContext('2d');
+  const CELL=40,COLS=16,ROWS=10;
+  const PATH_CELLS=new Set();
+  const PATH=[];
+  (function buildPath(){const pts=[[0,4],[1,4],[2,4],[3,4],[4,4],[4,5],[4,6],[4,7],[5,7],[6,7],[7,7],[8,7],[8,6],[8,5],[8,4],[8,3],[9,3],[10,3],[11,3],[12,3],[12,4],[12,5],[12,6],[12,7],[12,8],[13,8],[14,8],[15,8]];pts.forEach(([c,r])=>{PATH_CELLS.add(`${r},${c}`);PATH.push({x:c*CELL+CELL/2,y:r*CELL+CELL/2});});})();
+
+  const TOWER_DEFS={arrow:{emoji:'🏹',cost:50,range:3*CELL,damage:10,rate:1200,color:'#5a9e6f'},cannon:{emoji:'💣',cost:100,range:2.5*CELL,damage:40,rate:2500,color:'#c9a96e'},mage:{emoji:'🔮',cost:150,range:3.5*CELL,damage:25,rate:1800,slow:0.5,color:'#b07ec9'}};
+  let towers=[],enemies=[],bullets=[],gold=adminBonus?500:150,lives=adminBonus?25:15,wave=0,score=0,waveActive=false,selectedTower='arrow',tdInterval=null;
+
+  function tdSelect(type){selectedTower=type;document.getElementById('tdMsg').textContent=`Placing ${TOWER_DEFS[type].emoji} ${type} — click grid cell`;}
+
+  canvas.addEventListener('click',e=>{
+    if(!selectedTower)return;
+    const rect=canvas.getBoundingClientRect(),scale=canvas.width/rect.width;
+    const col=Math.floor((e.clientX-rect.left)*scale/CELL),row=Math.floor((e.clientY-rect.top)*scale/CELL);
+    if(col<0||col>=COLS||row<0||row>=ROWS)return;
+    if(PATH_CELLS.has(`${row},${col}`))return;
+    if(towers.some(t=>t.col===col&&t.row===row))return;
+    const def=TOWER_DEFS[selectedTower];
+    if(gold<def.cost){toast('Not enough gold!');return;}
+    gold-=def.cost;document.getElementById('tdGold').textContent=gold;
+    towers.push({col,row,type:selectedTower,...def,lastShot:0,emoji:def.emoji,x:col*CELL+CELL/2,y:row*CELL+CELL/2});
+    drawTD();
+  });
+
+  window.tdStartWave=function(){
+    if(waveActive)return;wave++;waveActive=true;document.getElementById('tdWave').textContent=wave;
+    document.getElementById('tdWaveBtn').disabled=true;
+    const count=5+wave*3,hp=20+wave*15,speed=0.8+wave*0.1;
+    let spawned=0;const spawnI=setInterval(()=>{if(spawned>=count){clearInterval(spawnI);return;}enemies.push({pathIdx:0,t:0,hp,maxHp:hp,speed,slow:0,x:PATH[0].x,y:PATH[0].y,dead:false,reached:false});spawned++;},600);
+    if(tdInterval)clearInterval(tdInterval);tdInterval=setInterval(tdTick,50);
+  };
+
+  function tdTick(){
+    const now=Date.now();
+    enemies.forEach(en=>{if(en.dead||en.reached)return;en.t+=en.speed*(en.slow?0.5:1)*0.016;if(en.t>=1){en.pathIdx++;en.t=0;if(en.pathIdx>=PATH.length-1){en.reached=true;lives--;document.getElementById('tdLives').textContent=lives;if(lives<=0)endTD();return;}}const a=PATH[Math.min(en.pathIdx,PATH.length-1)],b=PATH[Math.min(en.pathIdx+1,PATH.length-1)];en.x=a.x+(b.x-a.x)*en.t;en.y=a.y+(b.y-a.y)*en.t;if(en.slow>0)en.slow=Math.max(0,en.slow-0.016);});
+    towers.forEach(t=>{if(now-t.lastShot<t.rate)return;const target=enemies.find(en=>!en.dead&&!en.reached&&Math.hypot(en.x-t.x,en.y-t.y)<t.range);if(!target)return;t.lastShot=now;bullets.push({x:t.x,y:t.y,tx:target,damage:t.damage,slow:t.slow||0,color:t.color,speed:4});});
+    bullets.forEach(b=>{if(!b.tx||b.tx.dead){b.done=true;return;}const dx=b.tx.x-b.x,dy=b.tx.y-b.y,dist=Math.hypot(dx,dy);if(dist<6){b.tx.hp-=b.damage;if(b.slow)b.tx.slow=b.slow;if(b.tx.hp<=0){b.tx.dead=true;gold+=5;score+=10;document.getElementById('tdGold').textContent=gold;document.getElementById('tdScore').textContent=score;}b.done=true;return;}b.x+=dx/dist*b.speed;b.y+=dy/dist*b.speed;});
+    bullets=bullets.filter(b=>!b.done);
+    const alive=enemies.filter(e=>!e.dead&&!e.reached);
+    if(waveActive&&alive.length===0&&enemies.length>0){waveActive=false;clearInterval(tdInterval);document.getElementById('tdWaveBtn').disabled=false;gold+=50+(wave*10);document.getElementById('tdGold').textContent=gold;toast(`Wave ${wave} complete! +${50+wave*10}g`);if(wave>=20)endTD(true);}
+    drawTD();
+  }
+
+  function endTD(win=false){clearInterval(tdInterval);waveActive=false;ctx.fillStyle='rgba(14,12,9,.85)';ctx.fillRect(0,0,640,400);ctx.textAlign='center';ctx.fillStyle=win?'#5a9e6f':'#d97070';ctx.font='bold 24px Josefin Sans';ctx.fillText(win?'Victory! 20 Waves Cleared!':'Game Over',320,180);ctx.fillStyle='#c9a96e';ctx.font='16px Josefin Sans';ctx.fillText(`Score: ${score}`,320,215);ctx.fillStyle='#8a8070';ctx.font='12px Josefin Sans';ctx.fillText('Click to play again',320,245);canvas.addEventListener('click',()=>loadTD(arena),{once:true});}
+
+  function drawTD(){
+    ctx.fillStyle='#0e0c09';ctx.fillRect(0,0,640,400);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){ctx.fillStyle=PATH_CELLS.has(`${r},${c}`)? '#1a1410':'#131210';ctx.fillRect(c*CELL,r*CELL,CELL,CELL);ctx.strokeStyle='rgba(201,169,110,.04)';ctx.strokeRect(c*CELL,r*CELL,CELL,CELL);}
+    PATH.forEach((p,i)=>{if(i<PATH.length-1){ctx.strokeStyle='rgba(201,169,110,.12)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(PATH[i+1].x,PATH[i+1].y);ctx.stroke();}});
+    towers.forEach(t=>{ctx.font=`${CELL-8}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.emoji,t.x,t.y);});
+    enemies.forEach(en=>{if(en.dead||en.reached)return;ctx.fillStyle='#d97070';ctx.beginPath();ctx.arc(en.x,en.y,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#5a9e6f';ctx.fillRect(en.x-12,en.y-16,Math.max(0,24*(en.hp/en.maxHp)),4);ctx.strokeStyle='rgba(201,169,110,.2)';ctx.strokeRect(en.x-12,en.y-16,24,4);});
+    bullets.forEach(b=>{ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,4,0,Math.PI*2);ctx.fill();});
+  }
+  drawTD();
+}
+
+/* ══════════════════════════════════════
+   CAT GAME (Clicker)
+══════════════════════════════════════ */
+function loadCatGame(arena) {
+  let purrs=0,ppc=1,pps=0,upgrades={nap:{name:'Cat Nap',cost:10,pps:0.5,count:0,emoji:'😴'},treat:{name:'Treat Bowl',cost:50,pps:2,count:0,emoji:'🍖'},laser:{name:'Laser Pointer',cost:150,pps:8,count:0,emoji:'🔴'},catnip:{name:'Catnip Farm',cost:500,pps:25,count:0,emoji:'🌿'},kingdom:{name:'Cat Kingdom',cost:2000,pps:100,count:0,emoji:'👑'}};
+  let ppsInterval=null,lbSaveInterval=null;
+
+  arena.innerHTML=`
+    <div style="display:flex;gap:24px;padding:24px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--gold);" id="catPurrs">0</div>
+        <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">purrs</div>
+        <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);" id="catPPS">0 per sec</div>
+        <div id="catEmoji" style="font-size:100px;cursor:pointer;user-select:none;transition:transform .08s;" onclick="catClick()">🐱</div>
+        <div style="font-size:10px;letter-spacing:.15em;color:var(--text-muted);">${ppc} purr per click</div>
+      </div>
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px;" id="catUpgrades"></div>
+    </div>`;
+
+  function renderUpgrades(){const el=document.getElementById('catUpgrades');if(!el)return;el.innerHTML='<div style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Upgrades</div>'+Object.entries(upgrades).map(([k,u])=>`<button onclick="catBuy('${k}')" style="display:flex;align-items:center;gap:12px;background:${purrs>=u.cost?'var(--dark-2)':'var(--dark-3)'};border:1px solid rgba(201,169,110,${purrs>=u.cost?'.25':'.06'});padding:12px 16px;cursor:${purrs>=u.cost?'pointer':'not-allowed'};transition:background .2s;width:100%;text-align:left;"><span style="font-size:22px;">${u.emoji}</span><div style="flex:1;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);">${u.name}</div><div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);">${u.pps}/s · owned: ${u.count}</div></div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:${purrs>=u.cost?'var(--gold)':'var(--text-muted)'};">${u.cost}🐾</div></button>`).join('');}
+
+  window.catClick=function(){purrs+=ppc;document.getElementById('catPurrs').textContent=Math.floor(purrs);const cat=document.getElementById('catEmoji');if(cat){cat.style.transform='scale(0.92)';setTimeout(()=>cat.style.transform='scale(1)',80);}renderUpgrades();};
+  window.catBuy=function(k){const u=upgrades[k];if(purrs<u.cost)return;purrs-=u.cost;u.count++;pps+=u.pps;u.cost=Math.ceil(u.cost*1.5);document.getElementById('catPurrs').textContent=Math.floor(purrs);renderUpgrades();};
+
+  ppsInterval=setInterval(()=>{if(!document.getElementById('catEmoji'))return clearInterval(ppsInterval);purrs+=pps/20;document.getElementById('catPurrs').textContent=Math.floor(purrs);document.getElementById('catPPS').textContent=pps.toFixed(1)+' per sec';renderUpgrades();},50);
+
+  async function saveCatLB(){if(!currentUser||!currentUserName||purrs<1)return;const{data:ex}=await db.from('cat_lb').select('*').eq('user_id',currentUser.id).single();if(!ex||purrs>ex.best_purrs){await db.from('cat_lb').upsert({user_id:currentUser.id,display_name:currentUserName,best_purrs:Math.floor(purrs),updated_at:new Date().toISOString()},{onConflict:'user_id'});}}
+  lbSaveInterval=setInterval(()=>{if(!document.getElementById('catEmoji'))return clearInterval(lbSaveInterval);saveCatLB();},30000);
+  renderUpgrades();
+}
+
+/* ══════════════════════════════════════
+   IMPOSTOR STUBS + BASIC IMPLEMENTATION
+══════════════════════════════════════ */
+let imRoom = null, imSub = null, imMyColor = 0, imIsHost = false;
+let imImpostorCount = 1, imKillCD = 15, imGameLoop = null;
+let imCanvas = null, imCtx = null, imMyPos = {x: 330, y: 220};
+let imKeys = {}, imMoveInterval = null;
+
+const IM_COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4'];
+const IM_COLOR_NAMES = ['Red','Blue','Green','Orange','Purple','Teal','Brown','Dark','Pink','Cyan'];
+
+function imGenCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ';return Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');}
+function imMsg(msg,id='im-lobby-msg'){const el=document.getElementById(id);if(el)el.textContent=msg;}
+function imSetImpostors(n){imImpostorCount=n;[1,2].forEach(i=>{const b=document.getElementById('imImpCount'+i);if(b)b.classList.toggle('active',i===n);});}
+function imSetKillCD(s){imKillCD=s;[15,30,45].forEach(v=>{const b=document.getElementById('imKill'+v);if(b)b.classList.toggle('active',v===s);});}
+
+function imStopSub(){if(imSub){db.removeChannel(imSub);imSub=null;}if(imMoveInterval){clearInterval(imMoveInterval);imMoveInterval=null;}if(imGameLoop){clearInterval(imGameLoop);imGameLoop=null;}}
+
+async function imInit(){
+  imRoom=null;imIsHost=false;imMyColor=0;
+  document.getElementById('im-lobby').style.display='block';
+  document.getElementById('im-waiting').style.display='none';
+  document.getElementById('im-game').style.display='none';
+  document.getElementById('im-meeting').style.display='none';
+  document.getElementById('im-vote').style.display='none';
+  document.getElementById('im-vote-result').style.display='none';
+  document.getElementById('im-gameover').style.display='none';
+  imMsg('');
+  await imLoadStats();
+  await imLoadLeaderboard();
+}
+
+async function imLoadStats(){
+  if(!currentUser)return;
+  const{data}=await db.from('impostor_stats').select('*').eq('user_id',currentUser.id).single();
+  const w=data?.crew_wins??0,iw=data?.imp_wins??0,gp=data?.games_played??0;
+  const ew=document.getElementById('im-wins'),ei=document.getElementById('im-imp-wins'),ep=document.getElementById('im-played');
+  if(ew)ew.textContent=w;if(ei)ei.textContent=iw;if(ep)ep.textContent=gp;
+}
+
+async function imLoadLeaderboard(){
+  const el=document.getElementById('im-leaderboard');if(!el)return;
+  const{data}=await db.from('impostor_stats').select('*').order('crew_wins',{ascending:false}).limit(15);
+  if(!data?.length){el.innerHTML='<div class="empty-label" style="text-align:center;padding:20px;">No games played yet!</div>';return;}
+  el.innerHTML='<div class="file-list">'+data.map((p,i)=>`<div class="file-item"><div class="lb-rank ${i===0?'gold-rank':i===1?'silver-rank':i===2?'bronze-rank':''}" style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;width:32px;text-align:center;">${i+1}</div><div class="file-info"><div class="file-name">${p.display_name||'Unknown'}</div><div class="file-meta">Crew wins: ${p.crew_wins} · Imp wins: ${p.imp_wins} · Played: ${p.games_played}</div></div></div>`).join('')+'</div>';
+}
+
+async function imCreate(){
+  if(!currentUser){imMsg('Sign in first.');return;}
+  imMsg('Creating room…');
+  let code,tries=0;
+  while(tries<10){code=imGenCode();const{data}=await db.from('impostor_rooms').select('code').eq('code',code).single();if(!data)break;tries++;}
+  const initState={phase:'waiting',players:{},impostors:[],tasks:{},sabotage:null,meetings:0,votes:{},chat:[],killCD:imKillCD,impCount:imImpostorCount};
+  const{error}=await db.from('impostor_rooms').insert({code,host_id:currentUser.id,state:initState});
+  if(error){imMsg('Error: '+error.message);return;}
+  imRoom=code;imIsHost=true;imMyColor=0;
+  await imJoinAsPlayer(code);
+  imEnterWaiting();
+}
+
+async function imJoin(){
+  if(!currentUser){imMsg('Sign in first.','im-join-msg');return;}
+  const code=document.getElementById('imJoinCode').value.trim().toUpperCase();
+  if(code.length!==4){imMsg('Enter a 4-letter code.','im-join-msg');return;}
+  const{data:room}=await db.from('impostor_rooms').select('*').eq('code',code).single();
+  if(!room){imMsg('Room not found.','im-join-msg');return;}
+  const state=room.state;
+  if(state.phase!=='waiting'){imMsg('Game already started.','im-join-msg');return;}
+  const playerCount=Object.keys(state.players||{}).length;
+  if(playerCount>=10){imMsg('Room is full.','im-join-msg');return;}
+  imRoom=code;imIsHost=room.host_id===currentUser.id;
+  const usedColors=Object.values(state.players||{}).map(p=>p.colorIdx);
+  imMyColor=Array.from({length:10},(_,i)=>i).find(i=>!usedColors.includes(i))||0;
+  await imJoinAsPlayer(code);
+  imEnterWaiting();
+}
+
+async function imJoinAsPlayer(code){
+  const{data:room}=await db.from('impostor_rooms').select('state').eq('code',code).single();
+  const state=room?.state||{};
+  state.players=state.players||{};
+  state.players[currentUser.id]={name:currentUserName||currentUser.email,colorIdx:imMyColor,alive:true,tasksComplete:[],x:330,y:220};
+  await db.from('impostor_rooms').update({state}).eq('code',code);
+  await db.from('impostor_players').upsert({room_code:code,user_id:currentUser.id,display_name:currentUserName||currentUser.email,color_idx:imMyColor},{onConflict:'room_code,user_id'});
+}
+
+function imEnterWaiting(){
+  document.getElementById('im-lobby').style.display='none';
+  document.getElementById('im-waiting').style.display='block';
+  document.getElementById('im-room-code-display').textContent=imRoom;
+  document.getElementById('im-host-start').style.display=imIsHost?'block':'none';
+  imSubscribe();imPollWaiting();
+}
+
+function imSubscribe(){
+  imStopSub();
+  imSub=db.channel('im-room-'+imRoom)
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'impostor_rooms',filter:`code=eq.${imRoom}`},payload=>imHandleUpdate(payload.new))
+    .subscribe();
+}
+
+async function imPollWaiting(){
+  const{data:room}=await db.from('impostor_rooms').select('*').eq('code',imRoom).single();
+  if(!room)return;
+  imRenderWaiting(room.state);
+  if(room.state.phase==='playing')imEnterGame(room.state);
+  else setTimeout(imPollWaiting,2000);
+}
+
+function imRenderWaiting(state){
+  const players=Object.entries(state.players||{});
+  const pl=document.getElementById('im-player-list');
+  if(pl)pl.innerHTML=players.map(([id,p])=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--dark-2);border:1px solid rgba(201,169,110,.1);"><div style="width:24px;height:24px;border-radius:50%;background:${IM_COLORS[p.colorIdx]};flex-shrink:0;"></div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);">${p.name}</div></div>`).join('');
+  const ws=document.getElementById('im-wait-status');
+  if(ws)ws.textContent=`${players.length} / 10 players`;
+  const btn=document.getElementById('im-start-btn'),s=btn?.querySelector('span');
+  if(btn){if(players.length>=4){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';if(s)s.textContent=`Start Game (${players.length} players)`;}else{btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed';if(s)s.textContent=`Need ${4-players.length} more player${4-players.length!==1?'s':''}…`;}}
+}
+
+async function imStartGame(){
+  if(!imIsHost||!imRoom)return;
+  const{data:room}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();
+  const state=room.state;
+  const playerIds=Object.keys(state.players);
+  const impCount=Math.min(state.impCount||1,Math.floor(playerIds.length/3));
+  const impostors=[];
+  const shuffled=[...playerIds].sort(()=>Math.random()-.5);
+  for(let i=0;i<impCount;i++)impostors.push(shuffled[i]);
+  const tasks={};
+  playerIds.forEach(id=>{tasks[id]={total:5,done:0};});
+  state.phase='playing';state.impostors=impostors;state.tasks=tasks;state.startTime=Date.now();
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+}
+
+function imHandleUpdate(room){
+  if(!room)return;
+  const state=room.state;
+  if(state.phase==='playing'&&document.getElementById('im-waiting').style.display!=='none')imEnterGame(state);
+  if(state.phase==='meeting')imShowMeeting(state);
+  if(state.phase==='voting')imShowVote(state);
+  if(state.phase==='voteResult')imShowVoteResult(state);
+  if(state.phase==='gameover')imShowGameOver(state);
+  if(state.phase==='playing')imUpdateGame(state);
+}
+
+function imEnterGame(state){
+  document.getElementById('im-waiting').style.display='none';
+  document.getElementById('im-game').style.display='block';
+  imCanvas=document.getElementById('im-canvas');
+  imCtx=imCanvas.getContext('2d');
+  const isImp=state.impostors.includes(currentUser.id);
+  const rb=document.getElementById('im-role-banner');
+  if(rb){rb.style.display='block';document.getElementById('im-role-label').textContent=isImp?'You are':'You are';document.getElementById('im-role-text').textContent=isImp?'⚠ The Impostor':'✔ Crewmate';document.getElementById('im-role-text').style.color=isImp?'#ff4646':'#5a9e6f';document.getElementById('im-role-sub').textContent=isImp?'Eliminate crewmates without being caught!':'Complete all tasks and vote out the impostors!';}
+  if(isImp){const kb=document.getElementById('im-kill-btn'),vb=document.getElementById('im-vent-btn'),sb=document.getElementById('im-sabotage-btn');if(kb)kb.style.display='inline-flex';if(vb)vb.style.display='inline-flex';if(sb)sb.style.display='inline-flex';}
+  else{const tb=document.getElementById('im-task-btn');if(tb)tb.style.display='inline-flex';}
+  imStartMovement(state);
+  imGameLoop=setInterval(async()=>{const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(r)imUpdateGame(r.state);},1000);
+}
+
+function imStartMovement(state){
+  const me=state.players[currentUser.id];if(me){imMyPos={x:me.x||330,y:me.y||220};}
+  document.addEventListener('keydown',e=>{imKeys[e.key]=true;});
+  document.addEventListener('keyup',e=>{imKeys[e.key]=false;});
+  imMoveInterval=setInterval(async()=>{
+    if(!imRoom||!imCanvas)return;
+    let moved=false,spd=3;
+    if(imKeys['ArrowLeft']||imKeys['a']){imMyPos.x=Math.max(20,imMyPos.x-spd);moved=true;}
+    if(imKeys['ArrowRight']||imKeys['d']){imMyPos.x=Math.min(640,imMyPos.x+spd);moved=true;}
+    if(imKeys['ArrowUp']||imKeys['w']){imMyPos.y=Math.max(20,imMyPos.y-spd);moved=true;}
+    if(imKeys['ArrowDown']||imKeys['s']){imMyPos.y=Math.min(420,imMyPos.y+spd);moved=true;}
+    if(moved){const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(r){const s=r.state;if(s.players[currentUser.id])s.players[currentUser.id].x=imMyPos.x,s.players[currentUser.id].y=imMyPos.y;await db.from('impostor_rooms').update({state:s}).eq('code',imRoom);}}
+  },100);
+}
+
+function imUpdateGame(state){
+  if(!imCanvas||!imCtx)return;
+  const ctx=imCtx;
+  ctx.fillStyle='#1a1410';ctx.fillRect(0,0,660,440);
+  ctx.fillStyle='rgba(201,169,110,.06)';
+  [[50,50,560,340],[100,80,120,60],[350,80,200,60],[80,200,100,80],[480,200,140,100],[200,300,260,80]].forEach(([x,y,w,h])=>{ctx.fillRect(x,y,w,h);ctx.strokeStyle='rgba(201,169,110,.15)';ctx.strokeRect(x,y,w,h);});
+  ctx.strokeStyle='rgba(201,169,110,.1)';ctx.setLineDash([4,4]);ctx.strokeRect(50,50,560,340);ctx.setLineDash([]);
+  const players=Object.entries(state.players||{});
+  players.forEach(([id,p])=>{
+    if(!p.alive)return;
+    const isMe=id===currentUser.id;
+    ctx.fillStyle=IM_COLORS[p.colorIdx]||(isMe?'#e74c3c':'#3498db');
+    ctx.beginPath();ctx.arc(p.x||330,p.y||220,isMe?14:12,0,Math.PI*2);ctx.fill();
+    if(isMe){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+    ctx.fillStyle='#fff';ctx.font='10px Josefin Sans,sans-serif';ctx.textAlign='center';ctx.fillText(p.name?.split(' ')[0]||'?',p.x||330,(p.y||220)-18);
+  });
+  const isImp=state.impostors.includes(currentUser.id);
+  if(isImp)players.forEach(([id,p])=>{if(p.alive&&state.impostors.includes(id)){ctx.strokeStyle='rgba(255,70,70,.4)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x||330,p.y||220,16,0,Math.PI*2);ctx.stroke();}});
+  const myTasks=state.tasks?.[currentUser.id];
+  if(myTasks){const pct=myTasks.total>0?myTasks.done/myTasks.total:0;document.getElementById('im-task-bar').style.width=(pct*100)+'%';document.getElementById('im-task-count').textContent=`${myTasks.done} / ${myTasks.total}`;}
+  const aliveList=document.getElementById('im-alive-list');
+  if(aliveList)aliveList.innerHTML=players.map(([id,p])=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;"><div style="width:12px;height:12px;border-radius:50%;background:${p.alive?IM_COLORS[p.colorIdx]:'#444'};flex-shrink:0;"></div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${p.alive?'var(--cream)':'rgba(138,128,112,.4)'};${p.alive?'':'text-decoration:line-through;'}">${p.name}</div></div>`).join('');
+}
+
+window.imKill=async function(){
+  if(!imRoom)return;
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;
+  let nearest=null,nearDist=Infinity;
+  Object.entries(state.players||{}).forEach(([id,p])=>{if(id===currentUser.id||!p.alive||state.impostors.includes(id))return;const d=Math.hypot((p.x||330)-imMyPos.x,(p.y||220)-imMyPos.y);if(d<100&&d<nearDist){nearDist=d;nearest=[id,p];}});
+  if(!nearest){toast('No crewmate nearby!');return;}
+  state.players[nearest[0]].alive=false;
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+  toast(`⚔ Eliminated ${nearest[1].name}`);
+  imCheckWinConditions(state);
+};
+
+window.imReport=async function(){
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;const me=state.players[currentUser.id];
+  let nearBody=null;
+  Object.entries(state.players||{}).forEach(([id,p])=>{if(p.alive||id===currentUser.id)return;const d=Math.hypot((p.x||330)-(me?.x||330),(p.y||220)-(me?.y||220));if(d<80)nearBody=[id,p];});
+  if(!nearBody){toast('No body nearby to report!');return;}
+  state.phase='meeting';state.meetingReason=`Body reported: ${nearBody[1].name}`;state.votes={};state.chat=[];
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+};
+
+window.imCallMeeting=async function(){
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;
+  if(state.meetings>=3&&!isAdmin){toast('Emergency meetings used up!');return;}
+  state.phase='meeting';state.meetingReason='Emergency meeting called!';state.votes={};state.chat=[];state.meetings=(state.meetings||0)+1;
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+};
+
+window.imDoTask=async function(){
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;const myTasks=state.tasks?.[currentUser.id];
+  if(!myTasks||myTasks.done>=myTasks.total){toast('All tasks complete!');return;}
+  myTasks.done++;
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+  toast(`✔ Task completed (${myTasks.done}/${myTasks.total})`);
+  imCheckWinConditions(state);
+};
+
+window.imVent=function(){toast('💨 Vented! (Cosmetic only in this version)');};
+window.imOpenSabotage=function(){const sp=document.getElementById('im-sabotage-panel');if(sp)sp.style.display='block';};
+window.imCloseSabotage=function(){const sp=document.getElementById('im-sabotage-panel');if(sp)sp.style.display='none';};
+
+window.imSabotage=async function(type){
+  imCloseSabotage();
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;
+  if(state.sabotage){toast('Sabotage already active!');return;}
+  state.sabotage={type,startTime:Date.now(),fixed:false};
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+  toast('💥 Sabotage activated!');
+};
+
+window.imFixSabotage=async function(){
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;if(!state.sabotage)return;
+  state.sabotage.fixed=true;state.sabotage=null;
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+  toast('🔧 Sabotage fixed!');
+  document.getElementById('im-sabofix-panel').style.display='none';
+};
+
+function imShowMeeting(state){
+  clearInterval(imGameLoop);
+  ['im-game','im-vote','im-vote-result'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('im-meeting').style.display='block';
+  const re=document.getElementById('im-meeting-reason');if(re)re.textContent=state.meetingReason||'Emergency Meeting';
+  const chatArea=document.getElementById('im-chat-area');
+  if(chatArea)chatArea.innerHTML=(state.chat||[]).map(m=>`<div style="margin-bottom:6px;"><span style="color:${IM_COLORS[m.colorIdx]};font-size:9px;letter-spacing:.15em;text-transform:uppercase;">${m.name}: </span><span style="font-size:11px;color:var(--cream);">${m.text}</span></div>`).join('');
+  let discuss=30;const ti=document.getElementById('im-discuss-timer');
+  const dtI=setInterval(async()=>{discuss--;if(ti)ti.textContent=discuss;if(discuss<=0){clearInterval(dtI);const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(r){const s=r.state;s.phase='voting';s.voteTimer=60;await db.from('impostor_rooms').update({state:s}).eq('code',imRoom);}}},1000);
+}
+
+window.imSendChat=async function(){
+  const inp=document.getElementById('im-chat-input');const text=inp?.value?.trim();if(!text)return;inp.value='';
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;state.chat=state.chat||[];
+  state.chat.push({name:currentUserName||'?',colorIdx:imMyColor,text});
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+};
+
+function imShowVote(state){
+  document.getElementById('im-meeting').style.display='none';
+  document.getElementById('im-vote').style.display='block';
+  const players=Object.entries(state.players||{}).filter(([id,p])=>p.alive);
+  const vb=document.getElementById('im-vote-btns');
+  if(vb&&!state.votes?.[currentUser.id])vb.innerHTML=`<button onclick="imVoteSkip()" class="btn-gold" style="border-color:rgba(201,169,110,.3);"><span>Skip Vote</span></button>`+players.map(([id,p])=>`<button onclick="imVoteFor('${id}')" class="btn-gold" style="border-color:${IM_COLORS[p.colorIdx]};"><span style="color:${IM_COLORS[p.colorIdx]};">${p.name}</span></button>`).join('');
+  const vs=document.getElementById('im-vote-status');const vc=Object.keys(state.votes||{}).length;if(vs)vs.textContent=`${vc} / ${players.length} voted`;
+  let t=60;const ti2=document.getElementById('im-vote-timer');
+  const vI=setInterval(async()=>{t--;if(ti2)ti2.textContent=t;if(t<=0){clearInterval(vI);if(imIsHost)await imResolveVotes();}},1000);
+}
+
+window.imVoteFor=async function(targetId){
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;if(state.votes?.[currentUser.id]){toast('Already voted!');return;}
+  state.votes=state.votes||{};state.votes[currentUser.id]=targetId;
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+  toast('Vote cast!');document.getElementById('im-vote-btns').innerHTML='<div style="color:#5a9e6f;font-size:11px;letter-spacing:.15em;text-transform:uppercase;">✓ Vote cast</div>';
+};
+window.imVoteSkip=async function(){await window.imVoteFor('skip');};
+
+async function imResolveVotes(){
+  const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(!r)return;
+  const state=r.state;const votes={};
+  Object.values(state.votes||{}).forEach(v=>{votes[v]=(votes[v]||0)+1;});
+  let maxV=0,ejected=null;
+  Object.entries(votes).forEach(([id,v])=>{if(v>maxV){maxV=v;ejected=id;}});
+  if(ejected&&ejected!=='skip'&&state.players[ejected]){state.players[ejected].alive=false;}
+  state.phase='voteResult';state.lastEjected=ejected;state.lastEjectedName=ejected&&ejected!=='skip'?state.players[ejected]?.name:'Nobody';state.lastWasImp=ejected&&state.impostors.includes(ejected);
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+  setTimeout(async()=>{const{data:r2}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(r2){const s=r2.state;if(!imCheckWinConditions(s)){s.phase='playing';await db.from('impostor_rooms').update({state:s}).eq('code',imRoom);}}},5000);
+}
+
+function imShowVoteResult(state){
+  document.getElementById('im-vote').style.display='none';
+  document.getElementById('im-vote-result').style.display='block';
+  const et=document.getElementById('im-ejected-text'),es=document.getElementById('im-ejected-sub');
+  if(!state.lastEjected||state.lastEjected==='skip'){if(et)et.textContent='No one was ejected.';if(es)es.textContent='';}
+  else{if(et)et.textContent=`${state.lastEjectedName} was ejected.`;if(es)es.textContent=state.lastWasImp?'They were The Impostor.':'They were NOT The Impostor.';}
+}
+
+function imCheckWinConditions(state){
+  const players=Object.values(state.players||{});
+  const aliveImps=players.filter((_,i)=>state.impostors.includes(Object.keys(state.players)[i])&&_.alive);
+  const aliveCrew=players.filter((_,i)=>!state.impostors.includes(Object.keys(state.players)[i])&&_.alive);
+  if(aliveImps.length===0){imTriggerGameOver(state,'crew');return true;}
+  if(aliveImps.length>=aliveCrew.length){imTriggerGameOver(state,'impostor');return true;}
+  const allTasksDone=Object.values(state.tasks||{}).every(t=>t.done>=t.total);
+  if(allTasksDone){imTriggerGameOver(state,'crew');return true;}
+  return false;
+}
+
+async function imTriggerGameOver(state,winner){
+  state.phase='gameover';state.winner=winner;
+  await db.from('impostor_rooms').update({state}).eq('code',imRoom);
+}
+
+async function imShowGameOver(state){
+  imStopSub();
+  ['im-game','im-meeting','im-vote','im-vote-result'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  document.getElementById('im-gameover').style.display='block';
+  const isImp=state.impostors.includes(currentUser.id);const crewWin=state.winner==='crew';
+  const title=document.getElementById('im-go-title'),sub=document.getElementById('im-go-sub');
+  if(crewWin){if(title){title.textContent='Crewmates Win!';title.style.color='#5a9e6f';}if(sub)sub.textContent='All tasks complete or impostors eliminated!';}
+  else{if(title){title.textContent='Impostors Win!';title.style.color='#ff4646';}if(sub)sub.textContent='Impostors outnumbered the crew!';}
+  const roles=document.getElementById('im-go-roles');
+  if(roles)roles.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">'+Object.entries(state.players||{}).map(([id,p])=>{const imp=state.impostors.includes(id);return`<div style="background:${imp?'rgba(255,70,70,.1)':'rgba(90,158,111,.1)'};border:1px solid ${imp?'rgba(255,70,70,.3)':'rgba(90,158,111,.3)'};padding:8px 14px;"><div style="width:14px;height:14px;border-radius:50%;background:${IM_COLORS[p.colorIdx]};display:inline-block;vertical-align:middle;margin-right:6px;"></div><span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);">${p.name}</span><span style="font-size:9px;margin-left:8px;color:${imp?'#ff4646':'#5a9e6f'};">${imp?'Impostor':'Crewmate'}</span></div>`;}).join('')+'</div>';
+  if(currentUser){const iWon=(crewWin&&!isImp)||(!crewWin&&isImp);const{data:ex}=await db.from('impostor_stats').select('*').eq('user_id',currentUser.id).single();const updates={user_id:currentUser.id,display_name:currentUserName||'?',games_played:(ex?.games_played||0)+1,crew_wins:(ex?.crew_wins||0)+(crewWin&&!isImp?1:0),imp_wins:(ex?.imp_wins||0)+(!crewWin&&isImp?1:0),updated_at:new Date().toISOString()};await db.from('impostor_stats').upsert(updates,{onConflict:'user_id'});}
+}
+
+window.imLeave=async function(){
+  imStopSub();
+  if(imRoom&&currentUser){const{data:r}=await db.from('impostor_rooms').select('state').eq('code',imRoom).single();if(r){const state=r.state;if(state.players?.[currentUser.id])delete state.players[currentUser.id];await db.from('impostor_rooms').update({state}).eq('code',imRoom);}await db.from('impostor_players').delete().eq('room_code',imRoom).eq('user_id',currentUser.id);}
+  imRoom=null;imIsHost=false;
+};
+/* ══ END OF PASTE BLOCK ══ */
+
     /* ══════════════════════════════════════
        NAME PICKER
     ══════════════════════════════════════ */
@@ -2165,224 +3328,7 @@ create policy "allow all" on impostor_stats   for all using (true) with check (t
     async function chNewRound(){if(!chIsHost){toast('Only the host can start a new round.');return;}chHasSubmittedClue=false;chHasVoted=false;chMyRole=null;document.getElementById('ch-results').style.display='none';document.getElementById('ch-clues-list').innerHTML='';document.getElementById('ch-vote-area').style.display='none';document.getElementById('ch-vote-btns').innerHTML='';document.getElementById('ch-board-area').style.display='none';document.getElementById('ch-game-area').style.display='none';document.getElementById('ch-role-reveal').style.display='none';document.getElementById('ch-guess-area').style.display='none';document.getElementById('ch-final-result').textContent='';const gi=document.getElementById('ch-guess-input');if(gi)gi.value='';document.getElementById('ch-clue-area').innerHTML=`<div class="f-label" style="margin-bottom:12px;">Your Clue Word</div><div style="display:flex;gap:8px;"><input class="f-input" id="ch-clue-input" placeholder="One word only…" maxlength="20"><button class="btn-gold" onclick="chSubmitClue()"><span>Submit</span></button></div>`;await db.from('chameleon_players').update({is_ready:false}).eq('room_code',chRoomCode);await chStartGame();}
     async function leaveChameleonRoom(){stopChameleonPolling();if(chRoomCode&&currentUser){await db.from('chameleon_players').delete().eq('room_code',chRoomCode).eq('user_id',currentUser.id);if(chIsHost)await db.from('chameleon_rooms').delete().eq('code',chRoomCode);}chRoomCode=null;chIsHost=false;chMyRole=null;chHasSubmittedClue=false;chHasVoted=false;}
 
-    <!-- IMPOSTOR -->
-<div id="page-impostor" class="page-view">
-  <nav class="topbar">
-    <div class="topbar-brand" onclick="goto('dashboard')"><div class="brand-icon"><span></span></div><div class="brand-name">1A3 Class Server</div></div>
-    <div class="topbar-nav">
-      <span class="nav-link" onclick="goto('dashboard')">Dashboard</span>
-      <span class="nav-link" onclick="goto('games')">Secret Logs</span>
-      <span class="nav-link active">Impostor</span>
-    </div>
-    <div class="topbar-right"><div class="badge" style="color:#ff4646;border-color:rgba(255,70,70,.4);">Among Us</div><button class="signout-btn" onclick="imLeave();goto('games')">Leave</button></div>
-  </nav>
-  <div class="page-body" style="max-width:1100px;">
-    <div class="page-header">
-      <div class="divider-line"><div class="divider-gem"></div></div>
-      <h1 class="page-title">The <em>Impostor</em></h1>
-      <p class="page-subtitle">Skield map · Complete tasks · Find the impostor before it's too late</p>
-    </div>
 
-    <!-- LOBBY -->
-    <div id="im-lobby">
-      <div id="im-my-stats" style="text-align:center;margin-bottom:32px;">
-        <div style="display:inline-flex;gap:1px;background:rgba(255,70,70,.08);">
-          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
-            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Games Won</div>
-            <div id="im-wins" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#5a9e6f;">—</div>
-          </div>
-          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
-            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Impostor Wins</div>
-            <div id="im-imp-wins" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:#ff4646;">—</div>
-          </div>
-          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.2);padding:18px 32px;text-align:center;">
-            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Games Played</div>
-            <div id="im-played" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,70,70,.08);margin-bottom:32px;">
-        <div style="background:var(--dark-2);padding:32px;">
-          <div class="f-label" style="margin-bottom:16px;">Create a new room</div>
-          <div style="margin-bottom:12px;">
-            <div class="f-label" style="margin-bottom:8px;">Impostors</div>
-            <div style="display:flex;gap:8px;">
-              <button class="filter-btn active" id="imImpCount1" onclick="imSetImpostors(1)">1</button>
-              <button class="filter-btn" id="imImpCount2" onclick="imSetImpostors(2)">2</button>
-            </div>
-          </div>
-          <div style="margin-bottom:16px;">
-            <div class="f-label" style="margin-bottom:8px;">Kill Cooldown</div>
-            <div style="display:flex;gap:8px;">
-              <button class="filter-btn active" id="imKill15" onclick="imSetKillCD(15)">15s</button>
-              <button class="filter-btn" id="imKill30" onclick="imSetKillCD(30)">30s</button>
-              <button class="filter-btn" id="imKill45" onclick="imSetKillCD(45)">45s</button>
-            </div>
-          </div>
-          <button class="btn-gold" onclick="imCreate()" style="width:100%;border-color:#ff4646;"><span style="color:#ff4646;">Create Room</span></button>
-        </div>
-        <div style="background:var(--dark-2);padding:32px;">
-          <div class="f-label" style="margin-bottom:16px;">Join with room code</div>
-          <div style="display:flex;gap:8px;margin-bottom:12px;">
-            <input class="f-input" id="imJoinCode" placeholder="e.g. XKPQ" maxlength="4" style="text-transform:uppercase;letter-spacing:.3em;font-size:18px;text-align:center;flex:1;">
-            <button class="btn-gold" onclick="imJoin()"><span>Join</span></button>
-          </div>
-          <div id="im-join-msg" style="font-size:10px;letter-spacing:.15em;color:#d97070;min-height:16px;text-transform:uppercase;"></div>
-          <div style="margin-top:20px;font-size:10px;letter-spacing:.1em;color:var(--text-muted);line-height:1.9;">
-            <span style="color:#ff4646;display:block;margin-bottom:6px;font-size:9px;letter-spacing:.25em;text-transform:uppercase;">How to Play</span>
-            Crewmates complete tasks on Skield. Impostors sabotage and eliminate crewmates. Call emergency meetings to discuss and vote out suspects. Crewmates win by finishing all tasks or voting out all impostors. Impostors win by outnumbering crewmates.
-          </div>
-        </div>
-      </div>
-
-      <div id="im-lobby-msg" style="font-size:11px;letter-spacing:.15em;color:#ff4646;text-align:center;min-height:20px;text-transform:uppercase;margin-bottom:28px;"></div>
-
-      <div class="section-head"><h2 class="section-title">Leaderboard</h2><div class="section-line"></div></div>
-      <div id="im-leaderboard" style="margin-bottom:48px;"></div>
-    </div>
-
-    <!-- WAITING ROOM -->
-    <div id="im-waiting" style="display:none;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-        <div>
-          <div class="f-label" style="margin-bottom:4px;">Room Code</div>
-          <div id="im-room-code-display" style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:#ff4646;letter-spacing:.3em;">—</div>
-        </div>
-        <div id="im-wait-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);text-align:right;margin-top:12px;"></div>
-      </div>
-      <div style="margin-bottom:28px;">
-        <div class="section-head" style="margin-bottom:12px;"><h2 class="section-title">Players</h2><div class="section-line"></div></div>
-        <div id="im-player-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
-        <div style="font-size:10px;letter-spacing:.12em;color:var(--text-muted);">Need 4–10 players · Minimum 4 to start</div>
-      </div>
-      <div id="im-host-start" style="display:none;">
-        <button id="im-start-btn" class="btn-gold" onclick="imStartGame()" style="width:100%;border-color:#ff4646;opacity:.5;cursor:not-allowed;" disabled>
-          <span>Waiting for 4+ players…</span>
-        </button>
-      </div>
-      <div id="im-wait-msg" style="font-size:11px;letter-spacing:.15em;color:#ff4646;text-align:center;min-height:20px;text-transform:uppercase;margin-top:16px;"></div>
-    </div>
-
-    <!-- GAME AREA -->
-    <div id="im-game" style="display:none;">
-      <!-- Role reveal banner -->
-      <div id="im-role-banner" style="text-align:center;padding:20px;margin-bottom:16px;border:1px solid rgba(255,70,70,.2);background:var(--dark-2);display:none;">
-        <div id="im-role-label" style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;margin-bottom:6px;"></div>
-        <div id="im-role-text" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;"></div>
-        <div id="im-role-sub" style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-top:6px;"></div>
-      </div>
-
-      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
-        <!-- MAP -->
-        <div style="flex:0 0 auto;">
-          <canvas id="im-canvas" width="660" height="440" style="border:1px solid rgba(255,70,70,.2);cursor:crosshair;display:block;max-width:100%;image-rendering:pixelated;"></canvas>
-          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
-            <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);">Move: WASD / Arrow keys</div>
-            <button class="g-btn" id="im-kill-btn" onclick="imKill()" style="display:none;font-size:9px;padding:8px 16px;border-color:#ff4646;color:#ff4646;">⚔ Kill</button>
-            <button class="g-btn" id="im-report-btn" onclick="imReport()" style="display:none;font-size:9px;padding:8px 16px;border-color:#e8d5a3;color:#e8d5a3;">📢 Report</button>
-            <button class="g-btn" id="im-task-btn" onclick="imDoTask()" style="display:none;font-size:9px;padding:8px 16px;">⚙ Use / Task</button>
-            <button class="g-btn" id="im-vent-btn" onclick="imVent()" style="display:none;font-size:9px;padding:8px 16px;border-color:#b07ec9;color:#b07ec9;">💨 Vent</button>
-            <button class="g-btn" id="im-sabotage-btn" onclick="imOpenSabotage()" style="display:none;font-size:9px;padding:8px 16px;border-color:#ff4646;color:#ff4646;">💥 Sabotage</button>
-            <button class="g-btn" onclick="imCallMeeting()" style="font-size:9px;padding:8px 16px;border-color:#e8d5a3;color:#e8d5a3;" id="im-meeting-btn">🆘 Emergency</button>
-          </div>
-        </div>
-
-        <!-- SIDEBAR -->
-        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px;">
-          <!-- HUD -->
-          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.15);padding:16px;">
-            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Status</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">Tasks</div><div id="im-task-bar-wrap" style="margin-top:4px;height:6px;background:rgba(201,169,110,.1);"><div id="im-task-bar" style="height:100%;width:0%;background:#5a9e6f;transition:width .4s;"></div></div><div id="im-task-count" style="font-size:10px;color:#5a9e6f;margin-top:3px;">0 / 0</div></div>
-              <div><div style="font-size:9px;letter-spacing:.15em;color:var(--text-muted);">Kill CD</div><div id="im-kill-cd" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:#ff4646;">—</div></div>
-            </div>
-          </div>
-
-          <!-- Sabotage panel -->
-          <div id="im-sabotage-panel" style="display:none;background:rgba(255,70,70,.06);border:1px solid rgba(255,70,70,.3);padding:16px;">
-            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#ff4646;margin-bottom:12px;">Sabotage</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <button class="btn-gold" onclick="imSabotage('lights')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">💡 Lights Out</span></button>
-              <button class="btn-gold" onclick="imSabotage('o2')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">☠ O2 Depleting</span></button>
-              <button class="btn-gold" onclick="imSabotage('reactor')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">⚡ Reactor Meltdown</span></button>
-              <button class="btn-gold" onclick="imSabotage('comms')" style="border-color:#ff4646;font-size:9px;"><span style="color:#ff4646;">📡 Comms Sabotaged</span></button>
-              <button class="filter-btn" onclick="imCloseSabotage()" style="font-size:9px;">Cancel</button>
-            </div>
-          </div>
-
-          <!-- Sabotage fix prompt -->
-          <div id="im-sabofix-panel" style="display:none;background:rgba(255,70,70,.08);border:1px solid rgba(255,70,70,.4);padding:16px;animation:adminPulse 1s ease-in-out infinite;">
-            <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#ff4646;margin-bottom:8px;">⚠ SABOTAGE ACTIVE</div>
-            <div id="im-sabofix-label" style="font-size:11px;letter-spacing:.1em;color:var(--cream);margin-bottom:12px;line-height:1.8;"></div>
-            <div id="im-sabofix-timer" style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#ff4646;margin-bottom:12px;"></div>
-            <button class="btn-gold" id="im-sabofix-btn" onclick="imFixSabotage()" style="display:none;width:100%;border-color:#5a9e6f;"><span style="color:#5a9e6f;">🔧 Fix It</span></button>
-          </div>
-
-          <!-- Player list -->
-          <div style="background:var(--dark-2);border:1px solid rgba(255,70,70,.1);padding:16px;flex:1;">
-            <div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Players</div>
-            <div id="im-alive-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="im-game-msg" style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:12px;min-height:18px;"></div>
-    </div>
-
-    <!-- MEETING / VOTE OVERLAY -->
-    <div id="im-meeting" style="display:none;">
-      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:40px;text-align:center;max-width:700px;margin:0 auto;">
-        <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:#ff4646;margin-bottom:12px;" id="im-meeting-reason">Emergency Meeting</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);margin-bottom:8px;">Discussion</div>
-        <div id="im-discuss-timer" style="font-family:'Cormorant Garamond',serif;font-size:48px;color:#ff4646;margin-bottom:20px;"></div>
-        <div style="font-size:10px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:24px;">Discuss who the impostor is — voting opens when timer ends</div>
-        <div id="im-chat-area" style="background:var(--dark-3);border:1px solid rgba(201,169,110,.1);padding:16px;max-height:180px;overflow-y:auto;margin-bottom:16px;text-align:left;"></div>
-        <div style="display:flex;gap:8px;margin-bottom:0;">
-          <input class="f-input" id="im-chat-input" placeholder="Say something… (Enter to send)" maxlength="120" style="flex:1;">
-          <button class="btn-gold" onclick="imSendChat()"><span>Send</span></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- VOTE OVERLAY -->
-    <div id="im-vote" style="display:none;">
-      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:40px;max-width:700px;margin:0 auto;text-align:center;">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);margin-bottom:8px;">Vote</div>
-        <div id="im-vote-timer" style="font-family:'Cormorant Garamond',serif;font-size:48px;color:#ff4646;margin-bottom:20px;"></div>
-        <div id="im-vote-btns" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:20px;"></div>
-        <div id="im-vote-status" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);"></div>
-      </div>
-    </div>
-
-    <!-- VOTE RESULT OVERLAY -->
-    <div id="im-vote-result" style="display:none;">
-      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.4);padding:48px;max-width:600px;margin:0 auto;text-align:center;">
-        <div id="im-ejected-text" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);margin-bottom:12px;"></div>
-        <div id="im-ejected-sub" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);"></div>
-      </div>
-    </div>
-
-    <!-- TASK MINIGAME OVERLAY -->
-    <div id="im-task-overlay" style="display:none;position:fixed;inset:0;background:rgba(14,12,9,.95);z-index:600;display:none;align-items:center;justify-content:center;">
-      <div style="background:var(--dark-2);border:1px solid rgba(201,169,110,.25);padding:40px;max-width:460px;width:90%;text-align:center;position:relative;">
-        <button class="lb-close" onclick="imCloseTask()" style="position:absolute;top:12px;right:16px;">✕</button>
-        <div id="im-task-title" style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;"></div>
-        <div id="im-task-body" style=""></div>
-      </div>
-    </div>
-
-    <!-- GAME OVER -->
-    <div id="im-gameover" style="display:none;">
-      <div style="background:rgba(14,12,9,.96);border:2px solid rgba(255,70,70,.3);padding:60px 40px;max-width:600px;margin:0 auto;text-align:center;">
-        <div id="im-go-title" style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;margin-bottom:12px;"></div>
-        <div id="im-go-sub" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:32px;"></div>
-        <div id="im-go-roles" style="margin-bottom:32px;"></div>
-        <button class="btn-gold" onclick="imLeave();goto('impostor')" style="border-color:#ff4646;"><span style="color:#ff4646;">Back to Lobby</span></button>
-      </div>
-    </div>
-  </div>
-</div>
     /* ══════════════════════════════════════
        INIT — session check on load
     ══════════════════════════════════════ */
